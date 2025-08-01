@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3 uid="uid://b3cfianpi8mts"]
+
+[ext_resource type="Script" uid="uid://dtawej8hh661g" path="res://scene/card.gd" id="1_gw1lc"]
+[ext_resource type="Texture2D" uid="uid://ckr48qveab1jv" path="res://assets/8BitDeck.png" id="2_lu544"]
+[ext_resource type="Texture2D" uid="uid://cq6n2t7f73hv0" path="res://assets/Enhancers.png" id="2_md2gi"]
+
+[node name="Card" type="Node2D"]
+script = ExtResource("1_gw1lc")
+
+[node name="Background" type="Sprite2D" parent="."]
+texture = ExtResource("2_md2gi")
+region_enabled = true
+region_rect = Rect2(142, 0, 142, 190)
+
+[node name="Face" type="Sprite2D" parent="."]
+texture = ExtResource("2_lu544")
+region_enabled = true
+region_rect = Rect2(0, 0, 142, 190)

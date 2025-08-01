@@ -1,0 +1,91 @@
+[gd_scene load_steps=4 format=3 uid="uid://bw4hruxi0mnr1"]
+
+[ext_resource type="Script" uid="uid://byrm7aq8hamfd" path="res://scene/player.gd" id="1_xo3ru"]
+[ext_resource type="Texture2D" uid="uid://c3ujhdojewfx5" path="res://assets/avatar_default_1.png" id="2_hjaqi"]
+[ext_resource type="FontFile" uid="uid://c2hqvv1e6rt5y" path="res://assets/SourceHanSansSC-Regular-2.otf" id="3_fvtld"]
+
+[node name="Player" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1600.0
+offset_bottom = -900.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_xo3ru")
+
+[node name="HandArea" type="CanvasGroup" parent="."]
+
+[node name="DiscardArea" type="CanvasGroup" parent="."]
+position = Vector2(0, -300)
+scale = Vector2(0.8, 0.8)
+
+[node name="PassLabel" type="Label" parent="DiscardArea"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -59.5
+offset_top = -34.5
+offset_right = 59.5
+offset_bottom = 34.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("3_fvtld")
+theme_override_font_sizes/font_size = 80
+text = "PASS"
+
+[node name="Info" type="CanvasGroup" parent="."]
+position = Vector2(-600, 0)
+
+[node name="ColorRect" type="ColorRect" parent="Info"]
+offset_left = -65.0
+offset_top = -65.0
+offset_right = 205.0
+offset_bottom = 65.0
+color = Color(0, 0, 0, 0.588235)
+
+[node name="Avatar" type="Sprite2D" parent="Info"]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_hjaqi")
+
+[node name="Name" type="Label" parent="Info"]
+offset_left = 59.0
+offset_top = -52.0
+offset_right = 142.0
+offset_bottom = -8.0
+theme_override_fonts/font = ExtResource("3_fvtld")
+theme_override_font_sizes/font_size = 30
+text = "玩家 1"
+
+[node name="Rest" type="Label" parent="Info"]
+offset_left = 59.0
+offset_top = 4.0
+offset_right = 175.0
+offset_bottom = 48.0
+theme_override_fonts/font = ExtResource("3_fvtld")
+theme_override_font_sizes/font_size = 30
+text = "余 11 张"
+
+[node name="Emoji" type="Label" parent="Info"]
+offset_left = -90.0
+offset_top = 30.0
+offset_right = -20.0
+offset_bottom = 103.0
+theme_override_fonts/font = ExtResource("3_fvtld")
+theme_override_font_sizes/font_size = 50
+text = "🤔"
+
+[node name="Hint" type="Label" parent="Info"]
+offset_left = 170.0
+offset_top = -4.0
+offset_right = 214.0
+offset_bottom = 55.0
+theme_override_fonts/font = ExtResource("3_fvtld")
+theme_override_font_sizes/font_size = 40
+text = "+7"
+horizontal_alignment = 1
+vertical_alignment = 1

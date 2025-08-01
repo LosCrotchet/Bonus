@@ -1,0 +1,147 @@
+[gd_scene load_steps=20 format=3 uid="uid://8oujd7w680x8"]
+
+[ext_resource type="Script" uid="uid://cnlteqlgxlp15" path="res://scene/dice.gd" id="1_jktb0"]
+[ext_resource type="Texture2D" uid="uid://ecjxocym6rjf" path="res://assets/dice.png" id="2_1djgf"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wx7gr"]
+atlas = ExtResource("2_1djgf")
+region = Rect2(0, 200, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pbbo3"]
+atlas = ExtResource("2_1djgf")
+region = Rect2(100, 200, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_drr1q"]
+atlas = ExtResource("2_1djgf")
+region = Rect2(200, 200, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i60ej"]
+atlas = ExtResource("2_1djgf")
+region = Rect2(300, 200, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qm8hu"]
+atlas = ExtResource("2_1djgf")
+region = Rect2(400, 200, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2bvnr"]
+atlas = ExtResource("2_1djgf")
+region = Rect2(500, 200, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jktb0"]
+atlas = ExtResource("2_1djgf")
+region = Rect2(0, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1djgf"]
+atlas = ExtResource("2_1djgf")
+region = Rect2(100, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fkkh0"]
+atlas = ExtResource("2_1djgf")
+region = Rect2(200, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pveou"]
+atlas = ExtResource("2_1djgf")
+region = Rect2(300, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eqj6a"]
+atlas = ExtResource("2_1djgf")
+region = Rect2(0, 100, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dkcn0"]
+atlas = ExtResource("2_1djgf")
+region = Rect2(100, 100, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ctkwk"]
+atlas = ExtResource("2_1djgf")
+region = Rect2(200, 100, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_feplc"]
+atlas = ExtResource("2_1djgf")
+region = Rect2(300, 100, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d4q10"]
+atlas = ExtResource("2_1djgf")
+region = Rect2(400, 100, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i300k"]
+atlas = ExtResource("2_1djgf")
+region = Rect2(500, 100, 100, 100)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_wx7gr"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wx7gr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pbbo3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_drr1q")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i60ej")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qm8hu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2bvnr")
+}],
+"loop": true,
+"name": &"bonus",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jktb0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1djgf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fkkh0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pveou")
+}],
+"loop": true,
+"name": &"roll",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eqj6a")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dkcn0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ctkwk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_feplc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d4q10")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i300k")
+}],
+"loop": true,
+"name": &"still",
+"speed": 5.0
+}]
+
+[node name="Dice" type="Node2D"]
+script = ExtResource("1_jktb0")
+
+[node name="outlook" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_wx7gr")
+animation = &"bonus"
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 2.0
+one_shot = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

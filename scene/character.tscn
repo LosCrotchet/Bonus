@@ -1,0 +1,45 @@
+[gd_scene load_steps=6 format=3 uid="uid://bi6f3v48ib58r"]
+
+[ext_resource type="Texture2D" uid="uid://c13u02bhfoyg4" path="res://assets/head_round.png" id="1_6k5wm"]
+[ext_resource type="Script" uid="uid://c13yhkypu0xrv" path="res://scene/character.gd" id="1_7v2w7"]
+[ext_resource type="Texture2D" uid="uid://brbxliduy5j3c" path="res://assets/eye_default.png" id="2_7v2w7"]
+[ext_resource type="Texture2D" uid="uid://de6n77p5r8ro5" path="res://assets/mouse_open.png" id="4_7v2w7"]
+[ext_resource type="Texture2D" uid="uid://bby822rqavlys" path="res://assets/body_default.png" id="4_mbevu"]
+
+[node name="Character" type="Node2D"]
+script = ExtResource("1_7v2w7")
+
+[node name="Head" type="Sprite2D" parent="."]
+texture = ExtResource("1_6k5wm")
+
+[node name="RightEye" type="Sprite2D" parent="Head"]
+position = Vector2(-30, 0)
+texture = ExtResource("2_7v2w7")
+
+[node name="LeftEye" type="Sprite2D" parent="Head"]
+position = Vector2(30, 0)
+texture = ExtResource("2_7v2w7")
+
+[node name="Mouse" type="Sprite2D" parent="Head"]
+position = Vector2(0, 80)
+texture = ExtResource("4_7v2w7")
+
+[node name="Body" type="Sprite2D" parent="."]
+position = Vector2(0, 280)
+texture = ExtResource("4_mbevu")
+
+[node name="Twinkle_tmp" type="Timer" parent="."]
+wait_time = 0.3
+one_shot = true
+
+[node name="Twinkle" type="Timer" parent="."]
+wait_time = 3.0
+one_shot = true
+
+[node name="Mouse" type="Timer" parent="."]
+wait_time = 5.0
+autostart = true
+
+[connection signal="timeout" from="Twinkle_tmp" to="." method="_on_twinkle_tmp_timeout"]
+[connection signal="timeout" from="Twinkle" to="." method="_on_twinkle_timeout"]
+[connection signal="timeout" from="Mouse" to="." method="_on_mouse_timeout"]

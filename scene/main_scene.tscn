@@ -1,0 +1,224 @@
+[gd_scene load_steps=13 format=3 uid="uid://d1bjj61jqhd50"]
+
+[ext_resource type="Script" uid="uid://bgdgu2gjdppy5" path="res://scene/main_scene.gd" id="1_fb1ex"]
+[ext_resource type="FontFile" uid="uid://c2hqvv1e6rt5y" path="res://assets/SourceHanSansSC-Regular-2.otf" id="2_hrphr"]
+[ext_resource type="PackedScene" uid="uid://8oujd7w680x8" path="res://scene/dice.tscn" id="2_ry1uq"]
+[ext_resource type="Script" uid="uid://daqyqy4m5x0pd" path="res://scene/game_manager.gd" id="3_jsie2"]
+[ext_resource type="Script" uid="uid://cmb1p1gmcwcds" path="res://scene/player_manager.gd" id="4_4wnd8"]
+[ext_resource type="Script" uid="uid://lw7m8qnwfvfd" path="res://scene/deck_manager.gd" id="4_qvu5t"]
+[ext_resource type="Script" uid="uid://bb4ji14yv3pg0" path="res://scene/game_ui.gd" id="5_pi0uh"]
+[ext_resource type="Theme" uid="uid://fvk46ntxb4ka" path="res://assets/button.tres" id="8_cj0ow"]
+[ext_resource type="PackedScene" uid="uid://bw4hruxi0mnr1" path="res://scene/player.tscn" id="8_hrphr"]
+[ext_resource type="AudioStream" uid="uid://cyvyxpcd72477" path="res://assets/sound/button.ogg" id="10_86xya"]
+[ext_resource type="Script" uid="uid://cvxrju7ibgkqq" path="res://scene/audio_stream_player_2d.gd" id="11_cj0ow"]
+[ext_resource type="Texture2D" uid="uid://d3x4fwaysadxn" path="res://assets/icon/icons8-logout-48.png" id="12_xavy2"]
+
+[node name="MainScene" type="Node2D"]
+script = ExtResource("1_fb1ex")
+
+[node name="Prop" type="CanvasGroup" parent="."]
+
+[node name="Background" type="ColorRect" parent="Prop"]
+offset_right = 1600.0
+offset_bottom = 900.0
+color = Color(0.152941, 0.152941, 0.152941, 1)
+
+[node name="Desktop" type="ColorRect" parent="Prop"]
+offset_left = 300.0
+offset_top = 200.0
+offset_right = 1300.0
+offset_bottom = 800.0
+color = Color(0.243137, 0.243137, 0.243137, 1)
+
+[node name="DeckCount" type="Label" parent="."]
+offset_left = 681.0
+offset_top = 322.0
+offset_right = 903.0
+offset_bottom = 612.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.313726)
+theme_override_fonts/font = ExtResource("2_hrphr")
+theme_override_font_sizes/font_size = 200
+text = "32"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GameManager" type="Node" parent="."]
+script = ExtResource("3_jsie2")
+
+[node name="DeckManager" type="Node" parent="."]
+script = ExtResource("4_qvu5t")
+
+[node name="PlayerManager" type="Node" parent="."]
+script = ExtResource("4_4wnd8")
+
+[node name="Player" parent="PlayerManager" instance=ExtResource("8_hrphr")]
+visible = false
+select_enable = true
+
+[node name="Player2" parent="PlayerManager" instance=ExtResource("8_hrphr")]
+visible = false
+
+[node name="Player3" parent="PlayerManager" instance=ExtResource("8_hrphr")]
+visible = false
+location = 0
+
+[node name="Player4" parent="PlayerManager" instance=ExtResource("8_hrphr")]
+visible = false
+location = 3
+
+[node name="GameUI" type="CanvasGroup" parent="."]
+position = Vector2(860, 600)
+script = ExtResource("5_pi0uh")
+
+[node name="PlayButton" type="Button" parent="GameUI"]
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -228.0
+offset_top = -31.5
+offset_right = -100.0
+offset_bottom = 31.5
+grow_horizontal = 0
+grow_vertical = 2
+theme = ExtResource("8_cj0ow")
+theme_override_font_sizes/font_size = 40
+text = "出牌"
+
+[node name="HintButton" type="Button" parent="GameUI"]
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -63.0
+offset_top = -31.0
+offset_right = 65.0
+offset_bottom = 32.0
+grow_horizontal = 0
+grow_vertical = 2
+theme = ExtResource("8_cj0ow")
+theme_override_font_sizes/font_size = 40
+text = "提示"
+
+[node name="PassButton" type="Button" parent="GameUI"]
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 100.0
+offset_top = -31.5
+offset_right = 228.0
+offset_bottom = 31.5
+grow_vertical = 2
+theme = ExtResource("8_cj0ow")
+theme_override_font_sizes/font_size = 40
+text = "跳过"
+
+[node name="SelectTypeLabel" type="Label" parent="GameUI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -465.0
+offset_top = -17.5
+offset_right = -390.0
+offset_bottom = 17.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 25
+
+[node name="WinnerLabel" type="Label" parent="."]
+visible = false
+offset_left = 675.0
+offset_top = 410.0
+offset_right = 930.0
+offset_bottom = 479.0
+theme_override_font_sizes/font_size = 50
+text = "玩家 0 胜出！"
+
+[node name="RestartGameButton" type="Button" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 530.0
+offset_top = 408.0
+offset_right = 772.0
+offset_bottom = 485.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("8_cj0ow")
+theme_override_font_sizes/font_size = 40
+text = "再来一把"
+
+[node name="BacktoMenuButton" type="Button" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 806.0
+offset_top = 410.0
+offset_right = 1048.0
+offset_bottom = 487.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("8_cj0ow")
+theme_override_font_sizes/font_size = 40
+text = "回到菜单"
+
+[node name="Dice" parent="." instance=ExtResource("2_ry1uq")]
+visible = false
+position = Vector2(540, 600)
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("10_86xya")
+script = ExtResource("11_cj0ow")
+
+[node name="Back" type="Button" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 1510.0
+offset_top = 20.0
+offset_right = 1580.0
+offset_bottom = 84.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("8_cj0ow")
+theme_override_font_sizes/font_size = 40
+icon = ExtResource("12_xavy2")
+icon_alignment = 1
+
+[connection signal="GameStart" from="." to="." method="_on_game_start"]
+[connection signal="GameStart" from="." to="GameManager" method="_on_game_start"]
+[connection signal="DrawCard" from="GameManager" to="PlayerManager" method="_on_game_manager_draw_card"]
+[connection signal="GameSignal" from="GameManager" to="." method="_on_game_manager_game_signal"]
+[connection signal="GameSignal" from="GameManager" to="PlayerManager" method="_on_game_manager_game_signal"]
+[connection signal="GameSignal" from="GameManager" to="GameUI" method="_on_game_manager_game_signal"]
+[connection signal="GameEnd" from="PlayerManager" to="." method="_on_player_manager_game_end"]
+[connection signal="GameEnd" from="PlayerManager" to="GameManager" method="_on_player_manager_game_end"]
+[connection signal="GameEnd" from="PlayerManager" to="GameUI" method="_on_player_manager_game_end"]
+[connection signal="PlayerDiceRoll" from="PlayerManager" to="Dice" method="_on_player_manager_player_dice_roll"]
+[connection signal="PlayerDiceRoll" from="PlayerManager" to="AudioStreamPlayer2D" method="_on_player_manager_player_dice_roll"]
+[connection signal="PlayerFinish" from="PlayerManager" to="GameManager" method="_on_player_manager_player_finish"]
+[connection signal="PlayerFinish" from="PlayerManager" to="GameUI" method="_on_player_manager_player_finish"]
+[connection signal="PlayerHandCountUpdate" from="PlayerManager" to="GameUI" method="_on_player_manager_player_hand_count_update"]
+[connection signal="PlayerSelectUpdate" from="PlayerManager" to="GameUI" method="_on_player_manager_player_select_update"]
+[connection signal="pressed" from="GameUI/PlayButton" to="PlayerManager" method="_on_play_button_pressed"]
+[connection signal="pressed" from="GameUI/PlayButton" to="AudioStreamPlayer2D" method="_on_button_pressed"]
+[connection signal="pressed" from="GameUI/HintButton" to="AudioStreamPlayer2D" method="_on_button_pressed"]
+[connection signal="pressed" from="GameUI/PassButton" to="GameManager" method="_on_pass_button_pressed"]
+[connection signal="pressed" from="GameUI/PassButton" to="PlayerManager" method="_on_pass_button_pressed"]
+[connection signal="pressed" from="GameUI/PassButton" to="GameUI" method="_on_pass_button_pressed"]
+[connection signal="pressed" from="GameUI/PassButton" to="AudioStreamPlayer2D" method="_on_button_pressed"]
+[connection signal="pressed" from="RestartGameButton" to="." method="_on_restart_game_button_pressed"]
+[connection signal="pressed" from="BacktoMenuButton" to="." method="_on_backto_menu_button_pressed"]
+[connection signal="DiceTimeout" from="Dice" to="GameManager" method="_on_dice_dice_timeout"]
+[connection signal="DiceTimeout" from="Dice" to="AudioStreamPlayer2D" method="_on_dice_dice_timeout"]
+[connection signal="pressed" from="Back" to="." method="_on_backto_menu_button_pressed"]

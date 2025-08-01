@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bl0mvbvddq2xt"]
+
+[ext_resource type="Script" uid="uid://dku78e5pc3poa" path="res://scene/rival_01.gd" id="1_ck5hl"]
+
+[node name="Rival01" type="Node"]
+script = ExtResource("1_ck5hl")

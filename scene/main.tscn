@@ -1,0 +1,229 @@
+[gd_scene load_steps=11 format=3 uid="uid://j4athgw83pw7"]
+
+[ext_resource type="Texture2D" uid="uid://cwbq25vt0o46y" path="res://assets/desktop.png" id="1_v0l8b"]
+[ext_resource type="Script" uid="uid://buxab23e5q32d" path="res://scene/main.gd" id="1_wp4xf"]
+[ext_resource type="Script" uid="uid://bc04jodc8x7do" path="res://scene/card_dealer.gd" id="4_0ha60"]
+[ext_resource type="Script" uid="uid://bnf733ddimux" path="res://scene/mouse_action.gd" id="4_brvut"]
+[ext_resource type="PackedScene" uid="uid://b3cfianpi8mts" path="res://scene/card.tscn" id="5_0ha60"]
+[ext_resource type="Script" uid="uid://cy10f7lx40wbg" path="res://scene/card_flipper.gd" id="5_4j5ol"]
+[ext_resource type="Script" uid="uid://c0ocwrfmklugq" path="res://scene/game_controller.gd" id="6_p1hux"]
+[ext_resource type="Script" uid="uid://bs0kfnd5ixocu" path="res://scene/display_controller.gd" id="7_of57s"]
+[ext_resource type="PackedScene" uid="uid://bl0mvbvddq2xt" path="res://scene/rival_01.tscn" id="8_tqoya"]
+[ext_resource type="PackedScene" uid="uid://8oujd7w680x8" path="res://scene/dice.tscn" id="9_b5f6u"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_wp4xf")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+offset_right = 1600.0
+offset_bottom = 900.0
+color = Color(0, 0, 0, 1)
+
+[node name="Desktop" type="Sprite2D" parent="."]
+position = Vector2(800, 450)
+texture = ExtResource("1_v0l8b")
+
+[node name="MouseAction" type="Node" parent="."]
+script = ExtResource("4_brvut")
+
+[node name="CardDealer" type="Node" parent="."]
+script = ExtResource("4_0ha60")
+
+[node name="CardFlipper" type="Node" parent="."]
+script = ExtResource("5_4j5ol")
+time = 0.2
+
+[node name="GameController" type="Node" parent="."]
+script = ExtResource("6_p1hux")
+
+[node name="DisplayController" type="Node" parent="."]
+script = ExtResource("7_of57s")
+
+[node name="Rival01" parent="." instance=ExtResource("8_tqoya")]
+
+[node name="Rival02" parent="." instance=ExtResource("8_tqoya")]
+
+[node name="GameStart" type="Button" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 672.0
+offset_top = 371.0
+offset_right = 923.0
+offset_bottom = 458.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 40
+text = "开始游戏"
+
+[node name="DealTimer" type="Timer" parent="."]
+wait_time = 0.1
+
+[node name="Display" type="CanvasGroup" parent="."]
+position = Vector2(800, 600)
+
+[node name="DiceDisplay" type="Label" parent="Display"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 271.5
+offset_top = -68.5
+offset_right = 328.5
+offset_bottom = 68.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 100
+text = "0"
+
+[node name="OwnerIndicate" type="Label" parent="Display"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = -10.0
+offset_right = 50.0
+offset_bottom = 127.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0.557556, 0.242521, 1)
+theme_override_font_sizes/font_size = 100
+text = "———"
+
+[node name="CardCount" type="Label" parent="Display"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -352.0
+offset_top = -29.0
+offset_right = -256.0
+offset_bottom = 28.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 40
+text = "0 / 0"
+
+[node name="CardPlayType" type="Label" parent="Display"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 256.0
+offset_top = -22.0
+offset_right = 346.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 30
+
+[node name="Card" parent="Display" instance=ExtResource("5_0ha60")]
+visible = false
+position = Vector2(0, -200)
+rotation = 1.5708
+background_position = Vector2i(0, 0)
+face_enable = false
+
+[node name="PlayerHand0" type="CanvasGroup" parent="."]
+position = Vector2(800, 780)
+
+[node name="PlayerPlayed0" type="CanvasGroup" parent="."]
+position = Vector2(800, 440)
+scale = Vector2(0.8, 0.8)
+
+[node name="PASS" type="Label" parent="PlayerPlayed0"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -40.0
+offset_top = -27.5
+offset_right = 40.0
+offset_bottom = 27.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 40
+text = "PASS"
+
+[node name="PlayerHand1" type="CanvasGroup" parent="."]
+position = Vector2(800, 0)
+
+[node name="PlayerPlayed1" type="CanvasGroup" parent="."]
+position = Vector2(800, 220)
+scale = Vector2(0.8, 0.8)
+
+[node name="PASS" type="Label" parent="PlayerPlayed1"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -47.5
+offset_top = -27.5
+offset_right = 47.5
+offset_bottom = 27.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 40
+text = "PASS"
+
+[node name="PlayerHand2" type="CanvasGroup" parent="."]
+position = Vector2(1379, -1)
+
+[node name="Buttons" type="CanvasGroup" parent="."]
+position = Vector2(800, 600)
+
+[node name="Dice2" parent="Buttons" instance=ExtResource("9_b5f6u")]
+
+[node name="Pass" type="Button" parent="Buttons"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -210.0
+offset_top = -25.0
+offset_right = -90.0
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 20
+text = "过牌/PASS"
+
+[node name="Play" type="Button" parent="Buttons"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 90.0
+offset_top = -25.0
+offset_right = 210.0
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 20
+text = "打牌/PLAY"
+
+[node name="DEBUG" type="Label" parent="."]
+offset_right = 40.0
+offset_bottom = 23.0
+
+[connection signal="DicePlayTimeout" from="MouseAction" to="." method="_on_mouse_action_dice_play_timeout"]
+[connection signal="pressed" from="GameStart" to="." method="_on_game_start_pressed"]
+[connection signal="timeout" from="DealTimer" to="." method="_on_deal_timer_timeout"]
+[connection signal="pressed" from="Buttons/Pass" to="." method="_on_pass_pressed"]
+[connection signal="pressed" from="Buttons/Play" to="." method="_on_play_pressed"]
