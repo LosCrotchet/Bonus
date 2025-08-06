@@ -30,7 +30,9 @@ func _ready():
 	else:
 		GameMode = 0
 	
-	GameStart.emit()
+	$GameManager.game_mode = GameMode
+	if GameMode == 0:
+		GameStart.emit()
 
 func _process(delta):
 	$DeckCount.text = str(len(DeckManager.deck))
@@ -79,7 +81,8 @@ func _on_game_start():
 	$Dice.visible = true
 	$PlayerManager.visible = true
 	$DeckCount.visible = true
-
+	$PlayerManager.init(GameMode)
+	
 	if GameMode != 2:
 		$GameManager.dealer = 0
 		
@@ -89,12 +92,10 @@ func _on_game_start():
 		if GameMode == 1:
 			WebController.update_deck(DeckManager.deck)
 	else:
-		for i in range(len(WebController.players.keys())):
-			if WebController.players.keys()[i] == 1:
+		for i in range(len($PlayerManager.Players)):
+			if $PlayerManager.Players[i].order == 1:
 				$GameManager.dealer = i
 				break
-	
-	$PlayerManager.init(GameMode)
 
 func _on_restart_game_button_pressed():
 	$GameUI.visible = false

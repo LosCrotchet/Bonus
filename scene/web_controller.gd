@@ -22,8 +22,9 @@ func _ready():
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
 
 func _process(delta):
-	var peers = multiplayer.get_peers()
-	var id = multiplayer.get_unique_id()
+	if multiplayer.multiplayer_peer != null:
+		var peers = multiplayer.get_peers()
+		var id = multiplayer.get_unique_id()
 	pass
 
 func join_game():
@@ -50,8 +51,18 @@ func create_game():
 
 func _on_player_connected(id):
 	_register_player.rpc_id(id, player_info)
-	if multiplayer.is_server() and max_connections != 1:
-		update_max_connections.rpc_id(id, max_connections)
+	if multiplayer.is_server():
+		if max_connections != 1:
+			update_max_connections.rpc_id(id, max_connections)
+		
+		for index in range(2, 5):
+			var is_used = false
+			for k in players.keys():
+				if players[k]["id"] == index:
+					is_used = true
+			if not is_used:
+				update_player_order.rpc_id(id, index)
+				break
 
 func remove_multiplayer_peer():
 	multiplayer.multiplayer_peer = null
@@ -96,12 +107,24 @@ func update_max_connections(max_conn):
 		DeckManager.player_count = max_connections
 
 @rpc("any_peer", "reliable")
+func update_player_order(order):
+	if multiplayer.get_remote_sender_id() == 1:
+		player_info["id"] = order
+		update_player.rpc(player_info)
+
+@rpc("any_peer", "reliable")
 func update_deck(deck:Array):
 	if multiplayer.get_remote_sender_id() == 1:
 		DeckManager.deck = deck
 
 func _on_player_disconnected(id):
-	player_info = {"id": 1, "name": "", "is_ready": false}
+	#player_info = {"id": 1, "name": "", "is_ready": false}
+	var exit_id = players[id]["id"]
+	for index in range(exit_id+1, 5):
+		for k in players.keys():
+			if players[k]["id"] == index:
+				update_player_order.rpc_id(k, index-1)
+				continue
 	players.erase(id)
 	player_disconnected.emit(id)
 
@@ -111,18 +134,6 @@ func _on_connected_ok():
 	var peer_id = multiplayer.get_unique_id()
 	if player_info["name"] == "":
 		player_info["name"] = str(peer_id)
-	if multiplayer.is_server():
-		player_info["id"] = 1
-	else:
-		for i in range(2, 5):
-			var flag = true
-			for k in players.keys():
-				if players[k]["id"] == i:
-					flag = false
-					break
-			if flag:
-				player_info["id"] = i
-				break
 	players[peer_id] = player_info
 	player_connected.emit(peer_id, player_info)
 

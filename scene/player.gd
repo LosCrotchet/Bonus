@@ -8,6 +8,8 @@ enum LOCATION {
 @export var location:LOCATION = LOCATION.DOWN
 @export var select_enable:bool = false
 @export var player_name:String
+@export var order:int
+@export var is_player:bool
 
 @onready var card_1 = preload("res://assets/sound/card1.ogg")
 @onready var card_fan_2 = preload("res://assets/sound/cardFan2.ogg")

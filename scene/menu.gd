@@ -61,7 +61,9 @@ func _process(delta):
 	
 	if now_state in [5, 6]:
 		
-		$MultiPlayerInfo/MultiPlayerInfoDisplay.text = "游戏人数：" + str(DeckManager.player_count) + "\n"
+		$MultiPlayerInfo/MultiPlayerInfoDisplay.text = \
+			"游戏人数：" + str(DeckManager.player_count) + "\n"\
+			+ "Order：" + str(WebController.player_info["id"]) + "\n"
 		
 		match DeckManager.player_count:
 			0:

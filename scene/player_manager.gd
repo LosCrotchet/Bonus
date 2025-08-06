@@ -71,14 +71,21 @@ func init(mode:int = 0):
 		Players.append(children[i])
 		Players[i].visible = true
 		if mode != 0:
-			print(WebController.players)
-			# 有人机怎么办？
-			if i < WebController.players.size():
-				var index = WebController.players.keys()[i-1]
-				Players[i].player_name = WebController.players[index]["name"]
-			else:
-				Players[i].player_name = "玩家 " + str(i)
+			# Multigame
+			var my_order = WebController.player_info["id"]
+			var now_order = (my_order + i) % player_count
+			var is_player = false
+			for k in WebController.players.keys():
+				if now_order == WebController.players[k]["id"]:
+					is_player = true
+					Players[i].player_name = WebController.players[k]["name"]
+					Players[i].order = now_order
+					Players[i].is_player = true
+					break
+			if not is_player:
+				Players[i].player_name = "[AI]玩家" + str(now_order)
 		else:
+			# Singlegame
 			Players[i].player_name = "玩家 " + str(i)
 		Players[i].set_emoji(1)
 	Players[0].location = LOCATION.DOWN

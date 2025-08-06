@@ -2,6 +2,7 @@ extends Node
 
 @export var player_count:int
 @export var dealer:int
+@export var game_mode:int
 
 var now_whos_turn:int = -1
 var now_whos_dice:int = -1
