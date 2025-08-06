@@ -30,6 +30,9 @@ signal DrawCard(id:int, num:int)
 @onready var foil_1 = preload("res://assets/sound/foil1.ogg")
 @onready var foil_2 = preload("res://assets/sound/foil2.ogg")
 
+func _ready() -> void:
+	DeckManager.receive_game_signal.connect(Callable(self, "_on_receive_game_signal"))
+
 func init():
 	now_whos_turn = -1
 	now_whos_dice = -1
@@ -38,7 +41,6 @@ func init():
 	played_cards.clear()
 	last_player = -1
 	is_passed = false
-	#DeckManager.init()
 
 func play_sound(id:int):
 	var audio_player = AudioStreamPlayer2D.new()
@@ -95,6 +97,12 @@ func _on_game_start():
 	dice_result = -1
 	last_player = -1
 	
+	if DeckManager.GameMode != 2:
+		GameSignal.emit(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
+		if DeckManager.GameMode == 1:
+			WebController.update_game_signal.rpc(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
+
+func _on_receive_game_signal(now_whos_turn:int, now_whos_dice:int, dice_result:int, played_cards:Array, last_player:int, is_bonus:bool):
 	GameSignal.emit(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
 
 func _on_dice_dice_timeout(result):

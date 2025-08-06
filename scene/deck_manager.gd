@@ -1,5 +1,7 @@
 extends Node
 
+@export var GameMode:int
+
 var player_count = 2
 
 var deck = []
@@ -7,6 +9,12 @@ var discard_deck = []
 var all_type = []
 
 var joker_result = []
+
+signal deliver_card_to(order:int, card)
+signal receive_game_signal(now_whos_turn:int, now_whos_dice:int, dice_result:int, played_cards:Array, last_player:int, is_bonus:bool)
+
+func _ready() -> void:
+	deliver_card_to.connect(Callable(self, "_on_deliver_card_to"))
 
 func init():
 	discard_deck.clear()
@@ -26,16 +34,23 @@ func init():
 	#print(len(deck), deck)
 	
 	deck.shuffle()
-
-func _ready():
-	init()
+	
+	if GameMode == 1:
+		WebController.update_deck.rpc(deck)
 
 func get_card():
 	if len(deck) == 0:
 		discard_deck.shuffle()
 		deck = discard_deck.duplicate()
 		discard_deck.clear()
-	return deck.pop_back()
+	var result = deck.pop_back()
+	if GameMode == 1:
+		WebController.update_deck.rpc(deck)
+	return result
+
+func _on_deliver_card_to(order: int, card: Variant):
+	if GameMode == 1:
+		WebController.draw_card_to.rpc(order, card)
 
 func discard(card:Vector2i):
 	discard_deck.append(card)

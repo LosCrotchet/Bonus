@@ -41,6 +41,9 @@ signal PlayerHandCountUpdate(count:int)
 signal PlayerDiceRoll
 signal GameEnd(player_name:String)
 
+func _ready() -> void:
+	DeckManager.deliver_card_to.connect(Callable(self, "_on_deck_manager_deliver_card_to"))
+
 func _process(delta):
 	#print(GameManager.now_whos_turn, GameManager.game_started)
 	for item in Players:
@@ -64,33 +67,36 @@ func _process(delta):
 						result_string += ("/" + type_name[len(player_select)-1][result[i]])
 					PlayerSelectUpdate.emit(result_string)
 
-func init(mode:int = 0):
+func init():
 	Players.clear()
 	var children = get_children()
 	for i in range(player_count):
 		Players.append(children[i])
 		Players[i].visible = true
-		if mode != 0:
+		if DeckManager.GameMode != 0:
 			# Multigame
 			var my_order = WebController.player_info["id"]
-			var now_order = (my_order + i) % player_count
+			var now_order = (my_order - 1 + i) % player_count + 1
 			var is_player = false
 			for k in WebController.players.keys():
 				if now_order == WebController.players[k]["id"]:
 					is_player = true
 					Players[i].player_name = WebController.players[k]["name"]
 					Players[i].order = now_order
-					Players[i].is_player = true
 					break
 			if not is_player:
 				Players[i].player_name = "[AI]玩家" + str(now_order)
+			Players[i].is_player = is_player
 		else:
 			# Singlegame
 			Players[i].player_name = "玩家 " + str(i)
+			Players[i].order = i + 1
+			Players[i].is_player = false
 		Players[i].set_emoji(1)
 	Players[0].location = LOCATION.DOWN
 	Players[0].position = Vector2(800, 760)
 	Players[0].select_enable = true
+	Players[0].is_player = true
 	#Players[0].player_name = "你"
 	match player_count:
 		2:
@@ -111,13 +117,16 @@ func init(mode:int = 0):
 	for item in Players:
 		item.init()
 	
-	for cnt in range(17):
-		for i in range(player_count):
-			add_card_to(DeckManager.get_card(), i)
-			Players[i].update_x_position()
-	
-	pass_button_pressed = false
-	play_button_pressed = false
+	print("GameMode: ", DeckManager.GameMode)
+	if DeckManager.GameMode != 2:
+		for cnt in range(17):
+			for i in range(player_count):
+				var result = DeckManager.get_card()
+				#print(DeckManager.deliver_card_to.get_connections())
+				DeckManager.deliver_card_to.emit(Players[i].order, result)
+				add_card_to(result, i)
+				Players[i].update_x_position()
+				await get_tree().create_timer(0.1).timeout
 
 func play_sound(id:int):
 	var audio_player = AudioStreamPlayer2D.new()
@@ -138,8 +147,9 @@ func add_card_to(card:Vector2i, id:int):
 	var new_card = CARD.instantiate()
 	new_card.suit = card.x
 	new_card.rank = card.y
-	if id != 0:
-		new_card.is_folded = true
+	#if id != 0:
+	#	new_card.is_folded = true
+	new_card.is_folded = false
 	Players[id].get_child(0).add_child(new_card)
 	Players[id].hand.append(card)
 	Players[id].update_x_position()
@@ -298,3 +308,11 @@ func _on_play_button_pressed():
 		play_sound(3)
 	
 	await get_tree().create_timer(0.1).timeout
+
+func _on_deck_manager_deliver_card_to(order: int, card: Variant) -> void:
+	print(order, card)
+	if DeckManager.GameMode == 2:
+		for i in range(player_count):
+			if Players[i].order == order:
+				add_card_to(card, i)
+				break

@@ -23,16 +23,36 @@ func _ready():
 	print("MainScene ready.")
 	
 	if len(WebController.multiplayer.get_peers()) > 0:
-		if WebController.multiplayer.is_server():
+		if WebController.multiplayer.get_unique_id() == 1:
 			GameMode = 1
 		else:
 			GameMode = 2
 	else:
 		GameMode = 0
 	
+	DeckManager.GameMode = GameMode
 	$GameManager.game_mode = GameMode
-	if GameMode == 0:
-		GameStart.emit()
+	
+	$PlayerManager.player_count = DeckManager.player_count
+	$GameManager.player_count = DeckManager.player_count
+
+	DeckManager.init()
+	$GameManager.init()
+	$PlayerManager.init()
+	
+	if GameMode != 2:
+		$GameManager.dealer = 0
+	else:
+		for i in range(len($PlayerManager.Players)):
+			if $PlayerManager.Players[i].order == 1:
+				$GameManager.dealer = i
+				break
+	
+	$Dice.visible = true
+	$PlayerManager.visible = true
+	$DeckCount.visible = true
+	
+	GameStart.emit()
 
 func _process(delta):
 	$DeckCount.text = str(len(DeckManager.deck))
@@ -73,29 +93,6 @@ func _on_player_manager_game_end(player_name):
 	$BacktoMenuButton.visible = true
 	$WinnerLabel.visible = false
 	#_ready()
-
-func _on_game_start():
-	$PlayerManager.player_count = DeckManager.player_count
-	$GameManager.player_count = DeckManager.player_count
-
-	$Dice.visible = true
-	$PlayerManager.visible = true
-	$DeckCount.visible = true
-	$PlayerManager.init(GameMode)
-	
-	if GameMode != 2:
-		$GameManager.dealer = 0
-		
-		$DeckManager.init()
-		$GameManager.init()
-		
-		if GameMode == 1:
-			WebController.update_deck(DeckManager.deck)
-	else:
-		for i in range(len($PlayerManager.Players)):
-			if $PlayerManager.Players[i].order == 1:
-				$GameManager.dealer = i
-				break
 
 func _on_restart_game_button_pressed():
 	$GameUI.visible = false

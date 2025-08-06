@@ -117,6 +117,16 @@ func update_deck(deck:Array):
 	if multiplayer.get_remote_sender_id() == 1:
 		DeckManager.deck = deck
 
+@rpc("any_peer", "reliable")
+func draw_card_to(order:int, card):
+	if multiplayer.get_remote_sender_id() == 1:
+		DeckManager.deliver_card_to.emit(order, card)
+
+@rpc("any_peer", "reliable")
+func update_game_signal(now_whos_turn:int, now_whos_dice:int, dice_result:int, played_cards:Array, last_player:int, is_bonus:bool):
+	if multiplayer.get_remote_sender_id() == 1:
+		DeckManager.receive_game_signal.emit(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
+
 func _on_player_disconnected(id):
 	#player_info = {"id": 1, "name": "", "is_ready": false}
 	var exit_id = players[id]["id"]
