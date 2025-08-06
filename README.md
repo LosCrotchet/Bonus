@@ -1,1 +1,35 @@
 # Bonus
+
+Bonus是一种基于斗地主和骰子的扑克玩法。
+
+## Basic Rules
+
+Bonus游戏使用带大小王的两副牌，支持2至4人。每位玩家起始17张手牌，从庄家开始轮流进行回合；先将手牌打完的玩家获胜。
+
+1. 基本规则：每一回合内，先投掷一枚骰子；之后**要么**根据点数，打出对应数量的牌；**要么**不出牌，此时如果无人跟出，则从牌堆中摸取`7-x`（`x`为骰子点数）张牌并结束回合，由下家开始新的回合。
+
+具体点数与牌型对应如下：
+- 1点：单张/A
+- 2点：对子/AA
+- 3点：三条/AAA；顺子/ABC
+- 4点：四条/AAAA；顺子/ABCD；三带一/AAAX；二连对/AABB
+- 5点：五条/AAAAA；顺子/ABCDE；三带二/AAAXX；四带一/AAAAX
+- 6点：六条/AAAAAA；顺子/ABCDEF；五带一/AAAAAX；四带二/AAAAXY；三带三/AAAXXX；三连对/AABBCC；
+
+其中，当点数大于3点时，可以使用四条/五条/六条（统称炸弹）盖过任何牌型；盖过之后只允许更大的炸弹继续盖过。
+
+每种花色的牌中3最小，2最大，且**2不能作为顺子、连对的一部分**。
+
+2. Bonus规则：若玩家在自己回合中投完骰子出牌，且**无人跟牌**，则自己可以额外出牌一次，**牌型不限**；
+3. 若玩家投完骰子不出牌，则其余玩家可以按顺序选择是否根据点数出牌；
+4. 对于任何的出牌，每位玩家可以依次用相同牌型盖牌，直至无人跟牌，则最后出牌的玩家开始新的回合； 
+5. 大小王：大小王在游戏中可作万能牌；若玩家清空手牌前最后一次出牌中包括万能牌，则在出牌后再摸两张牌（大小王单独使用不视作万能牌）；
+6. 若牌堆摸完，则将弃牌重新打乱后作为新牌堆；
+
+
+a) 1点：High card
+b) 2点：Pair
+c) 3点：Three of a kind; Straight
+d) 4点：Four of a kind; Straight; Three with one; Straight pair
+e) 5点：Five of a kind; Straight; Four with one; Three with pair
+f) 6点：Six of a kind; Straight; Five with one; Four with two; Three with three; Straight pair 
