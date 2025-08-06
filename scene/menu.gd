@@ -63,7 +63,7 @@ func _process(delta):
 		
 		$MultiPlayerInfo/MultiPlayerInfoDisplay.text = \
 			"游戏人数：" + str(DeckManager.player_count) + "\n"\
-			+ "Order：" + str(WebController.player_info["id"]) + "\n"
+			+ "Order：" + str(WebController.player_info["order"]) + "\n"
 		
 		match DeckManager.player_count:
 			0:
@@ -96,7 +96,7 @@ func _process(delta):
 		for i in range(DeckManager.player_count):
 			var is_ai = true
 			for k in WebController.players.keys():
-				var index = WebController.players[k]["id"] - 1
+				var index = WebController.players[k]["order"] - 1
 				if index == i:
 					$MultiPlayerInfo.get_child(index).get_child(0).text = WebController.players[k]["name"]
 					if WebController.players[k]["is_ready"]:

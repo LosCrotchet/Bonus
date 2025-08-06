@@ -195,7 +195,6 @@ theme_override_font_sizes/font_size = 40
 icon = ExtResource("12_xavy2")
 icon_alignment = 1
 
-[connection signal="GameStart" from="." to="GameManager" method="_on_game_start"]
 [connection signal="DrawCard" from="GameManager" to="PlayerManager" method="_on_game_manager_draw_card"]
 [connection signal="GameSignal" from="GameManager" to="." method="_on_game_manager_game_signal"]
 [connection signal="GameSignal" from="GameManager" to="PlayerManager" method="_on_game_manager_game_signal"]
@@ -203,6 +202,7 @@ icon_alignment = 1
 [connection signal="GameEnd" from="PlayerManager" to="." method="_on_player_manager_game_end"]
 [connection signal="GameEnd" from="PlayerManager" to="GameManager" method="_on_player_manager_game_end"]
 [connection signal="GameEnd" from="PlayerManager" to="GameUI" method="_on_player_manager_game_end"]
+[connection signal="GameStart" from="PlayerManager" to="GameManager" method="_on_game_start"]
 [connection signal="PlayerDiceRoll" from="PlayerManager" to="Dice" method="_on_player_manager_player_dice_roll"]
 [connection signal="PlayerDiceRoll" from="PlayerManager" to="AudioStreamPlayer2D" method="_on_player_manager_player_dice_roll"]
 [connection signal="PlayerFinish" from="PlayerManager" to="GameManager" method="_on_player_manager_player_finish"]

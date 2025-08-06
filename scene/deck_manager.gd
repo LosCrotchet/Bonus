@@ -3,6 +3,7 @@ extends Node
 @export var GameMode:int
 
 var player_count = 2
+var player_order = 1
 
 var deck = []
 var discard_deck = []
@@ -12,6 +13,9 @@ var joker_result = []
 
 signal deliver_card_to(order:int, card)
 signal receive_game_signal(now_whos_turn:int, now_whos_dice:int, dice_result:int, played_cards:Array, last_player:int, is_bonus:bool)
+signal player_finished(action)
+signal game_end(order:int)
+signal dice_roll
 
 func _ready() -> void:
 	deliver_card_to.connect(Callable(self, "_on_deliver_card_to"))

@@ -5,8 +5,6 @@ extends Node2D
 # 1: Multi Game(Server)
 # 2: Multi Game(Client)
 
-signal GameStart()
-
 enum LOCATION {
 	UP, DOWN, LEFT, RIGHT
 }
@@ -39,20 +37,15 @@ func _ready():
 	DeckManager.init()
 	$GameManager.init()
 	$PlayerManager.init()
-	
-	if GameMode != 2:
-		$GameManager.dealer = 0
-	else:
-		for i in range(len($PlayerManager.Players)):
-			if $PlayerManager.Players[i].order == 1:
-				$GameManager.dealer = i
-				break
-	
+
 	$Dice.visible = true
 	$PlayerManager.visible = true
 	$DeckCount.visible = true
 	
-	GameStart.emit()
+	$GameManager.dealer = (1 - DeckManager.player_order + DeckManager.player_count) % DeckManager.player_count
+	#GameStart.emit()
+	await get_tree().create_timer(0.5).timeout
+	$PlayerManager.GameStart.emit()
 
 func _process(delta):
 	$DeckCount.text = str(len(DeckManager.deck))
@@ -103,7 +96,7 @@ func _on_restart_game_button_pressed():
 	$RestartGameButton.visible = false
 	$BacktoMenuButton.visible = false
 	
-	GameStart.emit()
+	#GameStart.emit()
 
 func _on_backto_menu_button_pressed():
 	get_tree().change_scene_to_file("res://scene/menu.tscn")

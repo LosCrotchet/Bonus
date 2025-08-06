@@ -18,7 +18,6 @@ config/features=PackedStringArray("4.4", "GL Compatibility")
 
 DeckManager="*res://scene/deck_manager.gd"
 WebController="*res://scene/web_controller.gd"
-GameManager="*res://scene/game_manager.gd"
 
 [display]
 

@@ -10,7 +10,7 @@ var max_connections = 1
 
 var players = {}
 
-var player_info = {"id": 1, "name": "", "is_ready": false}
+var player_info = {"order": 1, "name": "", "is_ready": false}
 var players_loaded = 0
 var players_registered = 0
 
@@ -58,7 +58,7 @@ func _on_player_connected(id):
 		for index in range(2, 5):
 			var is_used = false
 			for k in players.keys():
-				if players[k]["id"] == index:
+				if players[k]["order"] == index:
 					is_used = true
 			if not is_used:
 				update_player_order.rpc_id(id, index)
@@ -67,7 +67,7 @@ func _on_player_connected(id):
 func remove_multiplayer_peer():
 	multiplayer.multiplayer_peer = null
 	players.clear()
-	player_info = {"id": 1, "name": "", "is_ready": false}
+	player_info = {"order": 1, "name": "", "is_ready": false}
 	max_connections = 0
 
 # Test
@@ -109,7 +109,7 @@ func update_max_connections(max_conn):
 @rpc("any_peer", "reliable")
 func update_player_order(order):
 	if multiplayer.get_remote_sender_id() == 1:
-		player_info["id"] = order
+		player_info["order"] = order
 		update_player.rpc(player_info)
 
 @rpc("any_peer", "reliable")
@@ -127,12 +127,18 @@ func update_game_signal(now_whos_turn:int, now_whos_dice:int, dice_result:int, p
 	if multiplayer.get_remote_sender_id() == 1:
 		DeckManager.receive_game_signal.emit(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
 
+@rpc("any_peer", "reliable")
+func player_finished(action):
+	if multiplayer.get_remote_sender_id() == 1:
+		DeckManager.player_finished.emit(action)
+
+
 func _on_player_disconnected(id):
-	#player_info = {"id": 1, "name": "", "is_ready": false}
-	var exit_id = players[id]["id"]
+	#player_info = {"order": 1, "name": "", "is_ready": false}
+	var exit_id = players[id]["order"]
 	for index in range(exit_id+1, 5):
 		for k in players.keys():
-			if players[k]["id"] == index:
+			if players[k]["order"] == index:
 				update_player_order.rpc_id(k, index-1)
 				continue
 	players.erase(id)
@@ -152,7 +158,7 @@ func _on_connected_fail():
 
 func _on_server_disconnected():
 	multiplayer.multiplayer_peer = null
-	player_info = {"id": 1, "name": "", "is_ready": false}
+	player_info = {"order": 1, "name": "", "is_ready": false}
 	players.clear()
 	server_disconnected.emit()
 

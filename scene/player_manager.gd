@@ -40,6 +40,7 @@ signal PlayerSelectUpdate(type:String)
 signal PlayerHandCountUpdate(count:int)
 signal PlayerDiceRoll
 signal GameEnd(player_name:String)
+signal GameStart
 
 func _ready() -> void:
 	DeckManager.deliver_card_to.connect(Callable(self, "_on_deck_manager_deliver_card_to"))
@@ -70,22 +71,23 @@ func _process(delta):
 func init():
 	Players.clear()
 	var children = get_children()
+	if DeckManager.GameMode != 0:
+		DeckManager.player_order = WebController.player_info["order"]
 	for i in range(player_count):
 		Players.append(children[i])
 		Players[i].visible = true
 		if DeckManager.GameMode != 0:
 			# Multigame
-			var my_order = WebController.player_info["id"]
-			var now_order = (my_order - 1 + i) % player_count + 1
+			var now_order = (DeckManager.player_order - 1 + i) % player_count + 1
 			var is_player = false
 			for k in WebController.players.keys():
-				if now_order == WebController.players[k]["id"]:
+				if now_order == WebController.players[k]["order"]:
 					is_player = true
 					Players[i].player_name = WebController.players[k]["name"]
-					Players[i].order = now_order
 					break
 			if not is_player:
 				Players[i].player_name = "[AI]玩家" + str(now_order)
+			Players[i].order = now_order
 			Players[i].is_player = is_player
 		else:
 			# Singlegame
@@ -126,7 +128,8 @@ func init():
 				DeckManager.deliver_card_to.emit(Players[i].order, result)
 				add_card_to(result, i)
 				Players[i].update_x_position()
-				await get_tree().create_timer(0.1).timeout
+				#await get_tree().create_timer(0.1).timeout
+
 
 func play_sound(id:int):
 	var audio_player = AudioStreamPlayer2D.new()
@@ -147,9 +150,9 @@ func add_card_to(card:Vector2i, id:int):
 	var new_card = CARD.instantiate()
 	new_card.suit = card.x
 	new_card.rank = card.y
-	#if id != 0:
-	#	new_card.is_folded = true
-	new_card.is_folded = false
+	if id != 0:
+		new_card.is_folded = true
+	#new_card.is_folded = false
 	Players[id].get_child(0).add_child(new_card)
 	Players[id].hand.append(card)
 	Players[id].update_x_position()
@@ -211,17 +214,17 @@ func _on_game_manager_game_signal(now_whos_turn, now_whos_dice, dice_result, pla
 	#	play_sound(3)
 	#	PlayerFinish.emit([null])
 	
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(0.1).timeout
 	
 	Players[now_whos_turn].set_emoji(1)
 	var result
-	if now_whos_turn != 0:
+	if now_whos_turn != 0 and Players[now_whos_turn].is_player == false:
 		result = Players[now_whos_turn].deal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, now_bonus)
 	else:
 		# 你的情况单独判断
 		return
 	
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(0.1).timeout
 	
 	if result == [null]:
 		#await get_tree().create_timer(1).timeout
@@ -246,7 +249,7 @@ func _on_game_manager_game_signal(now_whos_turn, now_whos_dice, dice_result, pla
 		Players[now_whos_turn].update_x_position()
 		Players[now_whos_turn].set_emoji(2)
 		play_sound(2)
-	await get_tree().create_timer(1).timeout
+	await get_tree().create_timer(0.1).timeout
 	# 返回finish信号
 	PlayerFinish.emit(result)
 
@@ -254,9 +257,12 @@ func _on_game_manager_game_signal(now_whos_turn, now_whos_dice, dice_result, pla
 func _on_game_manager_draw_card(id, num):
 	Players[id].show_hint(num)
 	for i in range(num):
-		add_card_to(DeckManager.get_card(), id)
+		var result = DeckManager.get_card()
+		if DeckManager.GameMode == 1:
+			DeckManager.deliver_card_to.emit(Players[id].order, result)
+		add_card_to(result, id)
 		play_sound(1)
-		await get_tree().create_timer(0.1)
+		#await get_tree().create_timer(0.1)
 
 ### 你的按钮事件处理
 

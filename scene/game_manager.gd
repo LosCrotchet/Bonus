@@ -85,29 +85,33 @@ func _on_player_manager_player_finish(action):
 		if now_whos_turn != now_whos_dice:
 			is_anyone_cover = true
 		now_whos_turn = (now_whos_turn+1) % player_count
-	GameSignal.emit(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
+	processed_game_signal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
 	if is_bonus and len(played_cards) == 0 and now_whos_turn == now_whos_dice:
 		await get_tree().create_timer(0.1).timeout
 		play_sound(1)
 
-
-func _on_game_start():
-	now_whos_turn = dealer
-	now_whos_dice = dealer
-	dice_result = -1
-	last_player = -1
-	
+func processed_game_signal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus):
 	if DeckManager.GameMode != 2:
 		GameSignal.emit(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
 		if DeckManager.GameMode == 1:
+			now_whos_turn = (now_whos_turn + DeckManager.player_order - 1) % DeckManager.player_count + 1
+			now_whos_dice = (now_whos_dice + DeckManager.player_order - 1) % DeckManager.player_count + 1
 			WebController.update_game_signal.rpc(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
 
+func _on_game_start():
+	dice_result = -1
+	last_player = -1
+	now_whos_turn = dealer
+	now_whos_dice = dealer
+	
+	processed_game_signal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
+
 func _on_receive_game_signal(now_whos_turn:int, now_whos_dice:int, dice_result:int, played_cards:Array, last_player:int, is_bonus:bool):
-	GameSignal.emit(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
+	processed_game_signal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
 
 func _on_dice_dice_timeout(result):
 	dice_result = result
-	GameSignal.emit(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
+	processed_game_signal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
 
 func _on_player_manager_game_end(player_name):
 	init()
