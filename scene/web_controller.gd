@@ -129,7 +129,7 @@ func update_game_signal(now_whos_turn:int, now_whos_dice:int, dice_result:int, p
 
 @rpc("any_peer", "reliable")
 func player_finished(action):
-	if multiplayer.get_remote_sender_id() == 1:
+	if multiplayer.get_remote_sender_id() == 1 or multiplayer.is_server():
 		DeckManager.player_finished.emit(action)
 
 @rpc("any_peer", "reliable")

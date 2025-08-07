@@ -5,6 +5,9 @@ class_name GameUI
 var hand_count = 0
 var deck_count
 
+func _ready() -> void:
+	DeckManager.player_finished.connect(Callable(self, "_on_player_manager_player_finish"))
+
 func _on_game_manager_game_signal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus):
 	await get_tree().create_timer(0.1).timeout
 	if now_whos_turn == 0 and (dice_result != -1 or is_bonus):
@@ -29,6 +32,7 @@ func _on_player_manager_game_end(player_name):
 	visible = false
 
 func _on_player_manager_player_finish(action):
+	# 本机有效
 	$PassButton.disabled = true
 	$HintButton.disabled = true
 	$PlayButton.disabled = true

@@ -54,9 +54,14 @@ func play_sound(id:int):
 func _on_pass_button_pressed():
 	await get_tree().create_timer(0.1).timeout
 	_on_player_manager_player_finish([null])
+	if DeckManager.GameMode != 0:
+		WebController.player_finished.rpc([null])
 
 # TODO: 继续完成该函数的信号同步
 func _on_player_manager_player_finish(action):
+	if DeckManager.GameMode == 2:
+		return
+	await get_tree().create_timer(0.5).timeout
 	if action == [null]:
 		now_whos_turn = (now_whos_turn+1) % player_count
 		if last_player == now_whos_turn:
@@ -114,6 +119,8 @@ func _on_receive_game_signal(now_whos_turn:int, now_whos_dice:int, dice_result:i
 
 func _on_dice_dice_timeout(result):
 	dice_result = result
+	if DeckManager.GameMode == 1:
+		WebController.send_dice_result.rpc(result)
 	processed_game_signal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
 
 func _on_player_manager_game_end(player_name):

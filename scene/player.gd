@@ -285,7 +285,7 @@ func deal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, 
 				if item == [null]:
 					continue
 				attempt.append(item)
-	print(attempt)
+	#print(attempt)
 	if len(attempt) > 0:
 		var choice = randf_range(1.01, exp(1)**len(attempt)-0.01)
 		choice = len(attempt) - floor(log(choice)) - 1
