@@ -171,6 +171,10 @@ func set_emoji(statue:int):
 			$Info/Emoji.text = "🤨"
 		7:
 			$Info/Emoji.text = "😋"
+		98:
+			$Info/Emoji.text = "❌"
+		99:
+			$Info/Emoji.text = "✔️"
 
 func get_select_cards():
 	var result = []

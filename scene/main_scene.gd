@@ -9,6 +9,8 @@ enum LOCATION {
 	UP, DOWN, LEFT, RIGHT
 }
 
+var is_game_end = false
+
 func _ready():
 	$GameUI.visible = false
 	$Dice.visible = false
@@ -17,6 +19,7 @@ func _ready():
 	$DeckCount.visible = false
 	$RestartGameButton.visible = false
 	$BacktoMenuButton.visible = false
+	is_game_end = false
 	
 	print("MainScene ready.")
 	
@@ -49,7 +52,21 @@ func _ready():
 
 func _process(delta):
 	$DeckCount.text = str(len(DeckManager.deck))
-
+	if is_game_end:
+		if DeckManager.GameMode != 0:
+			var can_start = true
+			for i in range(DeckManager.player_count):
+				var order = (i + DeckManager.player_order - 1) % DeckManager.player_count + 1
+				for k in WebController.players.keys():
+					if WebController.players[k]["order"] == order:
+						if WebController.players[k]["is_ready"]:
+							$PlayerManager.Players[i].set_emoji(99)
+						else:
+							$PlayerManager.Players[i].set_emoji(98)
+							can_start = false
+			if DeckManager.GameMode == 1:
+				$RestartGameButton.disabled = not can_start
+			
 func _on_game_manager_game_signal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus):
 	# 调整骰子位置以显示谁是庄家
 	var offset = Vector2(800, 600)
@@ -77,26 +94,41 @@ func _on_game_manager_game_signal(now_whos_turn, now_whos_dice, dice_result, pla
 	dice_tween.tween_property($Dice, "position", dice_position, 1)
 	dice_tween.tween_property($Dice, "scale", dice_scale, 1)
 
-func _on_player_manager_game_end(player_name):
+func _on_player_manager_game_end(index):
 	$DeckCount.visible = false
 	$WinnerLabel.visible = true
-	$WinnerLabel.text = player_name + " 胜出！"
+	$WinnerLabel.text = $PlayerManager.Players[index].player_name + " 胜出！"
 	await get_tree().create_timer(3).timeout
+	
+	is_game_end = true
+	if DeckManager.GameMode == 2:
+		$RestartGameButton.text = "准备"
+	else:
+		$RestartGameButton.text = "再开一把"
+		if DeckManager.GameMode == 1:
+			$RestartGameButton.disabled = true
+	
+	$GameUI.visible = false
 	$RestartGameButton.visible = true
 	$BacktoMenuButton.visible = true
 	$WinnerLabel.visible = false
 	#_ready()
 
 func _on_restart_game_button_pressed():
-	$GameUI.visible = false
-	$Dice.visible = false
-	$WinnerLabel.visible = false
-	$PlayerManager.visible = false
-	$DeckCount.visible = false
-	$RestartGameButton.visible = false
-	$BacktoMenuButton.visible = false
-	
-	#GameStart.emit()
+	if DeckManager.GameMode == 2:
+		if $RestartGameButton.text == "准备":
+			WebController.get_ready(true)
+			$RestartGameButton.text = "已准备"
+		else:
+			WebController.get_ready(false)
+			$RestartGameButton.text = "准备"
+	else:
+		if DeckManager.GameMode == 1:
+			get_tree().unload_current_scene()
+			WebController.load_game.rpc("res://scene/main_scene.tscn")
+		else:
+			get_tree().reload_current_scene()
+			#get_tree().change_scene_to_file("res://scene/main_scene.tscn")
 
 func _on_backto_menu_button_pressed():
 	get_tree().change_scene_to_file("res://scene/menu.tscn")

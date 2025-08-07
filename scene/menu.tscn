@@ -847,6 +847,25 @@ theme = ExtResource("1_e5g8k")
 theme_override_font_sizes/font_size = 40
 text = "返回"
 
+[node name="VersionLabel" type="Label" parent="."]
+offset_left = 15.0
+offset_top = 853.0
+offset_right = 340.0
+offset_bottom = 890.0
+theme_override_font_sizes/font_size = 25
+text = "Version: 0.3.0"
+vertical_alignment = 1
+
+[node name="CopyrightLabel" type="Label" parent="."]
+offset_left = 1261.0
+offset_top = 856.0
+offset_right = 1586.0
+offset_bottom = 893.0
+theme_override_font_sizes/font_size = 25
+text = "Copyleft ! 2025 Los"
+horizontal_alignment = 2
+vertical_alignment = 1
+
 [connection signal="pressed" from="YesOrNoButtons/Yes" to="." method="_on_yes_pressed"]
 [connection signal="pressed" from="YesOrNoButtons/No" to="." method="_on_no_pressed"]
 [connection signal="pressed" from="MainButtons/Quit" to="." method="_on_quit_pressed"]

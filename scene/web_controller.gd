@@ -70,7 +70,6 @@ func remove_multiplayer_peer():
 	player_info = {"order": 1, "name": "", "is_ready": false}
 	max_connections = 0
 
-# Test
 @rpc("call_local", "reliable")
 func load_game(game_scene_path):
 	get_tree().change_scene_to_file(game_scene_path)
@@ -141,6 +140,11 @@ func dice_start_roll():
 func send_dice_result(result):
 	if multiplayer.get_remote_sender_id() == 1:
 		DeckManager.dice_result.emit(result)
+
+@rpc("any_peer", "reliable")
+func game_end_with(order):
+	if multiplayer.get_remote_sender_id() == 1:
+		DeckManager.game_end.emit(order)
 
 func _on_player_disconnected(id):
 	#player_info = {"order": 1, "name": "", "is_ready": false}

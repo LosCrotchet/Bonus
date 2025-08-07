@@ -28,7 +28,7 @@ func _on_player_manager_player_select_update(type):
 func _on_player_manager_player_hand_count_update(count):
 	hand_count = count
 
-func _on_player_manager_game_end(player_name):
+func _on_player_manager_game_end(index):
 	visible = false
 
 func _on_player_manager_player_finish(action):

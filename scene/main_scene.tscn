@@ -11,7 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://bw4hruxi0mnr1" path="res://scene/player.tscn" id="8_hrphr"]
 [ext_resource type="AudioStream" uid="uid://cyvyxpcd72477" path="res://assets/sound/button.ogg" id="10_86xya"]
 [ext_resource type="Script" uid="uid://cvxrju7ibgkqq" path="res://scene/audio_stream_player_2d.gd" id="11_cj0ow"]
-[ext_resource type="Texture2D" uid="uid://d3x4fwaysadxn" path="res://assets/icon/icons8-logout-48.png" id="12_xavy2"]
+[ext_resource type="Texture2D" path="res://assets/icon/icons8-logout-48.png" id="12_xavy2"]
 
 [node name="MainScene" type="Node2D"]
 script = ExtResource("1_fb1ex")
@@ -201,6 +201,7 @@ icon_alignment = 1
 [connection signal="GameSignal" from="GameManager" to="GameUI" method="_on_game_manager_game_signal"]
 [connection signal="GameEnd" from="PlayerManager" to="." method="_on_player_manager_game_end"]
 [connection signal="GameEnd" from="PlayerManager" to="GameManager" method="_on_player_manager_game_end"]
+[connection signal="GameEnd" from="PlayerManager" to="PlayerManager" method="_on_game_end"]
 [connection signal="GameEnd" from="PlayerManager" to="GameUI" method="_on_player_manager_game_end"]
 [connection signal="GameStart" from="PlayerManager" to="GameManager" method="_on_game_start"]
 [connection signal="PlayerDiceRoll" from="PlayerManager" to="Dice" method="_on_player_manager_player_dice_roll"]

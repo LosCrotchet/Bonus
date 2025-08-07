@@ -57,7 +57,6 @@ func _on_pass_button_pressed():
 	if DeckManager.GameMode != 0:
 		WebController.player_finished.rpc([null])
 
-# TODO: 继续完成该函数的信号同步
 func _on_player_manager_player_finish(action):
 	if DeckManager.GameMode == 2:
 		return
@@ -123,5 +122,5 @@ func _on_dice_dice_timeout(result):
 		WebController.send_dice_result.rpc(result)
 	processed_game_signal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
 
-func _on_player_manager_game_end(player_name):
+func _on_player_manager_game_end(index):
 	init()

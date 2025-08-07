@@ -11,8 +11,11 @@ config_version=5
 [application]
 
 config/name="Bonus"
+config/version="0.3.0"
 run/main_scene="uid://bnwterho7r6yx"
 config/features=PackedStringArray("4.4", "GL Compatibility")
+config/icon="uid://16x8qqfni1yl"
+config/windows_native_icon="res://assets/icon/icon.ico"
 
 [autoload]
 
@@ -23,8 +26,6 @@ WebController="*res://scene/web_controller.gd"
 
 window/size/viewport_width=1600
 window/size/viewport_height=900
-window/size/window_width_override=800
-window/size/window_height_override=450
 window/stretch/mode="canvas_items"
 
 [editor]
