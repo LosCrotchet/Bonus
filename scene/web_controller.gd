@@ -132,6 +132,15 @@ func player_finished(action):
 	if multiplayer.get_remote_sender_id() == 1:
 		DeckManager.player_finished.emit(action)
 
+@rpc("any_peer", "reliable")
+func dice_start_roll():
+	if multiplayer.get_remote_sender_id() == 1:
+		DeckManager.dice_roll.emit()
+
+@rpc("any_peer", "reliable")
+func send_dice_result(result):
+	if multiplayer.get_remote_sender_id() == 1:
+		DeckManager.dice_result.emit(result)
 
 func _on_player_disconnected(id):
 	#player_info = {"order": 1, "name": "", "is_ready": false}

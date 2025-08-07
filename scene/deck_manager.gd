@@ -16,6 +16,7 @@ signal receive_game_signal(now_whos_turn:int, now_whos_dice:int, dice_result:int
 signal player_finished(action)
 signal game_end(order:int)
 signal dice_roll
+signal dice_result(result:int)
 
 func _ready() -> void:
 	deliver_card_to.connect(Callable(self, "_on_deliver_card_to"))

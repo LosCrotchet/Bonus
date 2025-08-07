@@ -55,6 +55,7 @@ func _on_pass_button_pressed():
 	await get_tree().create_timer(0.1).timeout
 	_on_player_manager_player_finish([null])
 
+# TODO: 继续完成该函数的信号同步
 func _on_player_manager_player_finish(action):
 	if action == [null]:
 		now_whos_turn = (now_whos_turn+1) % player_count
@@ -107,7 +108,9 @@ func _on_game_start():
 	processed_game_signal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
 
 func _on_receive_game_signal(now_whos_turn:int, now_whos_dice:int, dice_result:int, played_cards:Array, last_player:int, is_bonus:bool):
-	processed_game_signal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
+	now_whos_turn = (now_whos_turn - DeckManager.player_order + DeckManager.player_count) % DeckManager.player_count
+	now_whos_dice = (now_whos_dice - DeckManager.player_order + DeckManager.player_count) % DeckManager.player_count
+	GameSignal.emit(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
 
 func _on_dice_dice_timeout(result):
 	dice_result = result

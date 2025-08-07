@@ -44,6 +44,7 @@ signal GameStart
 
 func _ready() -> void:
 	DeckManager.deliver_card_to.connect(Callable(self, "_on_deck_manager_deliver_card_to"))
+	DeckManager.player_finished.connect(Callable(self, "deal_result"))
 
 func _process(delta):
 	#print(GameManager.now_whos_turn, GameManager.game_started)
@@ -201,19 +202,14 @@ func _on_game_manager_game_signal(now_whos_turn, now_whos_dice, dice_result, pla
 			Players[i].clean_the_discard()
 		if not now_bonus:
 			Players[now_whos_turn].set_emoji(1)
-			PlayerDiceRoll.emit()
+			if DeckManager.GameMode != 2:
+				PlayerDiceRoll.emit()
+				if DeckManager.GameMode == 1:
+					WebController.dice_start_roll.rpc()
 			return
 		if now_bonus:
 			Players[now_whos_turn].set_emoji(7)
-	
-	#if now_dice_result != -1 and not is_bonus and len(Players[now_whos_turn].hand) < now_dice_result:
-	#	await get_tree().create_timer(0.5).timeout
-	#	Players[now_whos_turn].clean_the_discard()
-	#	Players[now_whos_turn].show_pass_label(true)
-	#	Players[now_whos_turn].set_emoji(6)
-	#	play_sound(3)
-	#	PlayerFinish.emit([null])
-	
+
 	await get_tree().create_timer(0.1).timeout
 	
 	Players[now_whos_turn].set_emoji(1)
@@ -225,30 +221,33 @@ func _on_game_manager_game_signal(now_whos_turn, now_whos_dice, dice_result, pla
 		return
 	
 	await get_tree().create_timer(0.1).timeout
-	
+	if DeckManager.GameMode != 2:
+		if DeckManager.GameMode == 1:
+			WebController.player_finished.rpc(result)
+		deal_result(result)
+
+func deal_result(result):
 	if result == [null]:
 		#await get_tree().create_timer(1).timeout
-		Players[now_whos_turn].clean_the_discard()
-		Players[now_whos_turn].show_pass_label(true)
-		Players[now_whos_turn].set_emoji(6)
+		Players[now_turn].clean_the_discard()
+		Players[now_turn].show_pass_label(true)
+		Players[now_turn].set_emoji(6)
 		play_sound(3)
 	else:
 		var index = 0
-		for i in range(len(Players[now_whos_turn].hand)):
-			if Players[now_whos_turn].hand[i] == result[index]:
-				#Players[now_whos_turn].hand[i].is_selected = true
-				Players[now_whos_turn].select(i, true)
-				DeckManager.discard(Players[now_whos_turn].hand[i])
-				#Players[now_whos_turn].update_y_position()
+		for i in range(len(Players[now_turn].hand)):
+			if Players[now_turn].hand[i] == result[index]:
+				Players[now_turn].select(i, true)
+				DeckManager.discard(Players[now_turn].hand[i])
 				index += 1
-				#await get_tree().create_timer(0.5).timeout
 				if index == len(result):
 					break
-		Players[now_whos_turn].show_hint(-len(result))
-		Players[now_whos_turn].play_the_select()
-		Players[now_whos_turn].update_x_position()
-		Players[now_whos_turn].set_emoji(2)
+		Players[now_turn].show_hint(-len(result))
+		Players[now_turn].play_the_select()
+		Players[now_turn].update_x_position()
+		Players[now_turn].set_emoji(2)
 		play_sound(2)
+	
 	await get_tree().create_timer(0.1).timeout
 	# 返回finish信号
 	PlayerFinish.emit(result)

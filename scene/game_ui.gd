@@ -6,7 +6,7 @@ var hand_count = 0
 var deck_count
 
 func _on_game_manager_game_signal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus):
-	await get_tree().create_timer(0.2).timeout
+	await get_tree().create_timer(0.1).timeout
 	if now_whos_turn == 0 and (dice_result != -1 or is_bonus):
 		visible = true
 		$PlayButton.disabled = false
