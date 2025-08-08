@@ -287,8 +287,7 @@ offset_right = 336.0
 offset_bottom = -202.0
 theme = ExtResource("1_e5g8k")
 theme_override_font_sizes/font_size = 30
-text = "127.0.0.1:8087"
-placeholder_text = "192.168.255.255:8087"
+placeholder_text = "192.168.0.1:8087"
 alignment = 1
 
 [node name="PlayerNameLabel" type="Label" parent="MultiPlayerSettingsClient"]
@@ -866,7 +865,7 @@ offset_top = 853.0
 offset_right = 340.0
 offset_bottom = 890.0
 theme_override_font_sizes/font_size = 25
-text = "Version: 0.3.0"
+text = "Version: 0.3.1"
 vertical_alignment = 1
 
 [node name="CopyrightLabel" type="Label" parent="."]

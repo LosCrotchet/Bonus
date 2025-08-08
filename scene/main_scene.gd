@@ -49,6 +49,9 @@ func _ready():
 	#GameStart.emit()
 	await get_tree().create_timer(0.5).timeout
 	$PlayerManager.GameStart.emit()
+	
+	#if DeckManager.GameMode == 2:
+	#	WebController.player_loaded.rpc()
 
 func _process(delta):
 	$DeckCount.text = str(len(DeckManager.deck))
@@ -98,6 +101,7 @@ func _on_player_manager_game_end(index):
 	$DeckCount.visible = false
 	$WinnerLabel.visible = true
 	$WinnerLabel.text = $PlayerManager.Players[index].player_name + " 胜出！"
+	$GameUI.visible = false
 	await get_tree().create_timer(3).timeout
 	
 	is_game_end = true

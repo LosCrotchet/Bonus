@@ -11,7 +11,7 @@ var max_connections = 1
 var players = {}
 
 var player_info = {"order": 1, "name": "", "is_ready": false}
-var players_loaded = 0
+var players_loaded = 1
 var players_registered = 0
 
 func _ready():
@@ -80,7 +80,7 @@ func player_loaded():
 	if multiplayer.is_server():
 		players_loaded += 1
 		if players_loaded == players.size():
-			$/root/Game.start_game()
+			load_game("res://scene/main_scene.tscn")
 			players_loaded = 0
 
 @rpc("any_peer", "call_local", "reliable")

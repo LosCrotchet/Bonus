@@ -1,8 +1,21 @@
-[gd_scene load_steps=4 format=3 uid="uid://bw4hruxi0mnr1"]
+[gd_scene load_steps=8 format=3 uid="uid://bw4hruxi0mnr1"]
 
 [ext_resource type="Script" uid="uid://byrm7aq8hamfd" path="res://scene/player.gd" id="1_xo3ru"]
 [ext_resource type="Texture2D" uid="uid://c3ujhdojewfx5" path="res://assets/avatar_default_1.png" id="2_hjaqi"]
 [ext_resource type="FontFile" uid="uid://c2hqvv1e6rt5y" path="res://assets/fonts/SourceHanSansSC-Regular-2.otf" id="3_fvtld"]
+[ext_resource type="Shader" uid="uid://kl5dcckl3ucn" path="res://scene/player_border.gdshader" id="3_s4jxa"]
+[ext_resource type="Texture2D" uid="uid://bxrebsonmohgh" path="res://assets/animation/border.png" id="4_oh5ij"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hp4bs"]
+shader = ExtResource("3_s4jxa")
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/inner_stroke_thickness = 1.0
+shader_parameter/inner_stroke_opacity = 1.0
+shader_parameter/inside_opacity = 1.0
+shader_parameter/frequency = 9.0
+shader_parameter/phase_speed = 5.0
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_g2vtq"]
 
 [node name="Player" type="Control"]
 layout_mode = 3
@@ -41,6 +54,19 @@ text = "PASS"
 [node name="Info" type="CanvasGroup" parent="."]
 position = Vector2(-600, 0)
 
+[node name="Ring" type="ColorRect" parent="Info"]
+visible = false
+material = SubResource("ShaderMaterial_hp4bs")
+offset_left = -30.0
+offset_top = 50.0
+offset_right = 170.0
+offset_bottom = 100.0
+
+[node name="Sprite2D" type="Sprite2D" parent="Info"]
+visible = false
+position = Vector2(70, 0)
+texture = ExtResource("4_oh5ij")
+
 [node name="ColorRect" type="ColorRect" parent="Info"]
 offset_left = -65.0
 offset_top = -65.0
@@ -71,6 +97,7 @@ theme_override_font_sizes/font_size = 30
 text = "余 11 张"
 
 [node name="Emoji" type="Label" parent="Info"]
+visible = false
 offset_left = -90.0
 offset_top = 30.0
 offset_right = -20.0
@@ -89,3 +116,7 @@ theme_override_font_sizes/font_size = 40
 text = "+7"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Info"]
+visible = false
+sprite_frames = SubResource("SpriteFrames_g2vtq")

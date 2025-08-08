@@ -22,6 +22,8 @@ enum LOCATION {
 						preload("res://assets/avatar_default_3.png"),
 						preload("res://assets/avatar_default_4.png")]
 
+@onready var ring_shader = preload("res://scene/player_border.gdshader")
+
 var hand = []
 var is_selecting = false
 var last_select = -1
@@ -155,6 +157,20 @@ func show_pass_label(flag:bool):
 func show_info(flag:bool):
 	$Info.visible = flag
 
+func set_ring(mode:int):
+	match mode:
+		0:
+			$Info/ColorRect.color = Color("00000098")
+			#$Info/Ring.visible = false
+		1:
+			$Info/ColorRect.color = Color("2B457898")
+			#$Info/Ring.visible = true
+			#$Info/Ring.material.set_shader_parameter("color", Color("DFDFDF"))
+		2:
+			$Info/ColorRect.color = Color("CCBC2498")
+			#$Info/Ring.visible = true
+			#$Info/Ring.material.set_shader_parameter("color", Color("CCBC24"))
+
 func set_emoji(statue:int):
 	match statue:
 		1:
@@ -210,6 +226,10 @@ func play_the_select():
 func select(id:int, flag:bool):
 	var children = $HandArea.get_children()
 	children[id].is_selected = flag
+	if children[id].is_selected:
+		children[id].position.y = -30
+	else:
+		children[id].position.y = 0
 
 func flip_over():
 	var children = $HandArea.get_children()
