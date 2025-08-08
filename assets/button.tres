@@ -1,9 +1,9 @@
-[gd_resource type="Theme" load_steps=13 format=3 uid="uid://fvk46ntxb4ka"]
+[gd_resource type="Theme" load_steps=14 format=3 uid="uid://fvk46ntxb4ka"]
 
-[ext_resource type="FontFile" uid="uid://c2hqvv1e6rt5y" path="res://assets/SourceHanSansSC-Regular-2.otf" id="1_2jg6l"]
-[ext_resource type="FontFile" uid="uid://be4aj1x5a6xs3" path="res://assets/Arial/arialbd.ttf" id="2_mw0qu"]
+[ext_resource type="FontFile" uid="uid://c2hqvv1e6rt5y" path="res://assets/fonts/SourceHanSansSC-Regular-2.otf" id="1_prvib"]
 [ext_resource type="StyleBox" uid="uid://cmwklht8v3bjc" path="res://new_style_box_flat2.tres" id="2_prvib"]
 [ext_resource type="StyleBox" uid="uid://ys7o4wgm8brm" path="res://new_style_box_flat.tres" id="2_ylu7e"]
+[ext_resource type="FontFile" uid="uid://be4aj1x5a6xs3" path="res://assets/fonts/arialbd.ttf" id="4_prvib"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jo4xh"]
 bg_color = Color(0.160784, 0.160784, 0.160784, 1)
@@ -46,7 +46,7 @@ expand_margin_top = 5.0
 expand_margin_bottom = 5.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2jg6l"]
-bg_color = Color(0.194349, 0.194349, 0.194349, 1)
+bg_color = Color(0.321569, 0.321569, 0.321569, 1)
 border_width_left = 5
 border_width_top = 5
 border_width_right = 5
@@ -56,10 +56,24 @@ corner_radius_top_left = 15
 corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
-expand_margin_top = 2.0
 expand_margin_bottom = 5.0
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ylu7e"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x2csu"]
+bg_color = Color(0.196078, 0.196078, 0.196078, 1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+expand_margin_left = 10.0
+expand_margin_top = 5.0
+expand_margin_right = 10.0
+expand_margin_bottom = 5.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qox7x"]
 bg_color = Color(0.239216, 0.239216, 0.239216, 1)
@@ -84,23 +98,23 @@ corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
 
 [resource]
-Button/fonts/font = ExtResource("1_2jg6l")
+Button/fonts/font = ExtResource("1_prvib")
 Button/styles/disabled = SubResource("StyleBoxFlat_jo4xh")
 Button/styles/focus = SubResource("StyleBoxEmpty_mw0qu")
 Button/styles/hover = SubResource("StyleBoxFlat_ylu7e")
 Button/styles/normal = SubResource("StyleBoxFlat_prvib")
 Button/styles/pressed = SubResource("StyleBoxFlat_2jg6l")
-CheckButton/colors/font_color = Color(0, 0, 0, 1)
-CheckButton/colors/font_focus_color = Color(0, 0, 0, 1)
-CheckButton/colors/font_hover_color = Color(0, 0, 0, 1)
-CheckButton/colors/font_hover_pressed_color = Color(0, 0, 0, 1)
-CheckButton/colors/font_pressed_color = Color(0, 0, 0, 1)
-CheckButton/fonts/font = ExtResource("1_2jg6l")
+CheckButton/colors/font_color = Color(1, 1, 1, 1)
+CheckButton/colors/font_focus_color = Color(1, 1, 1, 1)
+CheckButton/colors/font_hover_color = Color(1, 1, 1, 1)
+CheckButton/colors/font_hover_pressed_color = Color(1, 1, 1, 1)
+CheckButton/colors/font_pressed_color = Color(1, 1, 1, 1)
+CheckButton/fonts/font = ExtResource("1_prvib")
 CheckButton/styles/focus = SubResource("StyleBoxEmpty_ylu7e")
 CheckButton/styles/hover = ExtResource("2_prvib")
-CheckButton/styles/hover_pressed = ExtResource("2_ylu7e")
+CheckButton/styles/hover_pressed = SubResource("StyleBoxFlat_x2csu")
 CheckButton/styles/normal = ExtResource("2_ylu7e")
 CheckButton/styles/pressed = ExtResource("2_prvib")
-LineEdit/fonts/font = ExtResource("2_mw0qu")
+LineEdit/fonts/font = ExtResource("4_prvib")
 LineEdit/styles/focus = SubResource("StyleBoxFlat_qox7x")
 LineEdit/styles/normal = SubResource("StyleBoxFlat_ofuuq")

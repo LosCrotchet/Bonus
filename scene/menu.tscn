@@ -2,7 +2,7 @@
 
 [ext_resource type="Theme" uid="uid://fvk46ntxb4ka" path="res://assets/button.tres" id="1_e5g8k"]
 [ext_resource type="Script" uid="uid://b610qfl1f3cvi" path="res://scene/menu.gd" id="1_xs5te"]
-[ext_resource type="FontFile" uid="uid://be4aj1x5a6xs3" path="res://assets/Arial/arialbd.ttf" id="2_8hxod"]
+[ext_resource type="FontFile" uid="uid://be4aj1x5a6xs3" path="res://assets/fonts/arialbd.ttf" id="2_8hxod"]
 [ext_resource type="PackedScene" uid="uid://bi6f3v48ib58r" path="res://scene/character.tscn" id="2_bo06a"]
 [ext_resource type="Script" uid="uid://ubr8mvoaipbl" path="res://scene/fader_compenent.gd" id="2_vi6sp"]
 [ext_resource type="Script" uid="uid://k5ktiaweolju" path="res://scene/web_controller.gd" id="3_wd6lm"]
@@ -85,8 +85,20 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="YesOrNoButtons" type="CanvasGroup" parent="."]
-visible = false
 position = Vector2(1087, 435)
+
+[node name="YesOrNoDisplay" type="Label" parent="YesOrNoButtons"]
+offset_left = -190.0
+offset_top = -267.0
+offset_right = 191.0
+offset_bottom = -190.0
+theme_override_colors/font_color = Color(0.152941, 0.152941, 0.152941, 1)
+theme_override_fonts/font = ExtResource("2_8hxod")
+theme_override_font_sizes/font_size = 50
+theme_override_styles/normal = SubResource("StyleBoxFlat_bo06a")
+text = "你确定吗？"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Yes" type="Button" parent="YesOrNoButtons"]
 offset_left = -267.0
@@ -534,6 +546,7 @@ theme_override_font_sizes/font_size = 40
 text = "返回"
 
 [node name="MultiPlayerInfo" type="CanvasGroup" parent="."]
+visible = false
 position = Vector2(1050, 450)
 metadata/_edit_lock_ = true
 

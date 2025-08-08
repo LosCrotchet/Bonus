@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://byrm7aq8hamfd" path="res://scene/player.gd" id="1_xo3ru"]
 [ext_resource type="Texture2D" uid="uid://c3ujhdojewfx5" path="res://assets/avatar_default_1.png" id="2_hjaqi"]
-[ext_resource type="FontFile" uid="uid://c2hqvv1e6rt5y" path="res://assets/SourceHanSansSC-Regular-2.otf" id="3_fvtld"]
+[ext_resource type="FontFile" path="res://assets/SourceHanSansSC-Regular-2.otf" id="3_fvtld"]
 
 [node name="Player" type="Control"]
 layout_mode = 3

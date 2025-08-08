@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://c2hqvv1e6rt5y"
-path="res://.godot/imported/SourceHanSansSC-Regular-2.otf-8f16e1a5803051a67ded938e23a951ff.fontdata"
+uid="uid://ookfuvwdu5xm"
+path="res://.godot/imported/arialbi.ttf-771ae18311e8b0a5351b2baa5e755d0f.fontdata"
 
 [deps]
 
-source_file="res://assets/SourceHanSansSC-Regular-2.otf"
-dest_files=["res://.godot/imported/SourceHanSansSC-Regular-2.otf-8f16e1a5803051a67ded938e23a951ff.fontdata"]
+source_file="res://assets/fonts/arialbi.ttf"
+dest_files=["res://.godot/imported/arialbi.ttf-771ae18311e8b0a5351b2baa5e755d0f.fontdata"]
 
 [params]
 

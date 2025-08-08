@@ -1,7 +1,7 @@
 [gd_scene load_steps=13 format=3 uid="uid://d1bjj61jqhd50"]
 
 [ext_resource type="Script" uid="uid://bgdgu2gjdppy5" path="res://scene/main_scene.gd" id="1_fb1ex"]
-[ext_resource type="FontFile" uid="uid://c2hqvv1e6rt5y" path="res://assets/SourceHanSansSC-Regular-2.otf" id="2_hrphr"]
+[ext_resource type="FontFile" uid="uid://c2hqvv1e6rt5y" path="res://assets/fonts/SourceHanSansSC-Regular-2.otf" id="2_hrphr"]
 [ext_resource type="PackedScene" uid="uid://8oujd7w680x8" path="res://scene/dice.tscn" id="2_ry1uq"]
 [ext_resource type="Script" uid="uid://daqyqy4m5x0pd" path="res://scene/game_manager.gd" id="3_jsie2"]
 [ext_resource type="Script" uid="uid://cmb1p1gmcwcds" path="res://scene/player_manager.gd" id="4_4wnd8"]
@@ -11,7 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://bw4hruxi0mnr1" path="res://scene/player.tscn" id="8_hrphr"]
 [ext_resource type="AudioStream" uid="uid://cyvyxpcd72477" path="res://assets/sound/button.ogg" id="10_86xya"]
 [ext_resource type="Script" uid="uid://cvxrju7ibgkqq" path="res://scene/audio_stream_player_2d.gd" id="11_cj0ow"]
-[ext_resource type="Texture2D" path="res://assets/icon/icons8-logout-48.png" id="12_xavy2"]
+[ext_resource type="Texture2D" uid="uid://d3x4fwaysadxn" path="res://assets/icon/icons8-logout-48.png" id="12_xavy2"]
 
 [node name="MainScene" type="Node2D"]
 script = ExtResource("1_fb1ex")
