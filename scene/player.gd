@@ -160,16 +160,16 @@ func show_info(flag:bool):
 func set_ring(mode:int):
 	match mode:
 		0:
-			$Info/ColorRect.color = Color("00000098")
-			#$Info/Ring.visible = false
+			#$Info/ColorRect.color = Color("00000098")
+			$Info/Ring.visible = false
 		1:
-			$Info/ColorRect.color = Color("2B457898")
-			#$Info/Ring.visible = true
-			#$Info/Ring.material.set_shader_parameter("color", Color("DFDFDF"))
+			#$Info/ColorRect.color = Color("2B457898")
+			$Info/Ring.visible = true
+			$Info/Ring.material.set_shader_parameter("color", Color("DFDFDF"))
 		2:
-			$Info/ColorRect.color = Color("CCBC2498")
-			#$Info/Ring.visible = true
-			#$Info/Ring.material.set_shader_parameter("color", Color("CCBC24"))
+			#$Info/ColorRect.color = Color("CCBC2498")
+			$Info/Ring.visible = true
+			$Info/Ring.material.set_shader_parameter("color", Color("CCBC24"))
 
 func set_emoji(statue:int):
 	match statue:
