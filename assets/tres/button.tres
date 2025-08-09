@@ -1,8 +1,8 @@
 [gd_resource type="Theme" load_steps=14 format=3 uid="uid://fvk46ntxb4ka"]
 
 [ext_resource type="FontFile" uid="uid://c2hqvv1e6rt5y" path="res://assets/fonts/SourceHanSansSC-Regular-2.otf" id="1_prvib"]
-[ext_resource type="StyleBox" uid="uid://cmwklht8v3bjc" path="res://new_style_box_flat2.tres" id="2_prvib"]
-[ext_resource type="StyleBox" uid="uid://ys7o4wgm8brm" path="res://new_style_box_flat.tres" id="2_ylu7e"]
+[ext_resource type="StyleBox" uid="uid://cmwklht8v3bjc" path="res://assets/tres/new_style_box_flat2.tres" id="2_prvib"]
+[ext_resource type="StyleBox" uid="uid://ys7o4wgm8brm" path="res://assets/tres/new_style_box_flat.tres" id="2_ylu7e"]
 [ext_resource type="FontFile" uid="uid://be4aj1x5a6xs3" path="res://assets/fonts/arialbd.ttf" id="4_prvib"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jo4xh"]
