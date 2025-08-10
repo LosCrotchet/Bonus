@@ -17,6 +17,7 @@ func start_animation():
 	if enable:
 		Outlook.play("roll")
 		if DeckManager.GameMode != 2:
+			wait_time = randf_range(1, 2.5)
 			Animation_timer.start(wait_time)
 
 func _on_timer_timeout():

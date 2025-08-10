@@ -1,10 +1,12 @@
-[gd_scene load_steps=8 format=3 uid="uid://bw4hruxi0mnr1"]
+[gd_scene load_steps=9 format=3 uid="uid://bw4hruxi0mnr1"]
 
 [ext_resource type="Script" uid="uid://byrm7aq8hamfd" path="res://scene/player.gd" id="1_xo3ru"]
 [ext_resource type="Texture2D" uid="uid://c3ujhdojewfx5" path="res://assets/avatar_default_1.png" id="2_hjaqi"]
+[ext_resource type="FontFile" uid="uid://ookfuvwdu5xm" path="res://assets/fonts/arialbi.ttf" id="2_hp4bs"]
 [ext_resource type="FontFile" uid="uid://c2hqvv1e6rt5y" path="res://assets/fonts/SourceHanSansSC-Regular-2.otf" id="3_fvtld"]
 [ext_resource type="Shader" uid="uid://kl5dcckl3ucn" path="res://scene/player_border.gdshader" id="3_s4jxa"]
-[ext_resource type="Texture2D" uid="uid://bxrebsonmohgh" path="res://assets/animation/border.png" id="4_oh5ij"]
+[ext_resource type="Theme" uid="uid://da3dl6vvytigd" path="res://assets/tres/label_button.tres" id="6_hp4bs"]
+[ext_resource type="Texture2D" uid="uid://dlpuf55uny4sc" path="res://assets/icon/card_icon.png" id="6_oh5ij"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hp4bs"]
 shader = ExtResource("3_s4jxa")
@@ -13,8 +15,6 @@ shader_parameter/size = Vector2(290, 150)
 shader_parameter/width = 8.0
 shader_parameter/speed = 0.8
 shader_parameter/frequency = 9.0
-
-[sub_resource type="SpriteFrames" id="SpriteFrames_g2vtq"]
 
 [node name="Player" type="Control"]
 layout_mode = 3
@@ -28,9 +28,10 @@ grow_vertical = 2
 script = ExtResource("1_xo3ru")
 
 [node name="HandArea" type="CanvasGroup" parent="."]
+position = Vector2(503, 222)
 
 [node name="DiscardArea" type="CanvasGroup" parent="."]
-position = Vector2(0, -300)
+position = Vector2(543, -213)
 scale = Vector2(0.8, 0.8)
 
 [node name="PassLabel" type="Label" parent="DiscardArea"]
@@ -40,52 +41,50 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -59.5
-offset_top = -34.5
-offset_right = 59.5
-offset_bottom = 34.5
+offset_left = -131.25
+offset_top = -86.25
+offset_right = 133.75
+offset_bottom = 26.75
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_fonts/font = ExtResource("3_fvtld")
-theme_override_font_sizes/font_size = 80
+theme_override_fonts/font = ExtResource("2_hp4bs")
+theme_override_font_sizes/font_size = 100
 text = "PASS"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Info" type="CanvasGroup" parent="."]
-position = Vector2(-600, 0)
 
 [node name="Ring" type="ColorRect" parent="Info"]
 material = SubResource("ShaderMaterial_hp4bs")
-offset_left = -75.0
-offset_top = -75.0
-offset_right = 215.0
-offset_bottom = 75.0
-
-[node name="Sprite2D" type="Sprite2D" parent="Info"]
-visible = false
-position = Vector2(70, 0)
-texture = ExtResource("4_oh5ij")
+offset_left = -145.0
+offset_top = -73.0
+offset_right = 145.0
+offset_bottom = 77.0
 
 [node name="ColorRect" type="ColorRect" parent="Info"]
-offset_left = -65.0
-offset_top = -65.0
-offset_right = 205.0
-offset_bottom = 65.0
+offset_left = -135.0
+offset_top = -63.0
+offset_right = 135.0
+offset_bottom = 67.0
 color = Color(0, 0, 0, 0.588235)
 
 [node name="Avatar" type="Sprite2D" parent="Info"]
+position = Vector2(-70, 2)
 scale = Vector2(0.5, 0.5)
 texture = ExtResource("2_hjaqi")
 
 [node name="Name" type="Label" parent="Info"]
-offset_left = 59.0
-offset_top = -52.0
-offset_right = 142.0
-offset_bottom = -8.0
+offset_left = -11.0
+offset_top = -50.0
+offset_right = 72.0
+offset_bottom = -6.0
 theme_override_fonts/font = ExtResource("3_fvtld")
 theme_override_font_sizes/font_size = 30
 text = "玩家 1"
 
 [node name="Rest" type="Label" parent="Info"]
+visible = false
 offset_left = 59.0
 offset_top = 4.0
 offset_right = 175.0
@@ -105,9 +104,9 @@ theme_override_font_sizes/font_size = 50
 text = "🤔"
 
 [node name="Hint" type="Label" parent="Info"]
-offset_left = 170.0
+offset_left = 100.0
 offset_top = -4.0
-offset_right = 214.0
+offset_right = 144.0
 offset_bottom = 55.0
 theme_override_fonts/font = ExtResource("3_fvtld")
 theme_override_font_sizes/font_size = 40
@@ -115,6 +114,13 @@ text = "+7"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Info"]
-visible = false
-sprite_frames = SubResource("SpriteFrames_g2vtq")
+[node name="RestDisplay" type="Button" parent="Info"]
+offset_left = -11.0
+offset_top = 3.0
+offset_right = 97.0
+offset_bottom = 52.0
+theme = ExtResource("6_hp4bs")
+text = "11"
+icon = ExtResource("6_oh5ij")
+alignment = 0
+expand_icon = true

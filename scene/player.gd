@@ -43,29 +43,36 @@ func init():
 	
 	is_selecting = false
 	last_select = -1
-	$DiscardArea.scale = Vector2(0.7, 0.7)
+	$DiscardArea.scale = Vector2(0.8, 0.8)
 	match location:
 		LOCATION.UP:
-			$HandArea.rotation = deg_to_rad(0)
-			$HandArea.position = Vector2(-80, 0)
-			$Info.position = Vector2(400, 0)
-			$DiscardArea.position = Vector2(100, 160)
-			$HandArea.scale = Vector2(0.8, 0.8)
+			#$HandArea.rotation = deg_to_rad(0)
+			#$HandArea.position = Vector2(-80, 0)
+			$Info.position = Vector2(0, 0)
+			$DiscardArea.position = Vector2(350, 30)
+			#$DiscardArea.scale = Vector2(0.8, 0.8)
+			#$HandArea.scale = Vector2(0.8, 0.8)
+			$HandArea.visible = false
 		LOCATION.DOWN:
 			$HandArea.rotation = deg_to_rad(0)
-			$Info.position = Vector2(-600, 0)
-			$HandArea.position = Vector2(90, 0)
-			$DiscardArea.position = Vector2(0, -270)
+			$Info.position = Vector2(0, 0)
+			$HandArea.position = Vector2(500, 190)
+			$DiscardArea.position = Vector2(550, -50)
+			$HandArea.visible = true
 		LOCATION.LEFT:
-			$Info.position = Vector2(180, -270)
-			$HandArea.rotation = deg_to_rad(90)
-			$HandArea.scale = Vector2(0.8, 0.8)
-			$DiscardArea.position = Vector2(250, -90)
+			$Info.position = Vector2(0, 0)
+			#$HandArea.rotation = deg_to_rad(90)
+			#$HandArea.scale = Vector2(0.8, 0.8)
+			$DiscardArea.position = Vector2(100, 190)
+			#$DiscardArea.scale = Vector2(0.8, 0.8)
+			$HandArea.visible = false
 		LOCATION.RIGHT:
-			$Info.position = Vector2(-300, 110)
-			$HandArea.rotation = deg_to_rad(-90)
-			$HandArea.scale = Vector2(0.8, 0.8)
-			$DiscardArea.position = Vector2(-280, -20)
+			$Info.position = Vector2(0, 0)
+			#$HandArea.rotation = deg_to_rad(-90)
+			#$HandArea.scale = Vector2(0.8, 0.8)
+			$DiscardArea.position = Vector2(-100, 190)
+			#$DiscardArea.scale = Vector2(0.8, 0.8)
+			$HandArea.visible = false
 
 func comp(a, b):
 	var pa = 4*13 + a.x
@@ -88,7 +95,7 @@ func update_x_position():
 	var children = $HandArea.get_children()
 	hand.sort_custom(comp)
 	var card_count = len(children)
-	var gap = 1550 / (card_count + 20)
+	var gap = 1800 / (card_count + 20)
 	for i in range(card_count):
 		children[i].position.x = (-0.5*(card_count-1)+i)*gap
 		children[i].suit = hand[i].x
@@ -102,7 +109,8 @@ func update_x_position():
 		children[i+1].position.x = (-0.5*(card_count-1)+i)*gap
 		#children[i].face_position = orders[i]
 	
-	$Info/Rest.text = "余 " + str(len(hand)) + " 张"
+	#$Info/Rest.text = "余 " + str(len(hand)) + " 张"
+	$Info/RestDisplay.text = str(len(hand))
 
 func update_y_position():
 	var mouse_position = get_global_mouse_position()
@@ -239,19 +247,18 @@ func flip_over():
 func show_hint(num:int):
 	var now_hint = int($Info/Hint.text)
 	$Info/Hint.modulate = Color(1, 1, 1, 0)
-	$Info/Hint.position = Vector2(170, -20)
+	$Info/Hint.position = Vector2(100, -20)
 	$Info/Hint.text = str(num)
 	if num > 0:
 		$Info/Hint.text = "+" + str(num)
 	var hint_tween = get_tree().create_tween().set_trans(Tween.TRANS_QUINT).set_parallel(true)
 	
 	hint_tween.tween_property($Info/Hint, "modulate", Color(1, 1, 1, 1), 1)
-	hint_tween.tween_property($Info/Hint, "position", Vector2(170, -4), 1)
+	hint_tween.tween_property($Info/Hint, "position", Vector2(100, -4), 1)
 	
 	await get_tree().create_timer(1).timeout
-	hint_tween.stop()
-	hint_tween.tween_property($Info/Hint, "modulate", Color(1, 1, 1, 0), 2)
-	hint_tween.play()
+	hint_tween = get_tree().create_tween().set_trans(Tween.TRANS_QUINT).set_parallel(true)
+	hint_tween.tween_property($Info/Hint, "modulate", Color(1, 1, 1, 0), 1.6)
 	
 
 func _process(delta):

@@ -369,7 +369,7 @@ func find_type(hands, dice_result, type_to_find:int = -1, last_played:Array = []
 			for i in range(len(hands)-2):
 				if hands[i].y == hands[i+2].y and hands[i].y > cmp_flag:
 					for j in range(len(hands)-1):
-						if j < i and hands[j].y == hands[j+1].y:
+						if j < i - 1 and hands[j].y == hands[j+1].y:
 							result.append([hands[j], hands[j+1], hands[i], hands[i+1], hands[i+2]])
 						if j > i + 2 and hands[j].y == hands[j+1].y:
 							result.append([hands[i], hands[i+1], hands[i+2], hands[j], hands[j+1]])
@@ -413,7 +413,7 @@ func find_type(hands, dice_result, type_to_find:int = -1, last_played:Array = []
 			for i in range(len(hands)-3):
 				if hands[i].y == hands[i+3].y and hands[i].y > cmp_flag:
 					for j in range(len(hands)-1):
-						if j < i and hands[j].y == hands[j+1].y:
+						if j < i - 1 and hands[j].y == hands[j+1].y:
 							result.append([hands[j], hands[j+1], hands[i], hands[i+1], hands[i+2], hands[i+3]])
 						if j > i + 3 and hands[j].y == hands[j+1].y:
 							result.append([hands[i], hands[i+1], hands[i+2], hands[i+3], hands[j], hands[j+1]])
@@ -421,7 +421,7 @@ func find_type(hands, dice_result, type_to_find:int = -1, last_played:Array = []
 			for i in range(len(hands)-2):
 				if hands[i].y == hands[i+2].y and (len(last_played) == 0 or hands[i].y > last_played[3].y):
 					for j in range(len(hands)-2):
-						if j < i and hands[j].y == hands[j+2].y:
+						if j < i - 2 and hands[j].y == hands[j+2].y:
 							result.append([hands[j], hands[j+1], hands[j+2], hands[i], hands[i+1], hands[i+2]])
 						if j > i + 2 and hands[j].y == hands[j+2].y:
 							result.append([hands[i], hands[i+1], hands[i+2], hands[j], hands[j+1], hands[j+2]])

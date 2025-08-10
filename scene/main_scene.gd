@@ -41,14 +41,14 @@ func _ready():
 	$GameManager.init()
 	$PlayerManager.init()
 
-	$Dice.visible = true
+	#$Dice.visible = true
 	$PlayerManager.visible = true
 	$DeckCount.visible = true
 	
 	$GameManager.dealer = (1 - DeckManager.player_order + DeckManager.player_count) % DeckManager.player_count
 	#GameStart.emit()
-	await get_tree().create_timer(0.5).timeout
-	$PlayerManager.GameStart.emit()
+	#await get_tree().create_timer(0.5).timeout
+	#$PlayerManager.GameStart.emit()
 	
 	#if DeckManager.GameMode == 2:
 	#	WebController.player_loaded.rpc()
@@ -72,6 +72,7 @@ func _process(delta):
 			
 func _on_game_manager_game_signal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus):
 	# 调整骰子位置以显示谁是庄家
+	$Dice.visible = true
 	var offset = Vector2(800, 600)
 	var dice_position
 	var dice_scale
@@ -81,11 +82,11 @@ func _on_game_manager_game_signal(now_whos_turn, now_whos_dice, dice_result, pla
 	else:
 		match $PlayerManager.Players[now_whos_dice].location:
 			LOCATION.UP:
-				dice_position = Vector2(-200, -350) + offset
+				dice_position = Vector2(-100, -350) + offset
 			LOCATION.LEFT:
-				dice_position = Vector2(-550, -80) + offset
+				dice_position = Vector2(-450, -300) + offset
 			LOCATION.RIGHT:
-				dice_position = Vector2(500, -300) + offset
+				dice_position = Vector2(400, -300) + offset
 		dice_scale = Vector2(0.8, 0.8)
 	if is_bonus:
 		$Dice.change_statue(1)

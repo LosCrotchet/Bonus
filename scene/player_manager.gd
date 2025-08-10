@@ -102,39 +102,41 @@ func init():
 			Players[i].is_player = false
 		Players[i].set_emoji(1)
 	Players[0].location = LOCATION.DOWN
-	Players[0].position = Vector2(800, 760)
+	Players[0].position = Vector2(330, 600)
 	Players[0].select_enable = true
 	Players[0].is_player = true
 	#Players[0].player_name = "你"
 	match player_count:
 		2:
 			Players[1].location = LOCATION.UP
-			Players[1].position = Vector2(800, 90)
+			Players[1].position = Vector2(620, 110)
 		3:
 			Players[2].location = LOCATION.LEFT
-			Players[2].position = Vector2(0, 450)
+			Players[2].position = Vector2(150, 230)
 			Players[1].location = LOCATION.UP
-			Players[1].position = Vector2(800, 90)
+			Players[1].position = Vector2(620, 110)
 		4:
 			Players[3].location = LOCATION.LEFT
-			Players[3].position = Vector2(0, 450)
+			Players[3].position = Vector2(150, 230)
 			Players[2].location = LOCATION.UP
-			Players[2].position = Vector2(800, 90)
+			Players[2].position = Vector2(620, 110)
 			Players[1].location = LOCATION.RIGHT
-			Players[1].position = Vector2(1600, 450)
+			Players[1].position = Vector2(1450, 230)
 	for item in Players:
 		item.init()
 	
 	#print("GameMode: ", DeckManager.GameMode)
-	if DeckManager.GameMode != 2:
-		for cnt in range(17):
-			for i in range(player_count):
+	for cnt in range(17):
+		for i in range(player_count):
+			if DeckManager.GameMode != 2:
 				var result = DeckManager.get_card()
 				#print(DeckManager.deliver_card_to.get_connections())
 				DeckManager.deliver_card_to.emit(Players[i].order, result)
 				add_card_to(result, i)
 				Players[i].update_x_position()
-				#await get_tree().create_timer(0.1).timeout
+			await get_tree().create_timer(0.05).timeout
+	
+	GameStart.emit()
 
 
 func play_sound(id:int):

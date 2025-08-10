@@ -31,10 +31,10 @@ offset_bottom = 800.0
 color = Color(0.243137, 0.243137, 0.243137, 1)
 
 [node name="DeckCount" type="Label" parent="."]
-offset_left = 681.0
-offset_top = 322.0
-offset_right = 903.0
-offset_bottom = 612.0
+offset_left = 688.0
+offset_top = 154.0
+offset_right = 910.0
+offset_bottom = 444.0
 theme_override_colors/font_color = Color(1, 1, 1, 0.313726)
 theme_override_fonts/font = ExtResource("2_hrphr")
 theme_override_font_sizes/font_size = 200
@@ -52,18 +52,33 @@ script = ExtResource("4_qvu5t")
 script = ExtResource("4_4wnd8")
 
 [node name="Player" parent="PlayerManager" instance=ExtResource("8_hrphr")]
-visible = false
+offset_left = 344.0
+offset_top = 575.0
+offset_right = -1256.0
+offset_bottom = -325.0
 select_enable = true
 
 [node name="Player2" parent="PlayerManager" instance=ExtResource("8_hrphr")]
 visible = false
+offset_left = 1423.0
+offset_top = 305.0
+offset_right = -177.0
+offset_bottom = -595.0
 
 [node name="Player3" parent="PlayerManager" instance=ExtResource("8_hrphr")]
 visible = false
+offset_left = 799.0
+offset_top = 86.0
+offset_right = -801.0
+offset_bottom = -814.0
 location = 0
 
 [node name="Player4" parent="PlayerManager" instance=ExtResource("8_hrphr")]
 visible = false
+offset_left = 174.0
+offset_top = 309.0
+offset_right = -1426.0
+offset_bottom = -591.0
 location = 3
 
 [node name="GameUI" type="CanvasGroup" parent="."]

@@ -51,15 +51,16 @@ void fragment()
 	float widx = width / size.x, widy = width / size.y;
 	float is_flipped = 1.0;
 	
-	//float len_3 = 0.75 * size.x + size.y, len_5 = 1.25 * size.x + size.y;
-	//float time_3 = (len_3 * 2.0) / (speed * (size.x + size.y));
-	//float time_5 = (len_5 * 2.0) / (speed * (size.x + size.y));
-	float factor = (sin(TIME / 100.0) * 0.2 + 2.0) * 100.0;
-	factor = 100.0;
+	//float factor = (sin(TIME / 100.0) * 0.2 + 2.0) * 100.0;
+	//factor = 100.0;
+	float len;
+	//len = 4.0 * (0.005 * float(int(TIME*speed*factor) % 200));
+	//len = 2.0 * (sin(TIME) + 0.5*sin(2.0*TIME) + 1.5);
+	len = 1.28 * (atan(3.0*tan(TIME)) + 1.57);
 
-	head = calculate(vec2(0.9, 1.0), 4.0 * (0.005 * float(int(TIME*speed*factor) % 200)));
+	head = calculate(vec2(1.0, 1.0), len);
 	//tail = calculate(vec2(0.0, 1.0), 2.0 * (is_flipped * sin(TIME) + 1.0));
-	tail = calculate(vec2(0.1, 1.0), 4.0 * (0.005 * float(int(TIME*speed*factor) % 200)));
+	tail = calculate(vec2(0.0, 1.0), len);
 	
 	if (head.x == 1.0){
 		if (tail.x == 1.0){
