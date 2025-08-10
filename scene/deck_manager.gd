@@ -121,6 +121,7 @@ func what_type_without_joker(cards):
 	return null
 
 func type_comp(cardsA, cardsB, typeA, typeB):
+	# A比B大返回true
 	var numA = []
 	var numB = []
 	for item in cardsA:
@@ -266,10 +267,13 @@ func what_type(N_cards):
 func whos_greater(cardsA, cardsB):
 	var typeA = what_type(cardsA)
 	var typeB = what_type(cardsB)
-	
-	if typeA != [null] and typeB != [null] and\
-	   (typeA[0] == typeB[0] or (len(cardsA) > 3 and len(cardsB) > 3 and (typeA[0] == 0 or typeB[0] == 0))):
-		return type_comp(cardsA, cardsB, typeA[0], typeB[0])
+
+	if len(cardsB) != len(cardsA):
+		return false
+	if typeA[0] == typeB[0]:
+		return type_comp(cardsA, cardsB, typeA[0], typeB[0])	
+	if len(cardsA) > 3 and typeA[0] == 0:
+		return true
 	return false
 
 func find_type(hands, dice_result, type_to_find:int = -1, last_played:Array = []):

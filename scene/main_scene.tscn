@@ -1,6 +1,7 @@
-[gd_scene load_steps=13 format=3 uid="uid://d1bjj61jqhd50"]
+[gd_scene load_steps=15 format=3 uid="uid://d1bjj61jqhd50"]
 
 [ext_resource type="Script" uid="uid://bgdgu2gjdppy5" path="res://scene/main_scene.gd" id="1_fb1ex"]
+[ext_resource type="Shader" uid="uid://bkvwcso3o22vv" path="res://scene/twist.gdshader" id="2_7l8gs"]
 [ext_resource type="FontFile" uid="uid://c2hqvv1e6rt5y" path="res://assets/fonts/SourceHanSansSC-Regular-2.otf" id="2_hrphr"]
 [ext_resource type="PackedScene" uid="uid://8oujd7w680x8" path="res://scene/dice.tscn" id="2_ry1uq"]
 [ext_resource type="Script" uid="uid://daqyqy4m5x0pd" path="res://scene/game_manager.gd" id="3_jsie2"]
@@ -12,6 +13,23 @@
 [ext_resource type="AudioStream" uid="uid://cyvyxpcd72477" path="res://assets/sound/button.ogg" id="10_86xya"]
 [ext_resource type="Script" uid="uid://ejr2o00ei8ei" path="res://scene/sfx_player.gd" id="11_xavy2"]
 [ext_resource type="Texture2D" uid="uid://d3x4fwaysadxn" path="res://assets/icon/icons8-logout-48.png" id="12_xavy2"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_6e7jr"]
+shader = ExtResource("2_7l8gs")
+shader_parameter/colour1 = Color(0, 0, 0, 1)
+shader_parameter/colour2 = Color(0.143143, 0.150277, 0.141346, 1)
+shader_parameter/colour3 = Color(0.169245, 0.169245, 0.169245, 1)
+shader_parameter/colour4 = Color(0.396889, 0.396889, 0.396889, 1)
+shader_parameter/contrast = 5
+shader_parameter/gradual = 2.0
+shader_parameter/width1 = 0.13
+shader_parameter/width2 = 0.13
+shader_parameter/scale1 = 16.8
+shader_parameter/scale2 = 1.11
+shader_parameter/offset = Vector2(0, 0)
+shader_parameter/intensity = 0.2
+shader_parameter/spin_speed = 0.2
+shader_parameter/spin_amount = 1.5
 
 [node name="MainScene" type="Node2D"]
 script = ExtResource("1_fb1ex")
@@ -29,6 +47,12 @@ offset_top = 200.0
 offset_right = 1300.0
 offset_bottom = 800.0
 color = Color(0.243137, 0.243137, 0.243137, 1)
+
+[node name="ColorRect" type="ColorRect" parent="Prop"]
+visible = false
+material = SubResource("ShaderMaterial_6e7jr")
+offset_right = 1603.0
+offset_bottom = 901.0
 
 [node name="DeckCount" type="Label" parent="."]
 offset_left = 688.0
@@ -136,10 +160,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -465.0
-offset_top = -17.5
-offset_right = -390.0
-offset_bottom = 17.5
+offset_left = 261.0
+offset_top = -16.0
+offset_right = 336.0
+offset_bottom = 19.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 25

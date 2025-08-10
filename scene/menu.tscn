@@ -85,6 +85,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="YesOrNoButtons" type="CanvasGroup" parent="."]
+visible = false
 position = Vector2(1087, 435)
 
 [node name="YesOrNoDisplay" type="Label" parent="YesOrNoButtons"]

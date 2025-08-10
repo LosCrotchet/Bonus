@@ -6,6 +6,7 @@ var single_tween = null
 var client_tween = null
 var server_tween = null
 var multi_tween = null
+var master_tween = null
 const WAIT_TIME = 0.6
 
 var now_state = 0
@@ -318,6 +319,15 @@ func _on_single_game_pressed():
 		update_state(2)
 
 func _on_start_game_pressed():
+	#if master_tween:
+	#	master_tween.kill()
+	#master_tween = get_tree().create_tween().set_trans(Tween.TRANS_CUBIC).set_parallel()
+	#master_tween.tween_property($".", "position:y", 100, WAIT_TIME)
+	#master_tween.tween_property($".", "modulate", Color(1, 1, 1, 0), WAIT_TIME)
+	#var tmp = func():
+	#	master_tween = null
+	#	get_tree().change_scene_to_file("res://scene/transition.tscn")
+	#master_tween.tween_callback(tmp).set_delay(WAIT_TIME)
 	get_tree().change_scene_to_file("res://scene/main_scene.tscn")
 
 func _on_multi_game_pressed():

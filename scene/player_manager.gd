@@ -132,9 +132,11 @@ func init():
 				var result = DeckManager.get_card()
 				#print(DeckManager.deliver_card_to.get_connections())
 				DeckManager.deliver_card_to.emit(Players[i].order, result)
-				add_card_to(result, i)
-				Players[i].update_x_position()
-			await get_tree().create_timer(0.05).timeout
+				#add_card_to(result, i)
+				#Players[i].update_x_position()
+				Players[i].add_card(result)
+			#await get_tree().create_timer(0.2).timeout
+		await get_tree().create_timer(0.15).timeout
 	
 	GameStart.emit()
 
@@ -153,27 +155,6 @@ func play_sound(id:int):
 	audio_player.play()
 	await audio_player.finished
 	remove_child(audio_player)
-	
-func add_card_to(card:Vector2i, id:int):
-	var new_card = CARD.instantiate()
-	new_card.suit = card.x
-	new_card.rank = card.y
-	if id != 0:
-		new_card.is_folded = true
-	#new_card.is_folded = false
-	Players[id].get_child(0).add_child(new_card)
-	Players[id].hand.append(card)
-	Players[id].update_x_position()
-	
-
-func discard_to(cards, id:int):
-	for item in cards:
-		var new_card = CARD.instantiate()
-		new_card.suit = item.x
-		new_card.rank = item.y
-		new_card.is_folded = false
-		Players[id].get_child(1).add_child(new_card)
-		Players[id].update_x_position()
 
 func _on_game_end(index):
 	play_sound(4)
@@ -277,17 +258,18 @@ func deal_result(result):
 		Players[now_turn].set_emoji(6)
 		play_sound(3)
 	else:
-		var index = 0
-		for i in range(len(Players[now_turn].hand)):
+		var index = len(result) - 1
+		for i in range(len(Players[now_turn].hand)-1, -1, -1):
 			if Players[now_turn].hand[i] == result[index]:
-				Players[now_turn].select(i, true)
+				#Players[now_turn].select(i, true)
 				DeckManager.discard(Players[now_turn].hand[i])
-				index += 1
-				if index == len(result):
+				Players[now_turn].play_the_card(i)
+				index -= 1
+				if index == -1:
 					break
 		Players[now_turn].show_hint(-len(result))
-		Players[now_turn].play_the_select()
-		Players[now_turn].update_x_position()
+		#Players[now_turn].play_the_select()
+		#Players[now_turn].update_x_position()
 		Players[now_turn].set_emoji(2)
 		play_sound(2)
 	
@@ -300,7 +282,8 @@ func _on_game_manager_draw_card(id, num):
 		var result = DeckManager.get_card()
 		if DeckManager.GameMode == 1:
 			DeckManager.deliver_card_to.emit(Players[id].order, result)
-		add_card_to(result, id)
+		#add_card_to(result, id)
+		Players[id].add_card(result, 0.5)
 		play_sound(1)
 		#await get_tree().create_timer(0.1)
 
@@ -309,7 +292,7 @@ func _on_game_manager_draw_card(id, num):
 func _on_pass_button_pressed():
 	# Pass信号发送在GameManager里
 	Players[0].cancel_select()
-	Players[0].update_x_position()
+	#Players[0].update_x_position()
 	if DeckManager.GameMode != 2:
 		deal_result([null])
 	await get_tree().create_timer(0.1).timeout
@@ -349,7 +332,8 @@ func _on_deck_manager_deliver_card_to(order: int, card: Variant) -> void:
 	if DeckManager.GameMode == 2:
 		for i in range(player_count):
 			if Players[i].order == order:
-				add_card_to(card, i)
+				#add_card_to(card, i)
+				Players[i].add_card(card, 0.5)
 				break
 
 func _on_hint_button_pressed() -> void:

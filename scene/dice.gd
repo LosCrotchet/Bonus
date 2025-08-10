@@ -1,6 +1,6 @@
 extends Node2D
 
-@export var number:int
+@export var number:int = 1
 @export var wait_time:float = 2
 @export var enable:bool = true
 

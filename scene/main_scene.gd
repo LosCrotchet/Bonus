@@ -14,6 +14,7 @@ var is_game_end = false
 func _ready():
 	$GameUI.visible = false
 	$Dice.visible = false
+	$Dice.change_statue(0)
 	$WinnerLabel.visible = false
 	$PlayerManager.visible = false
 	$DeckCount.visible = false
@@ -49,6 +50,8 @@ func _ready():
 	#GameStart.emit()
 	#await get_tree().create_timer(0.5).timeout
 	#$PlayerManager.GameStart.emit()
+	$Dice.visible = true
+	$Dice.position = Vector2(800, 400)
 	
 	#if DeckManager.GameMode == 2:
 	#	WebController.player_loaded.rpc()
@@ -84,9 +87,9 @@ func _on_game_manager_game_signal(now_whos_turn, now_whos_dice, dice_result, pla
 			LOCATION.UP:
 				dice_position = Vector2(-100, -350) + offset
 			LOCATION.LEFT:
-				dice_position = Vector2(-450, -300) + offset
+				dice_position = Vector2(-450, -340) + offset
 			LOCATION.RIGHT:
-				dice_position = Vector2(400, -300) + offset
+				dice_position = Vector2(400, -340) + offset
 		dice_scale = Vector2(0.8, 0.8)
 	if is_bonus:
 		$Dice.change_statue(1)

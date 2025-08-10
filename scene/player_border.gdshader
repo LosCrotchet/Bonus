@@ -4,7 +4,6 @@ uniform vec4 color: source_color = vec4(1.0);
 uniform vec2 size;
 uniform float width;
 uniform float speed = 1.0;
-uniform float frequency = 2.0;
 
 vec2 calculate(vec2 start, float len){
 	while (len > 0.0){
@@ -49,14 +48,13 @@ void fragment()
 	vec2 head, tail;
 	
 	float widx = width / size.x, widy = width / size.y;
-	float is_flipped = 1.0;
 	
 	//float factor = (sin(TIME / 100.0) * 0.2 + 2.0) * 100.0;
 	//factor = 100.0;
 	float len;
 	//len = 4.0 * (0.005 * float(int(TIME*speed*factor) % 200));
 	//len = 2.0 * (sin(TIME) + 0.5*sin(2.0*TIME) + 1.5);
-	len = 1.28 * (atan(3.0*tan(TIME)) + 1.57);
+	len = 1.28 * (atan(3.0*tan(speed*TIME)) + 1.57);
 
 	head = calculate(vec2(1.0, 1.0), len);
 	//tail = calculate(vec2(0.0, 1.0), 2.0 * (is_flipped * sin(TIME) + 1.0));

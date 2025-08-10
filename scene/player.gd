@@ -11,6 +11,8 @@ enum LOCATION {
 @export var order:int
 @export var is_player:bool
 
+@onready var CARD = preload("res://card.tscn")
+
 @onready var card_1 = preload("res://assets/sound/card1.ogg")
 @onready var card_fan_2 = preload("res://assets/sound/cardFan2.ogg")
 @onready var card_3 = preload("res://assets/sound/card3.ogg")
@@ -75,6 +77,7 @@ func init():
 			$HandArea.visible = false
 
 func comp(a, b):
+	# b 比 a 大返回true
 	var pa = 4*13 + a.x
 	var pb = 4*13 + b.x
 	if a.y != 0:
@@ -91,26 +94,70 @@ func play_sound():
 	await audio_player.finished
 	remove_child(audio_player)
 
-func update_x_position():
+func add_card(card:Vector2i, time:float = 0.1):
 	var children = $HandArea.get_children()
-	hand.sort_custom(comp)
 	var card_count = len(children)
-	var gap = 1800 / (card_count + 20)
+
+	var new_card = CARD.instantiate()
+	new_card.suit = card.x
+	new_card.rank = card.y
+	var index
+	
+	if card_count == 0:
+		$HandArea.add_child(new_card)
+		hand.append(card)
+		index = 0
+	else:
+		var is_last = true
+		for i in range(card_count):
+			if comp(card, hand[i]):
+				hand.insert(i, card)
+				$HandArea.add_child(new_card)
+				$HandArea.move_child(new_card, i)
+				index = i
+				is_last = false
+				break
+		if is_last:
+			hand.append(card)
+			$HandArea.add_child(new_card)
+			#$HandArea.move_child(new_card, card_count)
+			index = card_count
+	
+	$Info/RestDisplay.text = str(len(hand))
+	if location != LOCATION.DOWN:
+		return
+	
+	children = $HandArea.get_children()
+	card_count = len(children)
+	var gap = 2100 / (card_count + 20)
 	for i in range(card_count):
 		children[i].position.x = (-0.5*(card_count-1)+i)*gap
-		children[i].suit = hand[i].x
-		children[i].rank = hand[i].y
+	children[index].position.y = -50
+	children[index].modulate = Color(1, 1, 1, 0)
+	var insert_tween = get_tree().create_tween().set_parallel(true)
+	insert_tween.tween_property(children[index], "position:y", 0, time)
+	insert_tween.tween_property(children[index], "modulate", Color(1, 1, 1, 1), time / 2)
+
+func play_the_card(index:int):
+	var children = $HandArea.get_children()
+	hand.pop_at(index)
+	$HandArea.remove_child(children[index])
+	$DiscardArea.add_child(children[index])
+	$DiscardArea.move_child(children[index], 1)
+	$Info/RestDisplay.text = str(len(hand))
+	
+	children = $HandArea.get_children()
+	var card_count = len(children)
+	var gap = 2100 / (card_count + 20)
+	
+	for i in range(card_count):
+		children[i].position.x = (-0.5*(card_count-2)+i)*gap
 	
 	children = $DiscardArea.get_children()
-	#orders = GameController.get_player_hand(id)
 	card_count = len(children)-1
-	gap = 1750 / (card_count + 25)
-	for i in range(0, card_count):
+	gap = 1900 / (card_count + 25)
+	for i in range(card_count):
 		children[i+1].position.x = (-0.5*(card_count-1)+i)*gap
-		#children[i].face_position = orders[i]
-	
-	#$Info/Rest.text = "余 " + str(len(hand)) + " 张"
-	$Info/RestDisplay.text = str(len(hand))
 
 func update_y_position():
 	var mouse_position = get_global_mouse_position()
@@ -154,6 +201,9 @@ func cancel_select():
 func clean_the_discard():
 	var children = $DiscardArea.get_children()
 	var card_count = len(children)
+	if card_count == 1:
+		# 只有Pass label
+		return
 	for i in range(card_count-1, 0, -1):
 		var now_child = $DiscardArea.get_child(i)
 		$DiscardArea.remove_child(now_child)
@@ -208,28 +258,6 @@ func get_select_cards():
 		if children[i].is_selected:
 			result.append(Vector2i(children[i].suit, children[i].rank))
 	return result
-
-func play_the_select():
-	var discard_length = $DiscardArea.get_child_count()
-	for i in range(discard_length-1, 0, -1):
-		var now_child = $DiscardArea.get_child(i)
-		$DiscardArea.remove_child(now_child)
-		now_child.queue_free()
-	
-	var children = $HandArea.get_children()
-	var card_count = len(children)
-	var discard_add = []
-	for i in range(card_count-1, -1, -1):
-		if children[i].is_selected:
-			var the_child = $HandArea.get_child(i)
-			$HandArea.remove_child(the_child)
-			hand.pop_at(i)
-			discard_add.append(the_child)
-	
-	discard_add.reverse()
-	for item in discard_add:
-		item.is_folded = false
-		$DiscardArea.add_child(item)
 
 func select(id:int, flag:bool):
 	var children = $HandArea.get_children()
@@ -298,7 +326,7 @@ func deal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, 
 				attempt.append([null])
 	else:
 		if len(played_cards) == 0:
-			if randi_range(1, 10) % 2 == 0:
+			if randi_range(1, 7) == 1:
 				# 有概率在无人出牌时出牌
 				for i in range(0, 6):
 					var try = DeckManager.find_type(hand, dice_result, i)
