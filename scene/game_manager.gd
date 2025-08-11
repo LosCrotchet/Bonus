@@ -51,16 +51,11 @@ func play_sound(id:int):
 	await audio_player.finished
 	remove_child(audio_player)
 
-func _on_pass_button_pressed():
-	await get_tree().create_timer(0.1).timeout
-	_on_player_manager_player_finish([null])
-	if DeckManager.GameMode != 0:
-		WebController.player_finished.rpc([null])
-
 func _on_player_manager_player_finish(action):
 	if DeckManager.GameMode == 2:
 		return
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(0.1).timeout
+	print(DeckManager.player_order, " update game signal with action ", action)
 	if action == [null]:
 		now_whos_turn = (now_whos_turn+1) % player_count
 		if last_player == now_whos_turn:
@@ -92,7 +87,7 @@ func _on_player_manager_player_finish(action):
 		now_whos_turn = (now_whos_turn+1) % player_count
 	processed_game_signal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
 	if is_bonus and len(played_cards) == 0 and now_whos_turn == now_whos_dice:
-		await get_tree().create_timer(0.1).timeout
+		#await get_tree().create_timer(0.1).timeout
 		play_sound(1)
 
 func processed_game_signal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus):

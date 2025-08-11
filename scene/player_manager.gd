@@ -49,6 +49,8 @@ func _ready() -> void:
 	DeckManager.deliver_card_to.connect(Callable(self, "_on_deck_manager_deliver_card_to"))
 	DeckManager.player_finished.connect(Callable(self, "receive_player_finish"))
 	DeckManager.game_end.connect(Callable(self, "receive_game_end"))
+	DeckManager.mainscene_ready.connect(Callable(self, "start_to_deal"))
+	DeckManager.player_disconnected.connect(_on_player_disconnected)
 
 func _process(delta):
 	#print(GameManager.now_whos_turn, GameManager.game_started)
@@ -82,6 +84,8 @@ func init():
 		Players.append(children[i])
 		Players[i].visible = true
 		Players[i].set_ring(0)
+		if not Players[i].play_timer.timeout.is_connected(_on_play_timer_timeout):
+			Players[i].play_timer.timeout.connect(_on_play_timer_timeout)
 		if DeckManager.GameMode != 0:
 			# Multigame
 			var now_order = (DeckManager.player_order - 1 + i) % player_count + 1
@@ -90,6 +94,11 @@ func init():
 				if now_order == WebController.players[k]["order"]:
 					is_player = true
 					Players[i].player_name = WebController.players[k]["name"]
+					if WebController.players[k]["avatar"] in [0, 1, 2, 3]:
+						Players[i].avatar_num = WebController.players[k]["avatar"]
+					else:
+						Players[i].avatar_num = -1
+						Players[i].avatar = WebController.players[k]["avatar"]
 					break
 			if not is_player:
 				Players[i].player_name = "[AI]玩家" + str(now_order)
@@ -125,7 +134,10 @@ func init():
 	for item in Players:
 		item.init()
 	
-	#print("GameMode: ", DeckManager.GameMode)
+	if DeckManager.GameMode == 0:
+		start_to_deal()
+
+func start_to_deal():
 	for cnt in range(17):
 		for i in range(player_count):
 			if DeckManager.GameMode != 2:
@@ -139,7 +151,6 @@ func init():
 		await get_tree().create_timer(0.15).timeout
 	
 	GameStart.emit()
-
 
 func play_sound(id:int):
 	var audio_player = AudioStreamPlayer2D.new()
@@ -192,22 +203,24 @@ func _on_game_manager_game_signal(now_whos_turn, now_whos_dice, dice_result, pla
 	Players[now_turn].show_pass_label(false)
 	Players[now_turn].clean_the_discard()
 	
+	# 设置提示环
 	for i in range(player_count):
 		Players[i].set_ring(0)
 	if is_bonus:
 		Players[now_turn].set_ring(2)
 	else:
 		Players[now_turn].set_ring(1)
-		
-	if DeckManager.GameMode != 2:
-		for i in range(player_count):
-			if len(Players[i].hand) == 0:
-				GameEnd.emit(i)
-				if DeckManager.GameMode == 1:
-					var order = (i + DeckManager.player_order - 1) % DeckManager.player_count + 1
-					WebController.game_end_with.rpc(order)
-				return
 	
+	# 判断游戏是否结束
+	for i in range(player_count):
+		if len(Players[i].hand) == 0:
+			if DeckManager.GameMode == 1:
+				var order = (i + DeckManager.player_order - 1) % DeckManager.player_count + 1
+				WebController.game_end_with.rpc(order)
+				GameEnd.emit(i)
+			return
+	
+	# UI更新与投骰子
 	if now_whos_turn == now_whos_dice and len(played_cards) == 0 and now_dice_result == -1:
 		for i in range(player_count):
 			Players[i].show_pass_label(false)
@@ -215,42 +228,50 @@ func _on_game_manager_game_signal(now_whos_turn, now_whos_dice, dice_result, pla
 		if not now_bonus:
 			Players[now_whos_turn].set_emoji(1)
 			PlayerDiceRoll.emit()
-			if DeckManager.GameMode == 1:
-				WebController.dice_start_roll.rpc()
 			return
-		if now_bonus:
-			Players[now_whos_turn].set_emoji(7)
-
+		#if now_bonus:
+		#	Players[now_whos_turn].set_emoji(7)
+	
+	# 自动跳过
 	if now_dice_result > len(Players[now_whos_turn].hand):
-		deal_result([null])
-		PlayerFinish.emit([null])
 		if DeckManager.GameMode == 1:
 			WebController.player_finished.rpc([null])
+		if DeckManager.GameMode != 2:
+			deal_result([null])
 		return
 
-	Players[now_whos_turn].set_emoji(1)
-
+	# 更新玩家UI
+	if DeckManager.GameMode != 0:
+		Players[now_whos_turn].set_timer(1)
 	UpdateGameUI.emit(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, is_bonus)
-
+	
+	# 客户端不参与后续计算
 	if DeckManager.GameMode == 2:
 		return
 	
+	await get_tree().create_timer(0.2).timeout
+	
+	# 电脑玩家计算策略
 	var result
-	if now_whos_turn != 0 and Players[now_whos_turn].is_player == false:
+	if Players[now_whos_turn].is_player == false:
 		result = Players[now_whos_turn].deal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, now_bonus)
 	else:
-		# 你的情况单独判断
 		return
 	
-	await get_tree().create_timer(0.1).timeout
+	# 电脑计算结果
+	# p.s. 一个完整的结束信号应当包含：
+	# 一、服务端发送
 	if DeckManager.GameMode == 1:
-		# 此处应为电脑处理结果
+		# rpc出去不包括自己
 		WebController.player_finished.rpc(result)
+	# 二、本地deal_result
 	deal_result(result)
-	# 返回finish信号
-	PlayerFinish.emit(result)
+	# 如果是客户端请提交给服务端处理
 
 func deal_result(result):
+	print(DeckManager.player_order, " | deal the result: ", result, " (now turn:", now_turn, ")")
+	#Players[now_turn].play_timer.timeout.disconnect(Callable(self, "_on_play_timer_timeout"))
+	Players[now_turn].set_timer(0)
 	if result == [null]:
 		#await get_tree().create_timer(1).timeout
 		Players[now_turn].clean_the_discard()
@@ -270,10 +291,11 @@ func deal_result(result):
 		Players[now_turn].show_hint(-len(result))
 		#Players[now_turn].play_the_select()
 		#Players[now_turn].update_x_position()
-		Players[now_turn].set_emoji(2)
+		#Players[now_turn].set_emoji(2)
 		play_sound(2)
 	
 	Players[now_turn].set_ring(0)
+	PlayerFinish.emit(result)
 
 # 摸牌的信号
 func _on_game_manager_draw_card(id, num):
@@ -289,15 +311,41 @@ func _on_game_manager_draw_card(id, num):
 
 ### 你的按钮事件处理
 
+func _on_play_timer_timeout():
+	print(DeckManager.player_order, " | Timer timeout!")
+	Players[now_turn].set_timer(0)
+	var result = [null]
+	if now_bonus and len(last_played_cards) == 0:
+		result = [Players[now_turn].hand[0]]
+	if now_turn == 0: 
+		Players[0].cancel_select()
+	#DeckManager.timer_timeout.emit()
+	
+	if DeckManager.GameMode == 2:
+		return
+		#WebController.player_finished.rpc_id(1, result)
+	elif DeckManager.GameMode == 1:
+		WebController.player_finished.rpc(result)
+		deal_result(result)
+	elif DeckManager.GameMode == 0:
+		receive_player_finish(result)
+
 func _on_pass_button_pressed():
 	# Pass信号发送在GameManager里
+	print(DeckManager.player_order, " | Pass button pressed")
+	Players[0].set_timer(0)
 	Players[0].cancel_select()
 	#Players[0].update_x_position()
-	if DeckManager.GameMode != 2:
+	if DeckManager.GameMode == 2:
+		WebController.player_finished.rpc_id(1, [null])
+	elif DeckManager.GameMode == 1:
+		WebController.player_finished.rpc([null])
 		deal_result([null])
-	await get_tree().create_timer(0.1).timeout
+	elif DeckManager.GameMode == 0:
+		deal_result([null])
 
 func _on_play_button_pressed():
+	print(DeckManager.player_order, " | PLAY button pressed")
 	var select_cards = Players[0].get_select_cards()
 	if DeckManager.what_type(select_cards) != [null] and (len(select_cards) == now_dice_result or now_bonus):
 		if last_played_cards == [] or DeckManager.whos_greater(select_cards, last_played_cards):
@@ -305,16 +353,20 @@ func _on_play_button_pressed():
 		else:
 			Players[0].cancel_select()
 			play_sound(3)
-			await get_tree().create_timer(0.1).timeout
 			play_button_pressed = false
 			return
 
-		if DeckManager.GameMode != 2:
-			deal_result(select_cards)
+		#if DeckManager.GameMode != 2:
+		#	deal_result(select_cards)
 		
-		PlayerFinish.emit(select_cards)
-		if DeckManager.GameMode != 0:
+		Players[0].set_timer(0)
+		if DeckManager.GameMode == 2:
+			WebController.player_finished.rpc_id(1, select_cards)
+		elif DeckManager.GameMode == 1:
 			WebController.player_finished.rpc(select_cards)
+			deal_result(select_cards)
+		elif DeckManager.GameMode == 0:
+			deal_result(select_cards)
 		play_sound(2)
 	else:
 		Players[0].cancel_select()
@@ -322,10 +374,10 @@ func _on_play_button_pressed():
 
 
 func receive_player_finish(action):
-	deal_result(action)
-	PlayerFinish.emit(action)
+	print("[", DeckManager.player_order, "] | Receive acction: ", action)
 	if DeckManager.GameMode == 1:
 		WebController.player_finished.rpc(action)
+	deal_result(action)
 
 func _on_deck_manager_deliver_card_to(order: int, card: Variant) -> void:
 	#print(order, card)
@@ -337,7 +389,6 @@ func _on_deck_manager_deliver_card_to(order: int, card: Variant) -> void:
 				break
 
 func _on_hint_button_pressed() -> void:
-	#var the_type = DeckManager.what_type(last_played_cards)
 	var attempt = DeckManager.find_type(Players[0].hand, now_dice_result, -1, last_played_cards)
 	if attempt != [null]:
 		var choice = attempt[0]
@@ -350,3 +401,10 @@ func _on_hint_button_pressed() -> void:
 			if index == len(choice):
 				break
 		Players[0].update_y_position()
+
+func _on_player_disconnected(order:int):
+	for i in range(player_count):
+		if Players[i].order == order:
+			Players[i].is_player = false
+			Players[i].disconnect_display()
+			break

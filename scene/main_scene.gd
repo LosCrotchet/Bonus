@@ -27,16 +27,20 @@ func _ready():
 	if len(WebController.multiplayer.get_peers()) > 0:
 		if WebController.multiplayer.get_unique_id() == 1:
 			GameMode = 1
+			$GameModeLabel.text = "多人游戏（主机）"
 		else:
 			GameMode = 2
+			$GameModeLabel.text = "多人游戏（客户端）"
 	else:
 		GameMode = 0
+		$GameModeLabel.text = "单人游戏"
 	
 	DeckManager.GameMode = GameMode
 	$GameManager.game_mode = GameMode
 	
 	$PlayerManager.player_count = DeckManager.player_count
 	$GameManager.player_count = DeckManager.player_count
+	$GameModeLabel.text += " | 玩家数：" + str(DeckManager.player_count)
 
 	DeckManager.init()
 	$GameManager.init()
@@ -52,6 +56,9 @@ func _ready():
 	#$PlayerManager.GameStart.emit()
 	$Dice.visible = true
 	$Dice.position = Vector2(800, 400)
+	
+	if DeckManager.GameMode != 0:
+		WebController.player_mainscene_ready.rpc_id(1)
 	
 	#if DeckManager.GameMode == 2:
 	#	WebController.player_loaded.rpc()

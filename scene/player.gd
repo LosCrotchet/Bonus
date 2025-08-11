@@ -10,6 +10,9 @@ enum LOCATION {
 @export var player_name:String
 @export var order:int
 @export var is_player:bool
+@export var wait_time:float = 3
+@export var avatar_num:int = 0
+@export var avatar:CompressedTexture2D
 
 @onready var CARD = preload("res://card.tscn")
 
@@ -30,11 +33,18 @@ var hand = []
 var is_selecting = false
 var last_select = -1
 
+@onready var play_timer = $PlayTimer
+
 func init():
-	$Info/Avatar.texture = avatars[randi_range(0, 3)]
+	if avatar_num != -1:
+		$Info/Avatar.texture = avatars[avatar_num]
+	elif avatar != null:
+		$Info/Avatar.texture = avatar
 	$Info/Name.text = player_name
 	$Info.visible = true
 	$Info/Hint.modulate = Color(255, 255, 255, 0)
+	$Info/Avatar.modulate = Color(1, 1, 1, 1)
+	$Info/DisconnectIcon.visible = false
 	
 	hand = []
 	var children = $HandArea.get_children()
@@ -143,7 +153,7 @@ func play_the_card(index:int):
 	hand.pop_at(index)
 	$HandArea.remove_child(children[index])
 	$DiscardArea.add_child(children[index])
-	$DiscardArea.move_child(children[index], 1)
+	$DiscardArea.move_child(children[index], 2)
 	$Info/RestDisplay.text = str(len(hand))
 	
 	children = $HandArea.get_children()
@@ -151,13 +161,13 @@ func play_the_card(index:int):
 	var gap = 2100 / (card_count + 20)
 	
 	for i in range(card_count):
-		children[i].position.x = (-0.5*(card_count-2)+i)*gap
+		children[i].position.x = (-0.5*(card_count-1)+i)*gap
 	
 	children = $DiscardArea.get_children()
-	card_count = len(children)-1
+	card_count = len(children)
 	gap = 1900 / (card_count + 25)
-	for i in range(card_count):
-		children[i+1].position.x = (-0.5*(card_count-1)+i)*gap
+	for i in range(2, card_count):
+		children[i].position.x = (-0.5*(card_count-3)+i-2)*gap
 
 func update_y_position():
 	var mouse_position = get_global_mouse_position()
@@ -201,10 +211,10 @@ func cancel_select():
 func clean_the_discard():
 	var children = $DiscardArea.get_children()
 	var card_count = len(children)
-	if card_count == 1:
+	if card_count == 2:
 		# 只有Pass label
 		return
-	for i in range(card_count-1, 0, -1):
+	for i in range(card_count-1, 1, -1):
 		var now_child = $DiscardArea.get_child(i)
 		$DiscardArea.remove_child(now_child)
 		now_child.queue_free()
@@ -214,6 +224,14 @@ func show_pass_label(flag:bool):
 
 func show_info(flag:bool):
 	$Info.visible = flag
+
+func set_timer(statue:int):
+	if statue == 1:
+		$DiscardArea/TimeLeft.visible = true
+		$PlayTimer.start(wait_time)
+	if statue == 0:
+		$DiscardArea/TimeLeft.visible = false
+		$PlayTimer.stop()
 
 func set_ring(mode:int):
 	match mode:
@@ -292,6 +310,8 @@ func show_hint(num:int):
 func _process(delta):
 	if select_enable and is_selecting:
 		update_y_position()
+	if not $PlayTimer.is_stopped():
+		$DiscardArea/TimeLeft.text = str(int($PlayTimer.time_left)+1)
 	
 
 func _input(event):
@@ -350,3 +370,7 @@ func deal(now_whos_turn, now_whos_dice, dice_result, played_cards, last_player, 
 		choice = len(attempt) - floor(log(choice)) - 1
 		return attempt[choice]
 	return [null]
+
+func disconnect_display():
+	$Info/Avatar.modulate = Color(1, 1, 1, 0.2)
+	$Info/DisconnectIcon.visible = true

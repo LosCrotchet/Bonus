@@ -27,6 +27,11 @@ const MULTIPLAYER_INFO_POSITION = Vector2(1050, 450)
 const MULTIPLAYER_SETTINGS_CLIENT = Vector2(1050, 450)
 const MULTIPLAYER_SETTINGS_SERVER = Vector2(1050, 450)
 
+@onready var avatars = [preload("res://assets/avatar_default_1.png"),
+						preload("res://assets/avatar_default_2.png"),
+						preload("res://assets/avatar_default_3.png"),
+						preload("res://assets/avatar_default_4.png")]
+
 func _ready():
 	$Character.position = CHARACTER_POSITION
 	$Title.position = TITLE_POSITION
@@ -52,6 +57,8 @@ func _ready():
 	$MultiPlayerSettingsServer.visible = false
 	$MultiPlayerInfo.visible = false
 	
+	DeckManager.multi_load.connect(Callable(self, "_on_multi_game_start_to_load"))
+	
 	now_state = 0
 
 func _process(delta):
@@ -59,6 +66,17 @@ func _process(delta):
 		$MultiPlayerSettingsClient/PlayerNameInput.text = $MultiPlayerSettingsClient/PlayerNameInput.text.substr(0, 8)
 	if len($MultiPlayerSettingsServer/PlayerNameInput.text) > 8:
 		$MultiPlayerSettingsServer/PlayerNameInput.text = $MultiPlayerSettingsServer/PlayerNameInput.text.substr(0, 8)
+	
+	if now_state == 3:
+		if WebController.player_info["avatar"] in [0, 1, 2, 3]:
+			$MultiPlayerSettingsClient/PlayerAvatar.texture = avatars[WebController.player_info["avatar"]]
+		else:
+			$MultiPlayerSettingsClient/PlayerAvatar.texture = WebController.player_info["avatar"]
+	if now_state == 4:
+		if WebController.player_info["avatar"] in [0, 1, 2, 3]:
+			$MultiPlayerSettingsServer/PlayerAvatar.texture = avatars[WebController.player_info["avatar"]]
+		else:
+			$MultiPlayerSettingsServer/PlayerAvatar.texture = WebController.player_info["avatar"]
 	
 	if now_state in [5, 6]:
 		
@@ -100,6 +118,10 @@ func _process(delta):
 				var index = WebController.players[k]["order"] - 1
 				if index == i:
 					$MultiPlayerInfo.get_child(index).get_child(0).text = WebController.players[k]["name"]
+					if WebController.players[k]["avatar"] in [0, 1, 2, 3]:
+						$MultiPlayerInfo.get_child(index).get_child(3).texture = avatars[WebController.players[k]["avatar"]]
+					else:
+						$MultiPlayerInfo.get_child(index).get_child(3).texture = WebController.players[k]["avatar"]
 					if WebController.players[k]["is_ready"]:
 						$MultiPlayerInfo.get_child(index).get_child(1).text = "已准备"
 					else:
@@ -319,15 +341,6 @@ func _on_single_game_pressed():
 		update_state(2)
 
 func _on_start_game_pressed():
-	#if master_tween:
-	#	master_tween.kill()
-	#master_tween = get_tree().create_tween().set_trans(Tween.TRANS_CUBIC).set_parallel()
-	#master_tween.tween_property($".", "position:y", 100, WAIT_TIME)
-	#master_tween.tween_property($".", "modulate", Color(1, 1, 1, 0), WAIT_TIME)
-	#var tmp = func():
-	#	master_tween = null
-	#	get_tree().change_scene_to_file("res://scene/transition.tscn")
-	#master_tween.tween_callback(tmp).set_delay(WAIT_TIME)
 	get_tree().change_scene_to_file("res://scene/main_scene.tscn")
 
 func _on_multi_game_pressed():
@@ -399,7 +412,11 @@ func _on_multi_game_start_pressed():
 			WebController.get_ready(false)
 			$MultiPlayerInfo/MultiGameStart.text = "准备"
 	if now_state == 6:
-		WebController.load_game.rpc("res://scene/main_scene.tscn")
+		WebController.player_start_to_load.rpc()
+		#WebController.load_game.rpc("res://scene/main_scene.tscn")
+
+func _on_multi_game_start_to_load():
+	WebController.player_loaded.rpc()
 
 func _on_player_2_enable_pressed():
 	if now_state == 6:
@@ -438,3 +455,15 @@ func _on_players_of_3_toggled(toggled_on):
 func _on_players_of_4_toggled(toggled_on):
 	if toggled_on:
 		DeckManager.player_count = 4
+
+func _on_left_icon_pressed() -> void:
+	if WebController.player_info["avatar"] in [0, 1, 2, 3]:
+		WebController.player_info["avatar"] = (WebController.player_info["avatar"] + 3) % 4
+
+func _on_right_icon_pressed() -> void:
+	if WebController.player_info["avatar"] in [0, 1, 2, 3]:
+		WebController.player_info["avatar"] = (WebController.player_info["avatar"] + 1) % 4
+
+func _on_select_avatar_pressed() -> void:
+	#DisplayServer.file_dialog_show("选择头像", )
+	pass

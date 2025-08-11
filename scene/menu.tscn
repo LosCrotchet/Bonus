@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://bnwterho7r6yx"]
+[gd_scene load_steps=17 format=3 uid="uid://bnwterho7r6yx"]
 
 [ext_resource type="Theme" uid="uid://fvk46ntxb4ka" path="res://assets/tres/button.tres" id="1_e5g8k"]
 [ext_resource type="Script" uid="uid://b610qfl1f3cvi" path="res://scene/menu.gd" id="1_xs5te"]
@@ -9,7 +9,10 @@
 [ext_resource type="Shader" uid="uid://cncp1x6np6qq8" path="res://scene/lighter.gdshader" id="4_15se8"]
 [ext_resource type="Texture2D" uid="uid://c3ujhdojewfx5" path="res://assets/avatar_default_1.png" id="7_1qlln"]
 [ext_resource type="ButtonGroup" uid="uid://ypmr7jvauvd7" path="res://single_player_count_buttons.tres" id="8_nuiae"]
+[ext_resource type="Theme" uid="uid://ci26c08s5v5xv" path="res://assets/tres/only_for_left_and_right_button.tres" id="9_ho73k"]
+[ext_resource type="Texture2D" uid="uid://bcfcnsur2i4to" path="res://assets/icon/left_icon.png" id="10_dyuxe"]
 [ext_resource type="ButtonGroup" uid="uid://blgdw3d6uqism" path="res://multi_players_server_player_count_buttons.tres" id="10_pb5j1"]
+[ext_resource type="Texture2D" uid="uid://bbelcvwomex41" path="res://assets/icon/right_icon.png" id="11_8of67"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_xs5te"]
 shader = ExtResource("4_15se8")
@@ -327,6 +330,31 @@ text = "头像"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="SelectAvatar" type="Button" parent="MultiPlayerSettingsClient"]
+offset_left = 113.0
+offset_top = 127.0
+offset_right = 309.0
+offset_bottom = 196.0
+theme = ExtResource("1_e5g8k")
+theme_override_font_sizes/font_size = 30
+text = "从本地选择"
+
+[node name="LeftIcon" type="Button" parent="MultiPlayerSettingsClient"]
+offset_left = -224.0
+offset_top = 5.0
+offset_right = -120.0
+offset_bottom = 109.0
+theme = ExtResource("9_ho73k")
+icon = ExtResource("10_dyuxe")
+
+[node name="RightIcon" type="Button" parent="MultiPlayerSettingsClient"]
+offset_left = 120.0
+offset_top = -1.0
+offset_right = 224.0
+offset_bottom = 103.0
+theme = ExtResource("9_ho73k")
+icon = ExtResource("11_8of67")
+
 [node name="PlayerAvatar" type="Sprite2D" parent="MultiPlayerSettingsClient"]
 position = Vector2(-4, 102)
 texture = ExtResource("7_1qlln")
@@ -350,7 +378,6 @@ theme_override_font_sizes/font_size = 40
 text = "返回"
 
 [node name="MultiPlayerSettingsServer" type="CanvasGroup" parent="."]
-visible = false
 position = Vector2(1050, 450)
 metadata/_edit_lock_ = true
 
@@ -462,6 +489,31 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_bo06a")
 text = "头像"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="SelectAvatar2" type="Button" parent="MultiPlayerSettingsServer"]
+offset_left = -336.0
+offset_top = 138.0
+offset_right = -140.0
+offset_bottom = 207.0
+theme = ExtResource("1_e5g8k")
+theme_override_font_sizes/font_size = 30
+text = "从本地选择"
+
+[node name="LeftIcon" type="Button" parent="MultiPlayerSettingsServer"]
+offset_left = -438.0
+offset_top = -85.0
+offset_right = -334.0
+offset_bottom = 19.0
+theme = ExtResource("9_ho73k")
+icon = ExtResource("10_dyuxe")
+
+[node name="RightIcon" type="Button" parent="MultiPlayerSettingsServer"]
+offset_left = -135.0
+offset_top = -87.0
+offset_right = -31.0
+offset_bottom = 17.0
+theme = ExtResource("9_ho73k")
+icon = ExtResource("11_8of67")
 
 [node name="PlayerAvatar" type="Sprite2D" parent="MultiPlayerSettingsServer"]
 position = Vector2(-240, 19)
@@ -889,8 +941,13 @@ vertical_alignment = 1
 [connection signal="toggled" from="SinglePlayerSettings/PlayersOf4" to="." method="_on_players_of_4_toggled"]
 [connection signal="pressed" from="SinglePlayerSettings/StartGame" to="." method="_on_start_game_pressed"]
 [connection signal="pressed" from="SinglePlayerSettings/Back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="MultiPlayerSettingsClient/SelectAvatar" to="." method="_on_select_avatar_pressed"]
+[connection signal="pressed" from="MultiPlayerSettingsClient/LeftIcon" to="." method="_on_left_icon_pressed"]
+[connection signal="pressed" from="MultiPlayerSettingsClient/RightIcon" to="." method="_on_right_icon_pressed"]
 [connection signal="pressed" from="MultiPlayerSettingsClient/Connect" to="." method="_on_connect_pressed"]
 [connection signal="pressed" from="MultiPlayerSettingsClient/Back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="MultiPlayerSettingsServer/LeftIcon" to="." method="_on_left_icon_pressed"]
+[connection signal="pressed" from="MultiPlayerSettingsServer/RightIcon" to="." method="_on_right_icon_pressed"]
 [connection signal="toggled" from="MultiPlayerSettingsServer/PlayersOf2" to="." method="_on_players_of_2_toggled"]
 [connection signal="toggled" from="MultiPlayerSettingsServer/PlayersOf3" to="." method="_on_players_of_3_toggled"]
 [connection signal="toggled" from="MultiPlayerSettingsServer/PlayersOf4" to="." method="_on_players_of_4_toggled"]

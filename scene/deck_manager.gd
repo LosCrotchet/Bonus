@@ -18,6 +18,13 @@ signal game_end(order:int)
 signal dice_roll
 signal dice_result(result:int)
 
+signal multi_load
+signal mainscene_ready
+signal ready_to_start
+
+signal timer_timeout
+signal player_disconnected(order:int)
+
 func _ready() -> void:
 	deliver_card_to.connect(Callable(self, "_on_deliver_card_to"))
 

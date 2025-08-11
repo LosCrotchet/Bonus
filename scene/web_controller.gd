@@ -10,9 +10,11 @@ var max_connections = 1
 
 var players = {}
 
-var player_info = {"order": 1, "name": "", "is_ready": false}
-var players_loaded = 1
+var player_info = {"order": 1, "name": "", "is_ready": false, "avatar": 0}
+var players_loaded = 0
 var players_registered = 0
+
+var is_gaming = false
 
 func _ready():
 	multiplayer.peer_connected.connect(_on_player_connected)
@@ -20,6 +22,8 @@ func _ready():
 	multiplayer.connected_to_server.connect(_on_connected_ok)
 	multiplayer.connection_failed.connect(_on_connected_fail)
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
+	
+	multiplayer.multiplayer_peer = null
 
 func _process(delta):
 	if multiplayer.multiplayer_peer != null:
@@ -28,6 +32,12 @@ func _process(delta):
 	pass
 
 func join_game():
+	players.clear()
+	players_loaded = 0
+	players_registered = 0
+	is_gaming = false
+	multiplayer.multiplayer_peer = null
+	
 	var peer = ENetMultiplayerPeer.new()
 	var error = peer.create_client(ip_address, port)
 	if error:
@@ -38,6 +48,12 @@ func join_game():
 	return OK
 
 func create_game():
+	players.clear()
+	players_loaded = 0
+	players_registered = 0
+	is_gaming = false
+	multiplayer.multiplayer_peer = null
+	
 	var peer = ENetMultiplayerPeer.new()
 	var error = peer.create_server(port, max_connections)
 	if error:
@@ -50,6 +66,10 @@ func create_game():
 	player_connected.emit(1, player_info)
 
 func _on_player_connected(id):
+	print(multiplayer.get_unique_id(), " | Received ", id, " connection!")
+	if is_gaming:
+		multiplayer.multiplayer_peer.disconnect_peer(id)
+		return
 	_register_player.rpc_id(id, player_info)
 	if multiplayer.is_server():
 		if max_connections != 1:
@@ -61,27 +81,94 @@ func _on_player_connected(id):
 				if players[k]["order"] == index:
 					is_used = true
 			if not is_used:
+				print("Server update order ", index, " for ", id)
 				update_player_order.rpc_id(id, index)
 				break
 
 func remove_multiplayer_peer():
+	print(multiplayer.get_unique_id(), " | Remove peer!")
 	multiplayer.multiplayer_peer = null
 	players.clear()
-	player_info = {"order": 1, "name": "", "is_ready": false}
+	#player_info = {"order": 1, "name": "", "is_ready": false, "avatar": 0}
 	max_connections = 0
 
-@rpc("call_local", "reliable")
+func _on_player_disconnected(id):
+	#player_info = {"order": 1, "name": "", "is_ready": false}
+	print(multiplayer.get_unique_id(), " | Received ", id, " disconnection!")
+	if not players.has(id):
+		return
+	if multiplayer.is_server():
+		var exit_id = players[id]["order"]
+		if not is_gaming:
+			for index in range(exit_id+1, 5):
+				for k in players.keys():
+					if players[k]["order"] == index:
+						update_player_order.rpc_id(k, index-1)
+						continue
+		else:
+			DeckManager.player_disconnected.emit(exit_id)
+	players.erase(id)
+	player_disconnected.emit(id)
+
+func _on_connected_ok():
+	print(multiplayer.get_unique_id(), " | Connection start...")
+	var p = multiplayer
+	var peers = multiplayer.get_peers()
+	var peer_id = multiplayer.get_unique_id()
+	if player_info["name"] == "":
+		player_info["name"] = str(peer_id)
+	players[peer_id] = player_info
+	player_connected.emit(peer_id, player_info)
+	print(multiplayer.get_unique_id(), " | Connection OK! with ", player_info)
+
+func _on_connected_fail():
+	print(multiplayer.get_unique_id(), " | Connection failed!")
+	multiplayer.multiplayer_peer = null
+
+func _on_server_disconnected():
+	print(multiplayer.get_unique_id(), " | Disconncted!")
+	multiplayer.multiplayer_peer = null
+	player_info = {"order": 1, "name": "", "is_ready": false, "avatar": 0}
+	players.clear()
+	server_disconnected.emit()
+
+@rpc("any_peer", "call_local", "reliable")
 func load_game(game_scene_path):
+	print(multiplayer.get_unique_id(), " | Load game!")
+	is_gaming = true
 	get_tree().change_scene_to_file(game_scene_path)
 
 # Every peer will call this when they have loaded the game scene.
 @rpc("any_peer", "call_local", "reliable")
 func player_loaded():
+	print(multiplayer.get_unique_id(), " | loaded!")
 	if multiplayer.is_server():
 		players_loaded += 1
 		if players_loaded == players.size():
-			load_game("res://scene/main_scene.tscn")
+			print("All ready!")
+			load_game.rpc("res://scene/main_scene.tscn")
 			players_loaded = 0
+
+@rpc("any_peer", "call_local", "reliable")
+func player_mainscene_ready():
+	print(multiplayer.get_unique_id(), " | mainscene ready!")
+	if multiplayer.is_server():
+		players_loaded += 1
+		if players_loaded == players.size():
+			print("All mainscene ready!")
+			#load_game.rpc("res://scene/main_scene.tscn")
+			player_start_to_deal.rpc()
+			players_loaded = 0
+
+@rpc("any_peer", "call_local", "reliable")
+func player_start_to_deal():
+	if multiplayer.get_remote_sender_id() == 1:
+		DeckManager.mainscene_ready.emit()
+
+@rpc("any_peer", "call_local", "reliable")
+func player_start_to_load():
+	if multiplayer.get_remote_sender_id() == 1:
+		DeckManager.multi_load.emit()
 
 @rpc("any_peer", "call_local", "reliable")
 func player_registered():
@@ -128,7 +215,9 @@ func update_game_signal(now_whos_turn:int, now_whos_dice:int, dice_result:int, p
 
 @rpc("any_peer", "reliable")
 func player_finished(action):
-	if multiplayer.get_remote_sender_id() == 1 or multiplayer.is_server():
+	if (multiplayer.get_remote_sender_id() == 1 or multiplayer.is_server()) and\
+	   multiplayer.get_remote_sender_id() != multiplayer.get_unique_id():
+		print(multiplayer.get_unique_id(), " received signal from ", multiplayer.get_remote_sender_id(), " of ", action, " !")
 		DeckManager.player_finished.emit(action)
 
 @rpc("any_peer", "reliable")
@@ -146,35 +235,12 @@ func game_end_with(order):
 	if multiplayer.get_remote_sender_id() == 1:
 		DeckManager.game_end.emit(order)
 
-func _on_player_disconnected(id):
-	#player_info = {"order": 1, "name": "", "is_ready": false}
-	var exit_id = players[id]["order"]
-	for index in range(exit_id+1, 5):
-		for k in players.keys():
-			if players[k]["order"] == index:
-				update_player_order.rpc_id(k, index-1)
-				continue
-	players.erase(id)
-	player_disconnected.emit(id)
-
-func _on_connected_ok():
-	var p = multiplayer
-	var peers = multiplayer.get_peers()
-	var peer_id = multiplayer.get_unique_id()
-	if player_info["name"] == "":
-		player_info["name"] = str(peer_id)
-	players[peer_id] = player_info
-	player_connected.emit(peer_id, player_info)
-
-func _on_connected_fail():
-	multiplayer.multiplayer_peer = null
-
-func _on_server_disconnected():
-	multiplayer.multiplayer_peer = null
-	player_info = {"order": 1, "name": "", "is_ready": false}
-	players.clear()
-	server_disconnected.emit()
-
 func get_ready(flag):
 	player_info["is_ready"] = flag
+	update_player.rpc(player_info)
+
+func set_avatar(num:int, avatar_file = null):
+	player_info["avatar"] = num
+	if num == -1:
+		player_info["avatar"] = avatar_file
 	update_player.rpc(player_info)
