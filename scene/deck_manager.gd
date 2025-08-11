@@ -1,6 +1,7 @@
 extends Node
 
 @export var GameMode:int
+@export var dealer:int = -1
 
 var player_count = 2
 var player_order = 1

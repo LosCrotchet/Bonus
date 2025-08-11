@@ -45,6 +45,7 @@ func init():
 	$Info/Hint.modulate = Color(255, 255, 255, 0)
 	$Info/Avatar.modulate = Color(1, 1, 1, 1)
 	$Info/DisconnectIcon.visible = false
+	$Info/Emoji.visible = false
 	
 	hand = []
 	var children = $HandArea.get_children()
@@ -265,8 +266,10 @@ func set_emoji(statue:int):
 			$Info/Emoji.text = "😋"
 		98:
 			$Info/Emoji.text = "❌"
+			$Info/Emoji.visible = true
 		99:
 			$Info/Emoji.text = "✔️"
+			$Info/Emoji.visible = true
 
 func get_select_cards():
 	var result = []

@@ -5,7 +5,7 @@ signal player_disconnected(peer_id)
 signal server_disconnected
 
 var port = 8087
-var ip_address = "127.0.0.1"
+var ip_address = ""
 var max_connections = 1
 
 var players = {}
@@ -128,7 +128,7 @@ func _on_connected_fail():
 func _on_server_disconnected():
 	print(multiplayer.get_unique_id(), " | Disconncted!")
 	multiplayer.multiplayer_peer = null
-	player_info = {"order": 1, "name": "", "is_ready": false, "avatar": 0}
+	#player_info = {"order": 1, "name": "", "is_ready": false, "avatar": 0}
 	players.clear()
 	server_disconnected.emit()
 

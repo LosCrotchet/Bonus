@@ -27,7 +27,7 @@ offset_bottom = -900.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_xo3ru")
-wait_time = 7.0
+wait_time = 20.0
 
 [node name="PlayTimer" type="Timer" parent="."]
 wait_time = 7.0

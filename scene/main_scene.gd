@@ -50,7 +50,10 @@ func _ready():
 	$PlayerManager.visible = true
 	$DeckCount.visible = true
 	
-	$GameManager.dealer = (1 - DeckManager.player_order + DeckManager.player_count) % DeckManager.player_count
+	if DeckManager.dealer == -1:
+		$GameManager.dealer = (1 - DeckManager.player_order + DeckManager.player_count) % DeckManager.player_count
+	else:
+		$GameManager.dealer = DeckManager.dealer
 	#GameStart.emit()
 	#await get_tree().create_timer(0.5).timeout
 	#$PlayerManager.GameStart.emit()
@@ -60,6 +63,7 @@ func _ready():
 	if DeckManager.GameMode != 0:
 		WebController.player_mainscene_ready.rpc_id(1)
 	
+	DeckManager.multi_load.connect(_on_multi_game_start_to_load)
 	#if DeckManager.GameMode == 2:
 	#	WebController.player_loaded.rpc()
 
@@ -115,6 +119,8 @@ func _on_player_manager_game_end(index):
 	$GameUI.visible = false
 	await get_tree().create_timer(3).timeout
 	
+	#$GameManager.dealer = index
+	DeckManager.dealer = index
 	is_game_end = true
 	if DeckManager.GameMode == 2:
 		$RestartGameButton.text = "准备"
@@ -139,11 +145,15 @@ func _on_restart_game_button_pressed():
 			$RestartGameButton.text = "准备"
 	else:
 		if DeckManager.GameMode == 1:
-			get_tree().unload_current_scene()
-			WebController.load_game.rpc("res://scene/main_scene.tscn")
-		else:
-			get_tree().reload_current_scene()
+			WebController.player_start_to_load.rpc()
+			#get_tree().unload_current_scene()
+			#WebController.load_game.rpc("res://scene/main_scene.tscn")
+		#else:
+		#	get_tree().reload_current_scene()
 			#get_tree().change_scene_to_file("res://scene/main_scene.tscn")
 
 func _on_backto_menu_button_pressed():
 	get_tree().change_scene_to_file("res://scene/menu.tscn")
+
+func _on_multi_game_start_to_load():
+	WebController.player_loaded.rpc()

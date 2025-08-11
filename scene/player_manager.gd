@@ -172,9 +172,9 @@ func _on_game_end(index):
 	for j in range(player_count):
 		Players[j].clean_the_discard()
 		Players[j].flip_over()
-		Players[j].set_emoji(5)
+		#Players[j].set_emoji(5)
 		Players[j].set_ring(0)
-	Players[index].set_emoji(3)
+	#Players[index].set_emoji(3)
 	Players[index].set_ring(2)
 	await get_tree().create_timer(3).timeout
 	for j in range(player_count):

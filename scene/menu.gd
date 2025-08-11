@@ -57,6 +57,16 @@ func _ready():
 	$MultiPlayerSettingsServer.visible = false
 	$MultiPlayerInfo.visible = false
 	
+	if WebController.ip_address != "":
+		$MultiPlayerSettingsClient/IPInput.text = WebController.ip_address + ":" + str(WebController.port)
+	$MultiPlayerSettingsClient/PlayerNameInput.text = WebController.player_info["name"]
+	$MultiPlayerSettingsServer/PlayerNameInput.text = WebController.player_info["name"]
+	$MultiPlayerSettingsServer/PortInput.text = str(WebController.port)
+	if WebController.player_info["avatar"] in [0, 1, 2, 3]:
+		$MultiPlayerSettingsClient/PlayerAvatar.texture = avatars[WebController.player_info["avatar"]]
+	else:
+		$MultiPlayerSettingsClient/PlayerAvatar.texture = WebController.player_info["avatar"]
+	
 	DeckManager.multi_load.connect(Callable(self, "_on_multi_game_start_to_load"))
 	
 	now_state = 0
