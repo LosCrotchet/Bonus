@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://bnwterho7r6yx"]
+[gd_scene load_steps=19 format=3 uid="uid://bnwterho7r6yx"]
 
 [ext_resource type="Theme" uid="uid://fvk46ntxb4ka" path="res://assets/tres/button.tres" id="1_e5g8k"]
 [ext_resource type="Script" uid="uid://b610qfl1f3cvi" path="res://scene/menu.gd" id="1_xs5te"]
@@ -7,12 +7,24 @@
 [ext_resource type="Script" uid="uid://ubr8mvoaipbl" path="res://scene/fader_compenent.gd" id="2_vi6sp"]
 [ext_resource type="Script" uid="uid://k5ktiaweolju" path="res://scene/web_controller.gd" id="3_wd6lm"]
 [ext_resource type="Shader" uid="uid://cncp1x6np6qq8" path="res://scene/lighter.gdshader" id="4_15se8"]
+[ext_resource type="Shader" uid="uid://cj0pxio481iv0" path="res://scene/dotted_grid.gdshader" id="4_dyuxe"]
 [ext_resource type="Texture2D" uid="uid://c3ujhdojewfx5" path="res://assets/avatar_default_1.png" id="7_1qlln"]
 [ext_resource type="ButtonGroup" uid="uid://ypmr7jvauvd7" path="res://single_player_count_buttons.tres" id="8_nuiae"]
 [ext_resource type="Theme" uid="uid://ci26c08s5v5xv" path="res://assets/tres/only_for_left_and_right_button.tres" id="9_ho73k"]
 [ext_resource type="Texture2D" uid="uid://bcfcnsur2i4to" path="res://assets/icon/left_icon.png" id="10_dyuxe"]
 [ext_resource type="ButtonGroup" uid="uid://blgdw3d6uqism" path="res://multi_players_server_player_count_buttons.tres" id="10_pb5j1"]
 [ext_resource type="Texture2D" uid="uid://bbelcvwomex41" path="res://assets/icon/right_icon.png" id="11_8of67"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8of67"]
+shader = ExtResource("4_dyuxe")
+shader_parameter/cell_size = 24.0
+shader_parameter/dot_size = 0.25
+shader_parameter/background_color = Color(0.157274, 0.157274, 0.157274, 1)
+shader_parameter/dot_color = Color(0.2484, 0.2484, 0.2484, 1)
+shader_parameter/resolution = Vector2(1600, 900)
+shader_parameter/offset = Vector2(0, 0)
+shader_parameter/anti_aliasing_factor = 0.01
+shader_parameter/stochastic_samples = 16
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_xs5te"]
 shader = ExtResource("4_15se8")
@@ -56,6 +68,7 @@ script = ExtResource("2_vi6sp")
 script = ExtResource("3_wd6lm")
 
 [node name="Background" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_8of67")
 offset_right = 1600.0
 offset_bottom = 900.0
 color = Color(0.152941, 0.152941, 0.152941, 1)

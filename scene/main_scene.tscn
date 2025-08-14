@@ -1,6 +1,7 @@
-[gd_scene load_steps=15 format=3 uid="uid://d1bjj61jqhd50"]
+[gd_scene load_steps=17 format=3 uid="uid://d1bjj61jqhd50"]
 
 [ext_resource type="Script" uid="uid://bgdgu2gjdppy5" path="res://scene/main_scene.gd" id="1_fb1ex"]
+[ext_resource type="Shader" uid="uid://cj0pxio481iv0" path="res://scene/dotted_grid.gdshader" id="2_6e7jr"]
 [ext_resource type="Shader" uid="uid://bkvwcso3o22vv" path="res://scene/twist.gdshader" id="2_7l8gs"]
 [ext_resource type="FontFile" uid="uid://c2hqvv1e6rt5y" path="res://assets/fonts/SourceHanSansSC-Regular-2.otf" id="2_hrphr"]
 [ext_resource type="PackedScene" uid="uid://8oujd7w680x8" path="res://scene/dice.tscn" id="2_ry1uq"]
@@ -13,6 +14,17 @@
 [ext_resource type="AudioStream" uid="uid://cyvyxpcd72477" path="res://assets/sound/button.ogg" id="10_86xya"]
 [ext_resource type="Script" uid="uid://ejr2o00ei8ei" path="res://scene/sfx_player.gd" id="11_xavy2"]
 [ext_resource type="Texture2D" uid="uid://d3x4fwaysadxn" path="res://assets/icon/icons8-logout-48.png" id="12_xavy2"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_6s1rr"]
+shader = ExtResource("2_6e7jr")
+shader_parameter/cell_size = 24.0
+shader_parameter/dot_size = 0.25
+shader_parameter/background_color = Color(0.156863, 0.156863, 0.156863, 1)
+shader_parameter/dot_color = Color(0.247059, 0.247059, 0.247059, 1)
+shader_parameter/resolution = Vector2(1600, 900)
+shader_parameter/offset = Vector2(0, 0)
+shader_parameter/anti_aliasing_factor = 0.01
+shader_parameter/stochastic_samples = 16
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_6e7jr"]
 shader = ExtResource("2_7l8gs")
@@ -37,6 +49,7 @@ script = ExtResource("1_fb1ex")
 [node name="Prop" type="CanvasGroup" parent="."]
 
 [node name="Background" type="ColorRect" parent="Prop"]
+material = SubResource("ShaderMaterial_6s1rr")
 offset_right = 1600.0
 offset_bottom = 900.0
 color = Color(0.152941, 0.152941, 0.152941, 1)
