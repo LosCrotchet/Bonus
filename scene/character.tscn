@@ -1,13 +1,23 @@
-[gd_scene load_steps=6 format=3 uid="uid://bi6f3v48ib58r"]
+[gd_scene load_steps=9 format=3 uid="uid://bi6f3v48ib58r"]
 
 [ext_resource type="Texture2D" uid="uid://c13u02bhfoyg4" path="res://assets/head_round.png" id="1_6k5wm"]
 [ext_resource type="Script" uid="uid://c13yhkypu0xrv" path="res://scene/character.gd" id="1_7v2w7"]
 [ext_resource type="Texture2D" uid="uid://brbxliduy5j3c" path="res://assets/eye_default.png" id="2_7v2w7"]
 [ext_resource type="Texture2D" uid="uid://de6n77p5r8ro5" path="res://assets/mouse_open.png" id="4_7v2w7"]
 [ext_resource type="Texture2D" uid="uid://bby822rqavlys" path="res://assets/body_default.png" id="4_mbevu"]
+[ext_resource type="PackedScene" uid="uid://daa3ckr3m8qe" path="res://card.tscn" id="6_mbevu"]
+[ext_resource type="Texture2D" uid="uid://dxmnl06y3tuq2" path="res://assets/hand_default.png" id="7_wdeb7"]
+
+[sub_resource type="Curve2D" id="Curve2D_adcn7"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, -44, 234, 0, 0, 0, 0, -157, -9, 0, 0, 0, 0, -132, 261, 0, 0, 0, 0, -80, 401, 0, 0, 0, 0, -44, 234)
+}
+point_count = 5
 
 [node name="Character" type="Node2D"]
+position = Vector2(740, 303)
 script = ExtResource("1_7v2w7")
+EyeFollowEnable = false
 
 [node name="Head" type="Sprite2D" parent="."]
 texture = ExtResource("1_6k5wm")
@@ -27,6 +37,27 @@ texture = ExtResource("4_7v2w7")
 [node name="Body" type="Sprite2D" parent="."]
 position = Vector2(0, 280)
 texture = ExtResource("4_mbevu")
+
+[node name="Path2D" type="Path2D" parent="."]
+curve = SubResource("Curve2D_adcn7")
+
+[node name="PathFollow2D" type="PathFollow2D" parent="Path2D"]
+position = Vector2(-44, 234)
+rotation = -2.02034
+rotates = false
+
+[node name="Card" parent="Path2D/PathFollow2D" instance=ExtResource("6_mbevu")]
+position = Vector2(69.6021, 51.3474)
+rotation = -1.20428
+scale = Vector2(0.2, 0.2)
+
+[node name="RightHand" type="Sprite2D" parent="Path2D/PathFollow2D"]
+rotation = 2.02034
+texture = ExtResource("7_wdeb7")
+
+[node name="LeftHand" type="Sprite2D" parent="."]
+position = Vector2(46, 232)
+texture = ExtResource("7_wdeb7")
 
 [node name="Twinkle_tmp" type="Timer" parent="."]
 wait_time = 0.3

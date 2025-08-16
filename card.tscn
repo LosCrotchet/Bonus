@@ -1,16 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://daa3ckr3m8qe"]
+[gd_scene load_steps=3 format=3 uid="uid://daa3ckr3m8qe"]
 
 [ext_resource type="Script" uid="uid://ye2aempn5htw" path="res://card.gd" id="1_q5obu"]
 [ext_resource type="Texture2D" uid="uid://dbgnve2v7q8mv" path="res://assets/cards.png" id="2_rjlel"]
-[ext_resource type="Shader" uid="uid://btkwkux4utlhf" path="res://card_shadow.gdshader" id="3_q5obu"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_e484p"]
-shader = ExtResource("3_q5obu")
-shader_parameter/shadow_color = Color(0, 0, 0, 0.3)
-shader_parameter/shadow_scale = 0.025
-shader_parameter/shadow_min_length = 2.0
-shader_parameter/shadow_max_length = 10.0
-shader_parameter/screen_center = Vector2(800, 450)
 
 [node name="Card" type="Node2D"]
 scale = Vector2(0.3, 0.3)
@@ -20,14 +11,6 @@ script = ExtResource("1_q5obu")
 texture = ExtResource("2_rjlel")
 region_enabled = true
 region_rect = Rect2(500, 9100, 500, 700)
-
-[node name="TextureRect" type="TextureRect" parent="BackFace"]
-visible = false
-material = SubResource("ShaderMaterial_e484p")
-offset_left = -250.0
-offset_top = -350.0
-offset_right = 250.0
-offset_bottom = 350.0
 
 [node name="FrontFace" type="Sprite2D" parent="."]
 scale = Vector2(0.9, 0.9)

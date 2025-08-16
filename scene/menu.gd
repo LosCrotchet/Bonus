@@ -72,6 +72,9 @@ func _ready():
 	now_state = 0
 
 func _process(delta):
+	var _offset = $Background.material.get_shader_parameter("offset")
+	$Background.material.set_shader_parameter("offset", _offset + Vector2(-0.1, 0.1))
+	
 	if len($MultiPlayerSettingsClient/PlayerNameInput.text) > 8:
 		$MultiPlayerSettingsClient/PlayerNameInput.text = $MultiPlayerSettingsClient/PlayerNameInput.text.substr(0, 8)
 	if len($MultiPlayerSettingsServer/PlayerNameInput.text) > 8:

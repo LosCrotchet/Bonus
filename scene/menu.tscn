@@ -17,8 +17,8 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8of67"]
 shader = ExtResource("4_dyuxe")
-shader_parameter/cell_size = 24.0
-shader_parameter/dot_size = 0.25
+shader_parameter/cell_size = 60.0
+shader_parameter/dot_size = 0.5
 shader_parameter/background_color = Color(0.157274, 0.157274, 0.157274, 1)
 shader_parameter/dot_color = Color(0.2484, 0.2484, 0.2484, 1)
 shader_parameter/resolution = Vector2(1600, 900)

@@ -22,6 +22,8 @@ func  _ready():
 	$Twinkle.wait_time = randi_range(3, 6)
 	$Twinkle_tmp.wait_time = randf_range(0.1, 0.3)
 	$Twinkle.start()
+	
+	EyeFocusPosition = Vector2(740, 400)
 
 func update_Head():
 	# Update Head coordinate, including eyes and mouse
