@@ -1,8 +1,8 @@
 # Bonus
 
-Bonus是一种基于斗地主和骰子的扑克玩法。
+Bonus是一种基于斗地主和骰子的扑克玩法。主要玩法是根据骰子点数打出相应数量的手牌；以及出牌后无人跟牌的Bonus机制，该机制允许玩家在1至6点间任意出牌，提高了游戏的灵活性与策略性。
 
-## Basic Rules
+## 基本规则
 
 Bonus游戏使用带大小王的两副牌，支持2至4人。每位玩家起始17张手牌，从庄家开始轮流进行回合；先将手牌打完的玩家获胜。
 
@@ -26,10 +26,8 @@ Bonus游戏使用带大小王的两副牌，支持2至4人。每位玩家起始1
 5. 大小王：大小王在游戏中可作万能牌；若玩家清空手牌前最后一次出牌中包括万能牌，则在出牌后再摸两张牌（大小王单独使用不视作万能牌）；
 6. 若牌堆摸完，则将弃牌重新打乱后作为新牌堆；
 
+## 关于Bonus
 
-a) 1点：High card
-b) 2点：Pair
-c) 3点：Three of a kind; Straight
-d) 4点：Four of a kind; Straight; Three with one; Straight pair
-e) 5点：Five of a kind; Straight; Four with one; Three with pair
-f) 6点：Six of a kind; Straight; Five with one; Four with two; Three with three; Straight pair 
+可以在本项目的Release界面下载最新的游戏版本，目前提供Windows端（.exe）与安卓端（.apk）。事实上，只要有两副牌和一个骰子，便可以在线下复刻Bonus的玩法。
+
+欢迎在Issue中提交bug与建议。
