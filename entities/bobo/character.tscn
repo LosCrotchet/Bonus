@@ -1,0 +1,124 @@
+[gd_scene load_steps=9 format=3 uid="uid://bi6f3v48ib58r"]
+
+[ext_resource type="Texture2D" uid="uid://c13u02bhfoyg4" path="res://entities/bobo/textures/head_round.png" id="1_6k5wm"]
+[ext_resource type="Script" uid="uid://c13yhkypu0xrv" path="res://entities/bobo/character.gd" id="1_7v2w7"]
+[ext_resource type="Texture2D" uid="uid://brbxliduy5j3c" path="res://entities/bobo/textures/eye_default.png" id="2_7v2w7"]
+[ext_resource type="Texture2D" uid="uid://c2k3supw0een1" path="res://entities/bobo/textures/mouse_smile.png" id="4_hs4h7"]
+[ext_resource type="Texture2D" uid="uid://bby822rqavlys" path="res://entities/bobo/textures/body_default.png" id="4_mbevu"]
+[ext_resource type="PackedScene" uid="uid://daa3ckr3m8qe" path="res://entities/card/card.tscn" id="6_mbevu"]
+[ext_resource type="Texture2D" uid="uid://dxmnl06y3tuq2" path="res://entities/bobo/textures/hand_default.png" id="7_wdeb7"]
+
+[sub_resource type="Curve2D" id="Curve2D_adcn7"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, -44, 234, 0, 0, 0, 0, -157, -9, 0, 0, 0, 0, -149, 262, 0, 0, 0, 0, -80, 401, 0, 0, 0, 0, -44, 234)
+}
+point_count = 5
+
+[node name="Character" type="Node2D"]
+position = Vector2(740, 303)
+script = ExtResource("1_7v2w7")
+
+[node name="Head" type="Sprite2D" parent="."]
+texture = ExtResource("1_6k5wm")
+
+[node name="RightEye" type="Sprite2D" parent="Head"]
+position = Vector2(-30, 0)
+texture = ExtResource("2_7v2w7")
+
+[node name="LeftEye" type="Sprite2D" parent="Head"]
+position = Vector2(30, 0)
+texture = ExtResource("2_7v2w7")
+
+[node name="Mouse" type="Sprite2D" parent="Head"]
+position = Vector2(0, 80)
+texture = ExtResource("4_hs4h7")
+
+[node name="Body" type="Sprite2D" parent="."]
+position = Vector2(0, 280)
+texture = ExtResource("4_mbevu")
+
+[node name="Path2D" type="Path2D" parent="."]
+curve = SubResource("Curve2D_adcn7")
+
+[node name="PathFollow2D" type="PathFollow2D" parent="Path2D"]
+position = Vector2(-44, 234)
+rotation = -2.02034
+rotates = false
+
+[node name="Card" parent="Path2D/PathFollow2D" instance=ExtResource("6_mbevu")]
+visible = false
+position = Vector2(119.873, 32.3008)
+rotation = -0.942478
+scale = Vector2(0.2, 0.2)
+
+[node name="LeftHand" type="Sprite2D" parent="."]
+position = Vector2(150, 256)
+texture = ExtResource("7_wdeb7")
+
+[node name="RightHand" type="Sprite2D" parent="."]
+position = Vector2(-160, 12)
+scale = Vector2(1, 1)
+texture = ExtResource("7_wdeb7")
+
+[node name="TwinkleClose" type="Timer" parent="."]
+wait_time = 0.3
+one_shot = true
+
+[node name="TwinkleOpen" type="Timer" parent="."]
+wait_time = 3.0
+one_shot = true
+
+[node name="Mouse" type="Timer" parent="."]
+wait_time = 5.0
+autostart = true
+
+[node name="TalkMouse" type="Timer" parent="."]
+
+[node name="Wink" type="Button" parent="."]
+offset_left = 347.0
+offset_top = -99.0
+offset_right = 479.0
+offset_bottom = -56.0
+text = "Wink"
+
+[node name="Talk" type="Button" parent="."]
+offset_left = 347.0
+offset_top = -35.0
+offset_right = 479.0
+offset_bottom = 8.0
+text = "Talk"
+
+[node name="ChangeMouse" type="Button" parent="."]
+offset_left = 346.0
+offset_top = 32.0
+offset_right = 478.0
+offset_bottom = 75.0
+text = "Change Mouse"
+
+[node name="Hold" type="Button" parent="."]
+offset_left = 347.0
+offset_top = 176.0
+offset_right = 479.0
+offset_bottom = 219.0
+text = "Hold"
+
+[node name="Greeting" type="Button" parent="."]
+offset_left = 348.0
+offset_top = 231.0
+offset_right = 480.0
+offset_bottom = 274.0
+text = "Greeting"
+
+[node name="HeadSway" type="Timer" parent="."]
+autostart = true
+
+[connection signal="timeout" from="TwinkleClose" to="." method="_on_twinkle_tmp_timeout"]
+[connection signal="timeout" from="TwinkleOpen" to="." method="_on_twinkle_timeout"]
+[connection signal="timeout" from="Mouse" to="." method="_on_mouse_timeout"]
+[connection signal="timeout" from="TalkMouse" to="." method="_on_talk_mouse_timeout"]
+[connection signal="pressed" from="Wink" to="." method="wink"]
+[connection signal="pressed" from="Talk" to="." method="talk"]
+[connection signal="pressed" from="ChangeMouse" to="." method="_on_change_mouse_pressed"]
+[connection signal="pressed" from="Hold" to="." method="hold"]
+[connection signal="pressed" from="Greeting" to="." method="greeting"]
+[connection signal="timeout" from="HeadSway" to="." method="_on_head_sway_timeout"]

@@ -12,15 +12,19 @@ config_version=5
 
 config/name="Bonus"
 config/version="0.3.3"
-run/main_scene="uid://bnwterho7r6yx"
+run/main_scene="uid://bi6f3v48ib58r"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="uid://16x8qqfni1yl"
 config/windows_native_icon="res://assets/icon/icon.ico"
 
+[audio]
+
+buses/default_bus_layout=""
+
 [autoload]
 
-DeckManager="*res://scene/deck_manager.gd"
-WebController="*res://scene/web_controller.gd"
+DeckManager="*res://systems/deck_manager/deck_manager.gd"
+WebController="*res://systems/web_controller/web_controller.gd"
 
 [display]
 

@@ -1,0 +1,262 @@
+[gd_scene load_steps=16 format=3 uid="uid://d1bjj61jqhd50"]
+
+[ext_resource type="Script" uid="uid://bgdgu2gjdppy5" path="res://scenes/game_scene/game_scene.gd" id="1_km28k"]
+[ext_resource type="Shader" uid="uid://cj0pxio481iv0" path="res://assets/shaders/dotted_grid.gdshader" id="2_53vwq"]
+[ext_resource type="Texture2D" uid="uid://cwbq25vt0o46y" path="res://scenes/game_scene/textures/desktop.png" id="3_iprv4"]
+[ext_resource type="FontFile" uid="uid://c2hqvv1e6rt5y" path="res://assets/fonts/SourceHanSansSC-Regular-2.otf" id="4_6i5ch"]
+[ext_resource type="Script" uid="uid://daqyqy4m5x0pd" path="res://systems/game_manager/game_manager.gd" id="5_128is"]
+[ext_resource type="Script" uid="uid://lw7m8qnwfvfd" path="res://systems/deck_manager/deck_manager.gd" id="6_8mqoj"]
+[ext_resource type="Script" uid="uid://cmb1p1gmcwcds" path="res://scenes/game_scene/player_manager.gd" id="7_lnj3v"]
+[ext_resource type="PackedScene" uid="uid://bw4hruxi0mnr1" path="res://entities/player/player.tscn" id="8_hi0aj"]
+[ext_resource type="Script" uid="uid://bb4ji14yv3pg0" path="res://scenes/game_scene/game_ui.gd" id="9_jg4bk"]
+[ext_resource type="Theme" uid="uid://fvk46ntxb4ka" path="res://assets/tres/button.tres" id="10_nfsx5"]
+[ext_resource type="PackedScene" uid="uid://8oujd7w680x8" path="res://entities/dice/dice.tscn" id="11_eoogk"]
+[ext_resource type="AudioStream" uid="uid://cyvyxpcd72477" path="res://assets/sound/button.ogg" id="12_dsdug"]
+[ext_resource type="Script" uid="uid://ejr2o00ei8ei" path="res://systems/audio_player/sfx_player.gd" id="13_nplr4"]
+[ext_resource type="Texture2D" uid="uid://d3x4fwaysadxn" path="res://assets/icon/icons8-logout-48.png" id="14_txmqu"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_6s1rr"]
+shader = ExtResource("2_53vwq")
+shader_parameter/cell_size = 70.0
+shader_parameter/dot_size = 0.5
+shader_parameter/background_color = Color(0, 0.298039, 0.0156863, 1)
+shader_parameter/dot_color = Color(0, 0.247059, 0.0117647, 1)
+shader_parameter/resolution = Vector2(1600, 900)
+shader_parameter/offset = Vector2(0, 0)
+shader_parameter/anti_aliasing_factor = 0.01
+shader_parameter/stochastic_samples = 16
+
+[node name="GameScene" type="Node2D"]
+script = ExtResource("1_km28k")
+
+[node name="Prop" type="CanvasGroup" parent="."]
+
+[node name="Background" type="ColorRect" parent="Prop"]
+material = SubResource("ShaderMaterial_6s1rr")
+offset_right = 1600.0
+offset_bottom = 900.0
+color = Color(0.152941, 0.152941, 0.152941, 1)
+
+[node name="Desktop" type="Sprite2D" parent="Prop"]
+position = Vector2(796, 445)
+texture = ExtResource("3_iprv4")
+
+[node name="DeckCount" type="Label" parent="."]
+offset_left = 688.0
+offset_top = 154.0
+offset_right = 910.0
+offset_bottom = 444.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.313726)
+theme_override_fonts/font = ExtResource("4_6i5ch")
+theme_override_font_sizes/font_size = 200
+text = "32"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GameManager" type="Node" parent="."]
+script = ExtResource("5_128is")
+
+[node name="DeckManager" type="Node" parent="."]
+script = ExtResource("6_8mqoj")
+
+[node name="PlayerManager" type="Node" parent="."]
+script = ExtResource("7_lnj3v")
+
+[node name="Player" parent="PlayerManager" instance=ExtResource("8_hi0aj")]
+offset_left = 344.0
+offset_top = 575.0
+offset_right = -1256.0
+offset_bottom = -325.0
+select_enable = true
+
+[node name="Player2" parent="PlayerManager" instance=ExtResource("8_hi0aj")]
+visible = false
+offset_left = 1423.0
+offset_top = 305.0
+offset_right = -177.0
+offset_bottom = -595.0
+
+[node name="Player3" parent="PlayerManager" instance=ExtResource("8_hi0aj")]
+visible = false
+offset_left = 799.0
+offset_top = 86.0
+offset_right = -801.0
+offset_bottom = -814.0
+location = 0
+
+[node name="Player4" parent="PlayerManager" instance=ExtResource("8_hi0aj")]
+visible = false
+offset_left = 174.0
+offset_top = 309.0
+offset_right = -1426.0
+offset_bottom = -591.0
+location = 3
+
+[node name="GameUI" type="CanvasGroup" parent="."]
+position = Vector2(860, 600)
+script = ExtResource("9_jg4bk")
+
+[node name="PlayButton" type="Button" parent="GameUI"]
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -228.0
+offset_top = -31.5
+offset_right = -100.0
+offset_bottom = 31.5
+grow_horizontal = 0
+grow_vertical = 2
+theme = ExtResource("10_nfsx5")
+theme_override_font_sizes/font_size = 40
+text = "出牌"
+
+[node name="HintButton" type="Button" parent="GameUI"]
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -63.0
+offset_top = -31.0
+offset_right = 65.0
+offset_bottom = 32.0
+grow_horizontal = 0
+grow_vertical = 2
+theme = ExtResource("10_nfsx5")
+theme_override_font_sizes/font_size = 40
+text = "提示"
+
+[node name="PassButton" type="Button" parent="GameUI"]
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 100.0
+offset_top = -31.5
+offset_right = 228.0
+offset_bottom = 31.5
+grow_vertical = 2
+theme = ExtResource("10_nfsx5")
+theme_override_font_sizes/font_size = 40
+text = "跳过"
+
+[node name="SelectTypeLabel" type="Label" parent="GameUI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 261.0
+offset_top = -16.0
+offset_right = 336.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 25
+
+[node name="WinnerLabel" type="Label" parent="."]
+visible = false
+offset_left = 675.0
+offset_top = 410.0
+offset_right = 930.0
+offset_bottom = 479.0
+theme_override_font_sizes/font_size = 50
+text = "玩家 0 胜出！"
+
+[node name="RestartGameButton" type="Button" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 530.0
+offset_top = 408.0
+offset_right = 772.0
+offset_bottom = 485.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("10_nfsx5")
+theme_override_font_sizes/font_size = 40
+text = "再来一把"
+
+[node name="BacktoMenuButton" type="Button" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 806.0
+offset_top = 410.0
+offset_right = 1048.0
+offset_bottom = 487.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("10_nfsx5")
+theme_override_font_sizes/font_size = 40
+text = "回到菜单"
+
+[node name="Dice" parent="." instance=ExtResource("11_eoogk")]
+visible = false
+position = Vector2(540, 600)
+
+[node name="SFXPlayer" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("12_dsdug")
+script = ExtResource("13_nplr4")
+
+[node name="MusicPlayer" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("12_dsdug")
+
+[node name="Back" type="Button" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 1510.0
+offset_top = 20.0
+offset_right = 1580.0
+offset_bottom = 84.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("10_nfsx5")
+theme_override_font_sizes/font_size = 40
+icon = ExtResource("14_txmqu")
+icon_alignment = 1
+
+[node name="GameModeLabel" type="Label" parent="."]
+offset_left = 18.0
+offset_top = 11.0
+offset_right = 343.0
+offset_bottom = 48.0
+theme_override_font_sizes/font_size = 25
+text = "单人游戏"
+vertical_alignment = 1
+
+[connection signal="DrawCard" from="GameManager" to="PlayerManager" method="_on_game_manager_draw_card"]
+[connection signal="GameSignal" from="GameManager" to="." method="_on_game_manager_game_signal"]
+[connection signal="GameSignal" from="GameManager" to="PlayerManager" method="_on_game_manager_game_signal"]
+[connection signal="GameEnd" from="PlayerManager" to="." method="_on_player_manager_game_end"]
+[connection signal="GameEnd" from="PlayerManager" to="GameManager" method="_on_player_manager_game_end"]
+[connection signal="GameEnd" from="PlayerManager" to="PlayerManager" method="_on_game_end"]
+[connection signal="GameEnd" from="PlayerManager" to="GameUI" method="_on_player_manager_game_end"]
+[connection signal="GameStart" from="PlayerManager" to="GameManager" method="_on_game_start"]
+[connection signal="PlayerDiceRoll" from="PlayerManager" to="Dice" method="_on_player_manager_player_dice_roll"]
+[connection signal="PlayerDiceRoll" from="PlayerManager" to="SFXPlayer" method="_on_player_manager_player_dice_roll"]
+[connection signal="PlayerFinish" from="PlayerManager" to="GameManager" method="_on_player_manager_player_finish"]
+[connection signal="PlayerFinish" from="PlayerManager" to="GameUI" method="_on_player_manager_player_finish"]
+[connection signal="PlayerHandCountUpdate" from="PlayerManager" to="GameUI" method="_on_player_manager_player_hand_count_update"]
+[connection signal="PlayerSelectUpdate" from="PlayerManager" to="GameUI" method="_on_player_manager_player_select_update"]
+[connection signal="UpdateGameUI" from="PlayerManager" to="GameUI" method="_on_update_game_ui"]
+[connection signal="pressed" from="GameUI/PlayButton" to="PlayerManager" method="_on_play_button_pressed"]
+[connection signal="pressed" from="GameUI/PlayButton" to="SFXPlayer" method="_on_button_pressed"]
+[connection signal="pressed" from="GameUI/HintButton" to="PlayerManager" method="_on_hint_button_pressed"]
+[connection signal="pressed" from="GameUI/HintButton" to="SFXPlayer" method="_on_button_pressed"]
+[connection signal="pressed" from="GameUI/PassButton" to="PlayerManager" method="_on_pass_button_pressed"]
+[connection signal="pressed" from="GameUI/PassButton" to="GameUI" method="_on_pass_button_pressed"]
+[connection signal="pressed" from="GameUI/PassButton" to="SFXPlayer" method="_on_button_pressed"]
+[connection signal="pressed" from="RestartGameButton" to="." method="_on_restart_game_button_pressed"]
+[connection signal="pressed" from="BacktoMenuButton" to="." method="_on_backto_menu_button_pressed"]
+[connection signal="DiceTimeout" from="Dice" to="GameManager" method="_on_dice_dice_timeout"]
+[connection signal="DiceTimeout" from="Dice" to="SFXPlayer" method="_on_dice_dice_timeout"]
+[connection signal="pressed" from="Back" to="." method="_on_backto_menu_button_pressed"]

@@ -1,0 +1,153 @@
+[gd_scene load_steps=11 format=3 uid="uid://bw4hruxi0mnr1"]
+
+[ext_resource type="Script" uid="uid://byrm7aq8hamfd" path="res://entities/player/player.gd" id="1_xo3ru"]
+[ext_resource type="Texture2D" uid="uid://c3ujhdojewfx5" path="res://assets/avatar_default_1.png" id="2_hjaqi"]
+[ext_resource type="FontFile" uid="uid://ookfuvwdu5xm" path="res://assets/fonts/arialbi.ttf" id="2_hp4bs"]
+[ext_resource type="FontFile" uid="uid://c2hqvv1e6rt5y" path="res://assets/fonts/SourceHanSansSC-Regular-2.otf" id="3_fvtld"]
+[ext_resource type="Texture2D" uid="uid://b8abfg6l8qpln" path="res://assets/icon/clock_icon.png" id="3_g2vtq"]
+[ext_resource type="Shader" uid="uid://kl5dcckl3ucn" path="res://assets/shaders/player_border.gdshader" id="3_s4jxa"]
+[ext_resource type="Theme" uid="uid://da3dl6vvytigd" path="res://assets/tres/label_button.tres" id="6_hp4bs"]
+[ext_resource type="Texture2D" uid="uid://dlpuf55uny4sc" path="res://assets/icon/card_icon.png" id="6_oh5ij"]
+[ext_resource type="Texture2D" uid="uid://dwmhf8aqr6lv0" path="res://assets/icon/disconnect_icon.png" id="7_2fvbb"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hp4bs"]
+shader = ExtResource("3_s4jxa")
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/size = Vector2(290, 150)
+shader_parameter/width = 8.0
+shader_parameter/speed = 1.5
+
+[node name="Player" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1600.0
+offset_bottom = -900.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_xo3ru")
+wait_time = 20.0
+
+[node name="PlayTimer" type="Timer" parent="."]
+wait_time = 7.0
+one_shot = true
+
+[node name="HandArea" type="CanvasGroup" parent="."]
+position = Vector2(503, 222)
+
+[node name="DiscardArea" type="CanvasGroup" parent="."]
+position = Vector2(543, -213)
+scale = Vector2(0.8, 0.8)
+
+[node name="TimeLeft" type="Button" parent="DiscardArea"]
+visible = false
+offset_left = -77.5
+offset_top = -117.5
+offset_right = 80.5
+offset_bottom = -37.5
+theme = ExtResource("6_hp4bs")
+theme_override_font_sizes/font_size = 50
+text = "60"
+icon = ExtResource("3_g2vtq")
+alignment = 0
+expand_icon = true
+
+[node name="PassLabel" type="Label" parent="DiscardArea"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -131.25
+offset_top = -86.25
+offset_right = 133.75
+offset_bottom = 26.75
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("2_hp4bs")
+theme_override_font_sizes/font_size = 100
+text = "PASS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Info" type="CanvasGroup" parent="."]
+
+[node name="Ring" type="ColorRect" parent="Info"]
+material = SubResource("ShaderMaterial_hp4bs")
+offset_left = -145.0
+offset_top = -73.0
+offset_right = 145.0
+offset_bottom = 77.0
+
+[node name="ColorRect" type="ColorRect" parent="Info"]
+offset_left = -135.0
+offset_top = -63.0
+offset_right = 135.0
+offset_bottom = 67.0
+color = Color(0, 0, 0, 0.588235)
+
+[node name="Avatar" type="Sprite2D" parent="Info"]
+position = Vector2(-70, 2)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_hjaqi")
+
+[node name="DisconnectIcon" type="Sprite2D" parent="Info"]
+visible = false
+position = Vector2(-70, 2)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("7_2fvbb")
+
+[node name="Name" type="Label" parent="Info"]
+offset_left = -11.0
+offset_top = -50.0
+offset_right = 72.0
+offset_bottom = -6.0
+theme_override_fonts/font = ExtResource("3_fvtld")
+theme_override_font_sizes/font_size = 30
+text = "玩家 1"
+
+[node name="Rest" type="Label" parent="Info"]
+visible = false
+offset_left = 59.0
+offset_top = 4.0
+offset_right = 175.0
+offset_bottom = 48.0
+theme_override_fonts/font = ExtResource("3_fvtld")
+theme_override_font_sizes/font_size = 30
+text = "余 11 张"
+
+[node name="Emoji" type="Label" parent="Info"]
+visible = false
+offset_left = -90.0
+offset_top = 30.0
+offset_right = -20.0
+offset_bottom = 103.0
+theme_override_fonts/font = ExtResource("3_fvtld")
+theme_override_font_sizes/font_size = 50
+text = "🤔"
+
+[node name="Hint" type="Label" parent="Info"]
+offset_left = 100.0
+offset_top = -4.0
+offset_right = 144.0
+offset_bottom = 55.0
+theme_override_fonts/font = ExtResource("3_fvtld")
+theme_override_font_sizes/font_size = 40
+text = "+7"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RestDisplay" type="Button" parent="Info"]
+offset_left = -11.0
+offset_top = 3.0
+offset_right = 97.0
+offset_bottom = 52.0
+theme = ExtResource("6_hp4bs")
+text = "11"
+icon = ExtResource("6_oh5ij")
+alignment = 0
+expand_icon = true
+
+[connection signal="timeout" from="PlayTimer" to="." method="_on_play_timer_timeout"]
