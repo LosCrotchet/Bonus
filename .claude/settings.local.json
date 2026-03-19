@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "Bash(mv assets/sound/* assets/audio/)",
+      "Bash(mv assets/Shaders/* assets/shaders/)",
+      "Bash(mv scene/menu/* scenes/menu/)",
+      "Bash(mv scene/game_scene/* scenes/game/)"
+    ]
+  }
+}
