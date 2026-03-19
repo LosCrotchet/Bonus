@@ -1,0 +1,281 @@
+[gd_scene format=3 uid="uid://d1bjj61jqhd50"]
+
+[ext_resource type="Script" uid="uid://bgdgu2gjdppy5" path="res://scenes/game/game_scene.gd" id="1_81ico"]
+[ext_resource type="Texture2D" uid="uid://cy5sqh0j8v3x1" path="res://assets/textures/desktop.png" id="2_hq7ie"]
+[ext_resource type="FontFile" uid="uid://c2hqvv1e6rt5y" path="res://assets/fonts/SourceHanSansSC-Regular-2.otf" id="3_nf1ce"]
+[ext_resource type="Script" uid="uid://daqyqy4m5x0pd" path="res://game/managers/game_manager.gd" id="4_vynom"]
+[ext_resource type="Script" uid="uid://lw7m8qnwfvfd" path="res://game/managers/deck_manager.gd" id="5_pxt5h"]
+[ext_resource type="Script" uid="uid://cmb1p1gmcwcds" path="res://game/entities/player/player_manager.gd" id="6_5laeg"]
+[ext_resource type="PackedScene" uid="uid://bw4hruxi0mnr1" path="res://game/entities/player/player.tscn" id="7_yyfvs"]
+[ext_resource type="Script" uid="uid://c8aoirmk245tx" path="res://scenes/game/game_ui.gd" id="8_6chj6"]
+[ext_resource type="PackedScene" uid="uid://dlhu8cokq1lxx" path="res://game/ui/default_button.tscn" id="9_q06b2"]
+[ext_resource type="PackedScene" uid="uid://8oujd7w680x8" path="res://game/entities/dice/dice.tscn" id="10_sw306"]
+[ext_resource type="AudioStream" uid="uid://cyvyxpcd72477" path="res://assets/sound/button.ogg" id="11_ao44p"]
+[ext_resource type="Script" uid="uid://ejr2o00ei8ei" path="res://game/managers/sfx_player.gd" id="12_4l13n"]
+
+[sub_resource type="Shader" id="Shader_amvf4"]
+code = "shader_type canvas_item;
+
+uniform vec3 colour1 : source_color = vec3(1.0, 0.0, 0.0);
+uniform vec3 colour2 : source_color = vec3(0.0, 0.0, 1.0);
+uniform vec3 colour3 : source_color = vec3(0.0, 0.0, 0.0); // 衔接颜色
+uniform vec3 colour4 : source_color = vec3(1.0, 1.0, 1.0); // 起始/终点颜色
+uniform int contrast : hint_range(0, 10, 1) = 5; // 过度强度
+uniform float gradual : hint_range(0.0, 2.0, 0.01) = 2; // 渐变
+uniform float width1 : hint_range(0.01, 1.0, 0.01) = 0.04; // 中间色宽度
+uniform float width2 : hint_range(0.01, 1.0, 0.01) = 0.1; // 中间色宽度
+uniform float scale1 : hint_range(0.0, 100.0, 0.1) = 10.0; // 缩放1
+uniform float scale2 : hint_range(0.0, 10.0, 0.01) = 1.0; // 缩放2
+uniform vec2 offset = vec2(0); // 偏移
+uniform float intensity : hint_range(0.0, 4.0, 0.1) = 0.2; // 扭曲强度
+uniform float spin_speed : hint_range(0.0, 10.0, 0.1) = 0.2; // 旋转速度
+uniform float spin_amount : hint_range(0.0, 10.0, 0.1) = 1.5; // 旋转量
+
+void fragment() {
+	float speed = TIME * spin_speed;
+	// 无拉伸屏幕 UV;
+	vec2 uv = FRAGCOORD.xy * SCREEN_PIXEL_SIZE.y;
+	// 居中 UV
+	float center = SCREEN_PIXEL_SIZE.y/SCREEN_PIXEL_SIZE.x;
+	uv.y -= 0.5;
+	uv.x -= 0.5 * center;
+	uv *= 2.0;
+	uv += offset;
+	float uv_len = length(uv);
+	// 获得角度信息
+	float angle = atan(uv.y, uv.x);
+	// 根据距离衰减旋转
+	angle -= spin_amount * uv_len;
+	// 角度旋转动画
+	angle += speed;
+    // 根据距离应用旋转
+	uv = vec2(uv_len * cos(angle), uv_len * sin(angle)) * scale2;
+    // UV 扭曲效果
+    uv *= scale1;
+    vec2 uv2 = vec2(uv.x + uv.y);
+    for (int i = 0; i < contrast; i++) {
+		uv2 += sin(uv);
+		uv += vec2(cos(intensity * uv2.y + speed), sin(intensity * uv2.x - speed));
+        uv -= cos(uv.x + uv.y) - sin(uv.x - uv.y);
+    }
+	// 强度值
+	float paint_res = smoothstep(0, gradual, length(uv) / scale1);
+	// 色块划分
+	float c3p = 1.0 - min(width2, abs(paint_res - 0.5)) * (1.0 / width2);
+	float c_out =  max(0.0, (paint_res - (1.0 - width1))) * (1.0 / width1);
+	float c_in =  max(0.0, -(paint_res - width1)) * (1.0 / width1);
+	float c4p = c_out + c_in;
+	// 颜色应用
+	vec3 ret_col = mix(colour1, colour2, paint_res);
+	ret_col = mix(ret_col, colour3, c3p);
+	ret_col = mix(ret_col, colour4, c4p);
+    COLOR.rgb = ret_col;
+}"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_6e7jr"]
+shader = SubResource("Shader_amvf4")
+shader_parameter/colour1 = Color(0, 0, 0, 1)
+shader_parameter/colour2 = Color(7.3399394e-07, 0.31628895, 0.1258314, 1)
+shader_parameter/colour3 = Color(0, 0.1402598, 2.4065375e-08, 1)
+shader_parameter/colour4 = Color(0.525894, 0.52589405, 0.525894, 1)
+shader_parameter/contrast = 5
+shader_parameter/gradual = 2.0
+shader_parameter/width1 = 0.10999999754128
+shader_parameter/width2 = 0.13
+shader_parameter/scale1 = 11.70000017434404
+shader_parameter/scale2 = 1.11
+shader_parameter/offset = Vector2(0, 0)
+shader_parameter/intensity = 0.2
+shader_parameter/spin_speed = 0.10000000149012
+shader_parameter/spin_amount = 1.5
+
+[node name="GameScene" type="Node2D" unique_id=770886552]
+script = ExtResource("1_81ico")
+
+[node name="Prop" type="CanvasGroup" parent="." unique_id=1932538186]
+
+[node name="Background" type="ColorRect" parent="Prop" unique_id=992127689]
+offset_right = 1600.0
+offset_bottom = 900.0
+color = Color(0.152941, 0.152941, 0.152941, 1)
+metadata/_edit_lock_ = true
+
+[node name="ColorRect" type="ColorRect" parent="Prop" unique_id=803486431]
+visible = false
+material = SubResource("ShaderMaterial_6e7jr")
+offset_right = 1603.0
+offset_bottom = 901.0
+
+[node name="Desktop" type="Sprite2D" parent="Prop" unique_id=1816584880]
+position = Vector2(809, 541)
+texture = ExtResource("2_hq7ie")
+
+[node name="DeckCount" type="Label" parent="." unique_id=829546690]
+offset_left = 701.0
+offset_top = 270.0
+offset_right = 923.0
+offset_bottom = 560.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.313726)
+theme_override_fonts/font = ExtResource("3_nf1ce")
+theme_override_font_sizes/font_size = 200
+text = "32"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GameManager" type="Node" parent="." unique_id=1197258149]
+script = ExtResource("4_vynom")
+
+[node name="DeckManager" type="Node" parent="." unique_id=1513256254]
+script = ExtResource("5_pxt5h")
+
+[node name="PlayerManager" type="Node" parent="." unique_id=1057662097]
+script = ExtResource("6_5laeg")
+
+[node name="Player" parent="PlayerManager" unique_id=348317535 instance=ExtResource("7_yyfvs")]
+offset_left = 344.0
+offset_top = 575.0
+offset_right = -1256.0
+offset_bottom = -325.0
+select_enable = true
+
+[node name="Player2" parent="PlayerManager" unique_id=507553433 instance=ExtResource("7_yyfvs")]
+visible = false
+offset_left = 1423.0
+offset_top = 305.0
+offset_right = -177.0
+offset_bottom = -595.0
+
+[node name="Player3" parent="PlayerManager" unique_id=1853154658 instance=ExtResource("7_yyfvs")]
+visible = false
+offset_left = 799.0
+offset_top = 86.0
+offset_right = -801.0
+offset_bottom = -814.0
+location = 0
+
+[node name="Player4" parent="PlayerManager" unique_id=175567862 instance=ExtResource("7_yyfvs")]
+visible = false
+offset_left = 174.0
+offset_top = 309.0
+offset_right = -1426.0
+offset_bottom = -591.0
+location = 3
+
+[node name="GameUI" type="CanvasGroup" parent="." unique_id=609153450]
+position = Vector2(853, 639)
+script = ExtResource("8_6chj6")
+
+[node name="PlayButton" parent="GameUI" unique_id=922336245 instance=ExtResource("9_q06b2")]
+offset_left = -238.0
+offset_top = -39.0
+offset_right = -93.0
+offset_bottom = 45.0
+text = "出牌"
+
+[node name="HintButton" parent="GameUI" unique_id=758308443 instance=ExtResource("9_q06b2")]
+offset_left = -70.0
+offset_top = -39.0
+offset_right = 75.0
+offset_bottom = 45.0
+text = "提示"
+
+[node name="PassButton" parent="GameUI" unique_id=932678961 instance=ExtResource("9_q06b2")]
+offset_left = 102.0
+offset_top = -39.0
+offset_right = 247.0
+offset_bottom = 45.0
+text = "跳过"
+
+[node name="SelectTypeLabel" type="Label" parent="GameUI" unique_id=2035860480]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 279.0
+offset_top = -19.0
+offset_right = 354.0
+offset_bottom = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 25
+
+[node name="WinnerLabel" type="Label" parent="." unique_id=1653812772]
+visible = false
+offset_left = 675.0
+offset_top = 410.0
+offset_right = 930.0
+offset_bottom = 479.0
+theme_override_font_sizes/font_size = 50
+text = "玩家 0 胜出！"
+
+[node name="RestartGameButton" parent="." unique_id=277989754 instance=ExtResource("9_q06b2")]
+visible = false
+offset_left = 514.0
+offset_top = 411.0
+offset_right = 762.0
+offset_bottom = 495.0
+text = "再来一把 !"
+
+[node name="BacktoMenuButton" parent="." unique_id=1227217909 instance=ExtResource("9_q06b2")]
+visible = false
+offset_left = 834.0
+offset_top = 412.0
+offset_right = 1082.0
+offset_bottom = 496.0
+text = "返回菜单"
+
+[node name="Dice" parent="." unique_id=1567432221 instance=ExtResource("10_sw306")]
+visible = false
+position = Vector2(540, 600)
+
+[node name="SFXPlayer" type="AudioStreamPlayer2D" parent="." unique_id=1523324987]
+stream = ExtResource("11_ao44p")
+script = ExtResource("12_4l13n")
+
+[node name="MusicPlayer" type="AudioStreamPlayer2D" parent="." unique_id=366954997]
+stream = ExtResource("11_ao44p")
+
+[node name="Back" parent="." unique_id=1745364976 instance=ExtResource("9_q06b2")]
+offset_left = 1457.0
+offset_top = 20.0
+offset_right = 1585.0
+offset_bottom = 87.0
+text = "退出"
+
+[node name="GameModeLabel" type="Label" parent="." unique_id=344444732]
+offset_left = 18.0
+offset_top = 11.0
+offset_right = 343.0
+offset_bottom = 48.0
+theme_override_font_sizes/font_size = 25
+text = "单人游戏"
+vertical_alignment = 1
+
+[connection signal="DrawCard" from="GameManager" to="PlayerManager" method="_on_game_manager_draw_card"]
+[connection signal="GameSignal" from="GameManager" to="." method="_on_game_manager_game_signal"]
+[connection signal="GameSignal" from="GameManager" to="PlayerManager" method="_on_game_manager_game_signal"]
+[connection signal="GameEnd" from="PlayerManager" to="." method="_on_player_manager_game_end"]
+[connection signal="GameEnd" from="PlayerManager" to="GameManager" method="_on_player_manager_game_end"]
+[connection signal="GameEnd" from="PlayerManager" to="PlayerManager" method="_on_game_end"]
+[connection signal="GameEnd" from="PlayerManager" to="GameUI" method="_on_player_manager_game_end"]
+[connection signal="GameStart" from="PlayerManager" to="GameManager" method="_on_game_start"]
+[connection signal="PlayerDiceRoll" from="PlayerManager" to="Dice" method="_on_player_manager_player_dice_roll"]
+[connection signal="PlayerDiceRoll" from="PlayerManager" to="SFXPlayer" method="_on_player_manager_player_dice_roll"]
+[connection signal="PlayerFinish" from="PlayerManager" to="GameManager" method="_on_player_manager_player_finish"]
+[connection signal="PlayerFinish" from="PlayerManager" to="GameUI" method="_on_player_manager_player_finish"]
+[connection signal="PlayerHandCountUpdate" from="PlayerManager" to="GameUI" method="_on_player_manager_player_hand_count_update"]
+[connection signal="PlayerSelectUpdate" from="PlayerManager" to="GameUI" method="_on_player_manager_player_select_update"]
+[connection signal="UpdateGameUI" from="PlayerManager" to="GameUI" method="_on_update_game_ui"]
+[connection signal="pressed" from="GameUI/PlayButton" to="PlayerManager" method="_on_play_button_pressed"]
+[connection signal="pressed" from="GameUI/PlayButton" to="SFXPlayer" method="_on_button_pressed"]
+[connection signal="pressed" from="GameUI/HintButton" to="PlayerManager" method="_on_hint_button_pressed"]
+[connection signal="pressed" from="GameUI/HintButton" to="SFXPlayer" method="_on_button_pressed"]
+[connection signal="pressed" from="GameUI/PassButton" to="PlayerManager" method="_on_pass_button_pressed"]
+[connection signal="pressed" from="GameUI/PassButton" to="GameUI" method="_on_pass_button_pressed"]
+[connection signal="pressed" from="GameUI/PassButton" to="SFXPlayer" method="_on_button_pressed"]
+[connection signal="pressed" from="RestartGameButton" to="." method="_on_restart_game_button_pressed"]
+[connection signal="pressed" from="BacktoMenuButton" to="." method="_on_backto_menu_button_pressed"]
+[connection signal="DiceTimeout" from="Dice" to="GameManager" method="_on_dice_dice_timeout"]
+[connection signal="DiceTimeout" from="Dice" to="SFXPlayer" method="_on_dice_dice_timeout"]
+[connection signal="pressed" from="Back" to="." method="_on_backto_menu_button_pressed"]

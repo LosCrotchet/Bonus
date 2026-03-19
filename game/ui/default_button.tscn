@@ -1,0 +1,80 @@
+[gd_scene format=3 uid="uid://dlhu8cokq1lxx"]
+
+[ext_resource type="Script" uid="uid://dfjeykvl1erdh" path="res://game/ui/default_button.gd" id="1_kopas"]
+[ext_resource type="FontFile" uid="uid://c2hqvv1e6rt5y" path="res://assets/fonts/SourceHanSansSC-Regular-2.otf" id="1_s7x3i"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kopas"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_o2x4r"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cxxui"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_w3uah"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2u01r"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kopas"]
+bg_color = Color(0.82947975, 0.8294798, 0.8294797, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o2x4r"]
+bg_color = Color(0.07450981, 0.07450981, 0.07450981, 1)
+border_width_left = 6
+border_width_top = 6
+border_width_right = 6
+border_width_bottom = 6
+border_color = Color(0.83137256, 0.83137256, 0.83137256, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="LabelSettings" id="LabelSettings_kopas"]
+font = ExtResource("1_s7x3i")
+
+[node name="DefaultButton" type="Button" unique_id=922336245]
+offset_right = 187.0
+offset_bottom = 84.0
+theme_override_font_sizes/font_size = 1
+theme_override_styles/normal = SubResource("StyleBoxEmpty_kopas")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_o2x4r")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_cxxui")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_w3uah")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_2u01r")
+script = ExtResource("1_kopas")
+
+[node name="BottomLayer" type="Panel" parent="." unique_id=770335035]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_kopas")
+
+[node name="TopLayer" type="Panel" parent="." unique_id=1083186564]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_o2x4r")
+
+[node name="Label" type="Label" parent="TopLayer" unique_id=1696178920]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+label_settings = SubResource("LabelSettings_kopas")
+horizontal_alignment = 1
+vertical_alignment = 1

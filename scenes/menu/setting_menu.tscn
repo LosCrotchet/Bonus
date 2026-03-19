@@ -1,0 +1,158 @@
+[gd_scene format=3 uid="uid://bgre8fhkequ4b"]
+
+[node name="SettingMenu" type="Control" unique_id=754176114]
+visible = false
+position = Vector2(1081, 433)
+modulate = Color(1, 1, 1, 0)
+
+[node name="SettingsTitle" type="Label" parent="SettingMenu"]
+offset_left = -192.0
+offset_top = -372.0
+offset_right = 189.0
+offset_bottom = -295.0
+theme_override_colors/font_color = Color(0.152941, 0.152941, 0.152941, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_bo06a")
+text = "游戏设置"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VolumeLabel" type="Label" parent="SettingMenu"]
+offset_left = -321.0
+offset_top = -248.0
+offset_right = -88.0
+offset_bottom = -178.0
+theme_override_colors/font_color = Color(0.152941, 0.152941, 0.152941, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_bo06a")
+text = "音量大小"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VolumeSlider" type="HSlider" parent="SettingMenu"]
+offset_left = -55.0
+offset_top = -239.0
+offset_right = 336.0
+offset_bottom = -172.0
+theme = ExtResource("1_e5g8k")
+min_value = 0.0
+max_value = 1.0
+value = 0.7
+step = 0.01
+
+[node name="VolumeDisplay" type="Label" parent="SettingMenu"]
+offset_left = 350.0
+offset_top = -248.0
+offset_right = 400.0
+offset_bottom = -178.0
+theme_override_colors/font_color = Color(0.152941, 0.152941, 0.152941, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_bo06a")
+text = "70%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MasterVolumeLabel" type="Label" parent="SettingMenu"]
+offset_left = -321.0
+offset_top = -158.0
+offset_right = -88.0
+offset_bottom = -88.0
+theme_override_colors/font_color = Color(0.152941, 0.152941, 0.152941, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_bo06a")
+text = "主音量"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MasterVolumeSlider" type="HSlider" parent="SettingMenu"]
+offset_left = -55.0
+offset_top = -149.0
+offset_right = 336.0
+offset_bottom = -82.0
+theme = ExtResource("1_e5g8k")
+min_value = 0.0
+max_value = 1.0
+value = 0.7
+step = 0.01
+
+[node name="MasterVolumeDisplay" type="Label" parent="SettingMenu"]
+offset_left = 350.0
+offset_top = -158.0
+offset_right = 400.0
+offset_bottom = -88.0
+theme_override_colors/font_color = Color(0.152941, 0.152941, 0.152941, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_bo06a")
+text = "70%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MusicVolumeLabel" type="Label" parent="SettingMenu"]
+offset_left = -321.0
+offset_top = -68.0
+offset_right = -88.0
+offset_bottom = 2.0
+theme_override_colors/font_color = Color(0.152941, 0.152941, 0.152941, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_bo06a")
+text = "音乐音量"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MusicVolumeSlider" type="HSlider" parent="SettingMenu"]
+offset_left = -55.0
+offset_top = -59.0
+offset_right = 336.0
+offset_bottom = 8.0
+theme = ExtResource("1_e5g8k")
+min_value = 0.0
+max_value = 1.0
+value = 0.5
+step = 0.01
+
+[node name="MusicVolumeDisplay" type="Label" parent="SettingMenu"]
+offset_left = 350.0
+offset_top = -68.0
+offset_right = 400.0
+offset_bottom = 2.0
+theme_override_colors/font_color = Color(0.152941, 0.152941, 0.152941, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_bo06a")
+text = "50%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SFXVolumeLabel" type="Label" parent="SettingMenu"]
+offset_left = -321.0
+offset_top = 22.0
+offset_right = -88.0
+offset_bottom = 92.0
+theme_override_colors/font_color = Color(0.152941, 0.152941, 0.152941, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_bo06a")
+text = "音效音量"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SFXVolumeSlider" type="HSlider" parent="SettingMenu"]
+offset_left = -55.0
+offset_top = 31.0
+offset_right = 336.0
+offset_bottom = 98.0
+theme = ExtResource("1_e5g8k")
+min_value = 0.0
+max_value = 1.0
+value = 0.8
+step = 0.01
+
+[node name="SFXVolumeDisplay" type="Label" parent="SettingMenu"]
+offset_left = 350.0
+offset_top = 22.0
+offset_right = 400.0
+offset_bottom = 92.0
+theme_override_colors/font_color = Color(0.152941, 0.152941, 0.152941, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_bo06a")
+text = "80%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Back" type="Button" parent="SettingMenu"]
+offset_left = -128.0
+offset_top = 218.0
+offset_right = 143.0
+offset_bottom = 299.0
+theme = ExtResource("1_e5g8k")
+theme_override_font_sizes/font_size = 40
+text = "返回"

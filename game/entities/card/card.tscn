@@ -1,0 +1,61 @@
+[gd_scene format=3 uid="uid://daa3ckr3m8qe"]
+
+[ext_resource type="Script" uid="uid://ye2aempn5htw" path="res://game/entities/card/card.gd" id="1_q5obu"]
+[ext_resource type="Texture2D" uid="uid://dbgnve2v7q8mv" path="res://game/entities/card/assets/cards.png" id="2_rjlel"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8ihek"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_sgb1h"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mxjhg"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4isqi"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_s03gv"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ihek"]
+bg_color = Color(0, 0, 0, 0.2509804)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_size = 10
+
+[node name="Card" type="Button" unique_id=1200849766]
+offset_right = 500.0
+offset_bottom = 700.0
+scale = Vector2(0.3, 0.3)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_8ihek")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_sgb1h")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_mxjhg")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_4isqi")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_s03gv")
+script = ExtResource("1_q5obu")
+
+[node name="Panel" type="Panel" parent="." unique_id=1446963799]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_8ihek")
+
+[node name="BackFace" type="Sprite2D" parent="." unique_id=133512762]
+position = Vector2(250, 350)
+texture = ExtResource("2_rjlel")
+region_enabled = true
+region_rect = Rect2(500, 9100, 500, 700)
+
+[node name="FrontFace" type="Sprite2D" parent="." unique_id=422485248]
+position = Vector2(250, 350)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("2_rjlel")
+region_enabled = true
+region_rect = Rect2(0, 0, 500, 700)
+
+[connection signal="button_down" from="." to="." method="_on_button_down"]
+[connection signal="gui_input" from="." to="." method="_on_gui_input"]
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]
