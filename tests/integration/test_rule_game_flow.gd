@@ -1,0 +1,135 @@
+extends SceneTree
+
+var _next_card_id := 2000
+
+
+func _init() -> void:
+	_test_following_and_turn_resolution()
+	_test_bonus_once()
+	_test_all_pass_draws_three()
+	_test_joker_finish_penalty()
+	_test_winner_resolution()
+	print("BONUS_TEST_RULE_GAME_FLOW_OK")
+	quit()
+
+
+func _test_following_and_turn_resolution() -> void:
+	var session := _session_with_hands([
+		[6, 6, 6, 9],
+		[7, 7, 7, 3],
+		[8, 10],
+	])
+	assert(session.accept_dice_result(0, 3))
+	assert(session.play_cards(0, _first_ids(session, 0, 3)))
+	assert(session.current_player_index == 1)
+	assert(session.last_play_pattern.type == HandPattern.Type.TRIPLE)
+	assert(session.play_cards(1, _first_ids(session, 1, 3)))
+	assert(session.last_play_pattern.main_rank == 7)
+	assert(session.pass_turn(2))
+	assert(session.current_player_index == 0)
+	assert(session.pass_turn(0))
+	assert(session.phase == GameSession.Phase.AWAITING_ROLL)
+	assert(session.roller_index == 1)
+
+
+func _test_bonus_once() -> void:
+	var session := _session_with_hands([
+		[6, 6, 6, 9, 9, 12],
+		[3, 4, 10],
+		[3, 5, 11],
+	])
+	assert(session.accept_dice_result(0, 3))
+	assert(session.play_cards(0, _first_ids(session, 0, 3)))
+	assert(session.pass_turn(1))
+	assert(session.pass_turn(2))
+	assert(session.is_bonus)
+	assert(session.current_player_index == 0)
+	assert(session.last_play_pattern == null)
+
+	var pair_ids: Array[int] = [session.players[0].hand[0].card_id, session.players[0].hand[1].card_id]
+	assert(session.play_cards(0, pair_ids))
+	assert(session.last_play_pattern.type == HandPattern.Type.PAIR)
+	assert(session.pass_turn(1))
+	assert(session.pass_turn(2))
+	assert(not session.is_bonus)
+	assert(session.phase == GameSession.Phase.AWAITING_ROLL)
+	assert(session.roller_index == 0)
+
+
+func _test_all_pass_draws_three() -> void:
+	var session := _session_with_hands([
+		[3, 4],
+		[5, 6],
+		[7, 8],
+	])
+	var before := session.players[0].hand.size()
+	assert(session.accept_dice_result(0, 6))
+	assert(session.pass_turn(0))
+	assert(session.pass_turn(1))
+	assert(session.pass_turn(2))
+	assert(session.players[0].hand.size() == before + 3)
+	assert(session.phase == GameSession.Phase.AWAITING_ROLL)
+	assert(session.roller_index == 1)
+
+
+func _test_joker_finish_penalty() -> void:
+	var session := _session_with_hands([
+		[],
+		[5],
+		[6],
+	])
+	session.players[0].hand.append(_joker())
+	assert(session.accept_dice_result(0, 1))
+	assert(session.play_cards(0, [session.players[0].hand[0].card_id]))
+	assert(session.phase != GameSession.Phase.FINISHED)
+	assert(session.players[0].hand.size() == 2)
+
+
+func _test_winner_resolution() -> void:
+	var session := _session_with_hands([
+		[3],
+		[5],
+		[6],
+	])
+	assert(session.accept_dice_result(0, 1))
+	assert(session.play_cards(0, [session.players[0].hand[0].card_id]))
+	assert(session.phase == GameSession.Phase.FINISHED)
+	assert(session.winner_index == 0)
+
+
+func _session_with_hands(rank_groups: Array) -> GameSession:
+	var session := GameSession.new()
+	var names: Array[String] = ["南家", "北家", "西家"]
+	assert(session.start_game(names, 12345))
+	for player_index in range(rank_groups.size()):
+		session.players[player_index].hand = _cards(rank_groups[player_index])
+	return session
+
+
+func _first_ids(session: GameSession, player_index: int, count: int) -> Array[int]:
+	var ids: Array[int] = []
+	for index in range(count):
+		ids.append(session.players[player_index].hand[index].card_id)
+	return ids
+
+
+func _cards(ranks: Array) -> Array[CardData]:
+	var cards: Array[CardData] = []
+	for rank in ranks:
+		cards.append(CardData.new(_take_id(), rank, CardData.Suit.CLUBS))
+	return cards
+
+
+func _joker() -> CardData:
+	return CardData.new(
+		_take_id(),
+		0,
+		CardData.Suit.NONE,
+		CardData.JokerKind.SMALL,
+	)
+
+
+func _take_id() -> int:
+	var result := _next_card_id
+	_next_card_id += 1
+	return result
