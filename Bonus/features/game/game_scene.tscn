@@ -1,0 +1,808 @@
+[gd_scene format=3 uid="uid://d171c8aamwqip"]
+
+[ext_resource type="Script" uid="uid://ccto6bfnv47li" path="res://features/game/game_scene.gd" id="1_game"]
+[ext_resource type="Script" uid="uid://dw6o55qf0ftht" path="res://features/game/presentation/hand_view.gd" id="2_hand"]
+[ext_resource type="Texture2D" uid="uid://bx0lmpsiqlanv" path="res://assets/art/cards/card_back_blue.png" id="3_back"]
+[ext_resource type="Texture2D" uid="uid://dhgiexcj863h4" path="res://assets/art/dice/die_white_1.png" id="4_die"]
+[ext_resource type="PackedScene" path="res://shared/ui/settings_panel.tscn" id="5_settings"]
+[ext_resource type="Script" path="res://features/game/presentation/turn_indicator.gd" id="6_indicator"]
+
+[sub_resource type="Theme" id="Theme_main"]
+default_font_size = 16
+
+[sub_resource type="StyleBoxFlat" id="Style_header"]
+content_margin_left = 18.0
+content_margin_top = 7.0
+content_margin_right = 12.0
+content_margin_bottom = 7.0
+bg_color = Color(0.035, 0.055, 0.058, 0.97)
+border_width_bottom = 1
+border_color = Color(0.28, 0.42, 0.38, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="SystemFont" id="Font_bold"]
+font_names = PackedStringArray("Microsoft YaHei UI", "Noto Sans CJK SC", "Arial")
+font_weight = 700
+
+[sub_resource type="StyleBoxFlat" id="Style_button_neutral"]
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+bg_color = Color(0.18, 0.24, 0.24, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="Style_button_neutral_hover"]
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+bg_color = Color(0.28, 0.37, 0.35, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="Style_seat"]
+content_margin_left = 11.0
+content_margin_top = 6.0
+content_margin_right = 11.0
+content_margin_bottom = 6.0
+bg_color = Color(0.055, 0.102, 0.099, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25, 0.4, 0.36, 0.75)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="Style_table_panel"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.025, 0.07, 0.068, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.46, 0.41, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="Style_button_disabled"]
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+bg_color = Color(0.11, 0.14, 0.14, 0.7)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="Style_button_pass"]
+content_margin_left = 20.0
+content_margin_top = 8.0
+content_margin_right = 20.0
+content_margin_bottom = 8.0
+bg_color = Color(0.62, 0.22, 0.23, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="Style_button_play"]
+content_margin_left = 24.0
+content_margin_top = 8.0
+content_margin_right = 24.0
+content_margin_bottom = 8.0
+bg_color = Color(0.12, 0.48, 0.7, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="Style_button_play_hover"]
+content_margin_left = 24.0
+content_margin_top = 8.0
+content_margin_right = 24.0
+content_margin_bottom = 8.0
+bg_color = Color(0.18, 0.61, 0.84, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="Style_hand"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.027, 0.052, 0.055, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25, 0.4, 0.36, 0.85)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="Style_popup"]
+content_margin_left = 20.0
+content_margin_top = 18.0
+content_margin_right = 20.0
+content_margin_bottom = 18.0
+bg_color = Color(0.045, 0.065, 0.068, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.85, 0.65, 0.22, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="Style_result"]
+content_margin_left = 36.0
+content_margin_top = 28.0
+content_margin_right = 36.0
+content_margin_bottom = 28.0
+bg_color = Color(0.04, 0.06, 0.065, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.95, 0.72, 0.23, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="Shader" id="Shader_bonus"]
+code = "shader_type canvas_item;\n\nvoid fragment() {\n\tvec2 uv = UV;\n\tfloat wave = sin((uv.x * 7.0 + uv.y * 3.0) + TIME * 1.8);\n\tvec3 color = 0.55 + 0.45 * cos(TIME * 1.2 + uv.xyx * vec3(5.0, 7.0, 9.0) + vec3(0.0, 2.1, 4.2));\n\tfloat pulse = 0.24 + 0.07 * wave;\n\tCOLOR = vec4(color, pulse);\n}\n"
+
+[sub_resource type="ShaderMaterial" id="Material_bonus"]
+shader = SubResource("Shader_bonus")
+
+[node name="GameScene" type="Control" unique_id=1803065421]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_main")
+script = ExtResource("1_game")
+
+[node name="Background" type="ColorRect" parent="." unique_id=791974369]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.055, 0.23, 0.18, 1)
+
+[node name="FeltInset" type="Panel" parent="." unique_id=1848395513]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SafeArea" type="MarginContainer" parent="." unique_id=1702574281]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 12
+
+[node name="MainLayout" type="VBoxContainer" parent="SafeArea" unique_id=904020890]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="PanelContainer" parent="SafeArea/MainLayout" unique_id=290799319]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_styles/panel = SubResource("Style_header")
+
+[node name="HeaderRow" type="HBoxContainer" parent="SafeArea/MainLayout/Header" unique_id=1051263841]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="SafeArea/MainLayout/Header/HeaderRow" unique_id=934492499]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.76, 0.26, 1)
+theme_override_fonts/font = SubResource("Font_bold")
+theme_override_font_sizes/font_size = 25
+text = "BONUS"
+vertical_alignment = 1
+
+[node name="HeaderSpacer" type="Control" parent="SafeArea/MainLayout/Header/HeaderRow" unique_id=885260335]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SettingsButton" type="Button" parent="SafeArea/MainLayout/Header/HeaderRow" unique_id=733284581]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(92, 36)
+layout_mode = 2
+theme_override_styles/normal = SubResource("Style_button_neutral")
+theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
+theme_override_styles/hover = SubResource("Style_button_neutral_hover")
+text = "UI_SETTINGS"
+
+[node name="MainArea" type="Control" parent="SafeArea/MainLayout" unique_id=248286084]
+custom_minimum_size = Vector2(0, 246)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StatusLabel" type="Label" parent="SafeArea/MainLayout/MainArea" unique_id=287555094]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -460.0
+offset_top = -216.0
+offset_right = 460.0
+offset_bottom = -182.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.035, 0.035, 0.9)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = SubResource("Font_bold")
+theme_override_font_sizes/font_size = 18
+text = "STATUS_CLICK_DICE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WestSeat" type="PanelContainer" parent="SafeArea/MainLayout/MainArea" unique_id=366501571]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -530.0
+offset_top = 35.0
+offset_right = -300.0
+offset_bottom = 118.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("Style_seat")
+
+[node name="Layout" type="VBoxContainer" parent="SafeArea/MainLayout/MainArea/WestSeat" unique_id=365227920]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Info" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/WestSeat/Layout" unique_id=222201165]
+layout_mode = 2
+
+[node name="WestName" type="Label" parent="SafeArea/MainLayout/MainArea/WestSeat/Layout/Info" unique_id=1420627812]
+unique_name_in_owner = true
+layout_mode = 2
+text = "SEAT_WEST"
+
+[node name="Spacer" type="Control" parent="SafeArea/MainLayout/MainArea/WestSeat/Layout/Info" unique_id=626160565]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="WestCount" type="Label" parent="SafeArea/MainLayout/MainArea/WestSeat/Layout/Info" unique_id=2061866330]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.77, 0.28, 1)
+text = "0"
+
+[node name="WestCards" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/WestSeat/Layout" unique_id=917843485]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = -27
+
+[node name="NorthSeat" type="PanelContainer" parent="SafeArea/MainLayout/MainArea" unique_id=1526397921]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -115.0
+offset_top = 26.0
+offset_right = 115.0
+offset_bottom = 109.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("Style_seat")
+
+[node name="Layout" type="VBoxContainer" parent="SafeArea/MainLayout/MainArea/NorthSeat" unique_id=1304296688]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Info" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/NorthSeat/Layout" unique_id=1471725216]
+layout_mode = 2
+
+[node name="NorthName" type="Label" parent="SafeArea/MainLayout/MainArea/NorthSeat/Layout/Info" unique_id=1778206957]
+unique_name_in_owner = true
+layout_mode = 2
+text = "SEAT_NORTH"
+
+[node name="Spacer" type="Control" parent="SafeArea/MainLayout/MainArea/NorthSeat/Layout/Info" unique_id=126067081]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NorthCount" type="Label" parent="SafeArea/MainLayout/MainArea/NorthSeat/Layout/Info" unique_id=1138314817]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.77, 0.28, 1)
+text = "0"
+
+[node name="NorthCards" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/NorthSeat/Layout" unique_id=485044970]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = -27
+
+[node name="EastSeat" type="PanelContainer" parent="SafeArea/MainLayout/MainArea" unique_id=202433536]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 300.0
+offset_top = 35.0
+offset_right = 530.0
+offset_bottom = 118.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("Style_seat")
+
+[node name="Layout" type="VBoxContainer" parent="SafeArea/MainLayout/MainArea/EastSeat" unique_id=1853729828]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Info" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/EastSeat/Layout" unique_id=1595197036]
+layout_mode = 2
+
+[node name="EastName" type="Label" parent="SafeArea/MainLayout/MainArea/EastSeat/Layout/Info" unique_id=716925797]
+unique_name_in_owner = true
+layout_mode = 2
+text = "SEAT_EAST"
+
+[node name="Spacer" type="Control" parent="SafeArea/MainLayout/MainArea/EastSeat/Layout/Info" unique_id=1844569089]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EastCount" type="Label" parent="SafeArea/MainLayout/MainArea/EastSeat/Layout/Info" unique_id=701858228]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.77, 0.28, 1)
+text = "0"
+
+[node name="EastCards" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/EastSeat/Layout" unique_id=1625617351]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = -27
+
+[node name="TableRow" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea" unique_id=2014010810]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -390.0
+offset_top = -176.0
+offset_right = 390.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="RollPanel" type="PanelContainer" parent="SafeArea/MainLayout/MainArea/TableRow" unique_id=340366952]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 156)
+layout_mode = 2
+theme_override_styles/panel = SubResource("Style_table_panel")
+
+[node name="RollLayout" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel" unique_id=924635401]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="DrawGroup" type="VBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout" unique_id=543278086]
+layout_mode = 2
+theme_override_constants/separation = 1
+alignment = 1
+
+[node name="DrawPile" type="TextureRect" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DrawGroup" unique_id=1246680439]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 102)
+layout_mode = 2
+texture = ExtResource("3_back")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DeckCountLabel" type="Label" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DrawGroup" unique_id=1010024140]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.73, 0.83, 0.79, 1)
+theme_override_font_sizes/font_size = 14
+text = "UI_DRAW_REMAINING"
+horizontal_alignment = 1
+
+[node name="DiceGroup" type="VBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout" unique_id=602253088]
+layout_mode = 2
+theme_override_constants/separation = 1
+alignment = 1
+
+[node name="DiceArea" type="Control" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DiceGroup" unique_id=1083162428]
+custom_minimum_size = Vector2(96, 104)
+layout_mode = 2
+
+[node name="DiceButton" type="TextureButton" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DiceGroup/DiceArea" unique_id=17105313]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -44.0
+offset_top = -44.0
+offset_right = 44.0
+offset_bottom = 44.0
+grow_horizontal = 2
+grow_vertical = 2
+texture_normal = ExtResource("4_die")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="DiceValue" type="Label" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DiceGroup" unique_id=46426416]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.77, 0.28, 1)
+theme_override_font_sizes/font_size = 14
+text = "UI_DICE_WAIT"
+horizontal_alignment = 1
+
+[node name="PlayedPanel" type="PanelContainer" parent="SafeArea/MainLayout/MainArea/TableRow" unique_id=413718912]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(488, 156)
+layout_mode = 2
+theme_override_styles/panel = SubResource("Style_table_panel")
+
+[node name="PlayedLayout" type="VBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/PlayedPanel" unique_id=154818461]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="PlayedCardsCenter" type="CenterContainer" parent="SafeArea/MainLayout/MainArea/TableRow/PlayedPanel/PlayedLayout" unique_id=1028007480]
+custom_minimum_size = Vector2(464, 112)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PlayedCards" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/PlayedPanel/PlayedLayout/PlayedCardsCenter" unique_id=1891483472]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = -13
+alignment = 1
+
+[node name="PlayedCaption" type="Label" parent="SafeArea/MainLayout/MainArea/TableRow/PlayedPanel/PlayedLayout" unique_id=2117103078]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.73, 0.83, 0.79, 1)
+theme_override_font_sizes/font_size = 14
+text = "UI_PLAY_AREA_EMPTY"
+horizontal_alignment = 1
+
+[node name="ActionSlot" type="Control" parent="SafeArea/MainLayout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+clip_contents = true
+
+[node name="SelectionTypeLabel" type="Label" parent="SafeArea/MainLayout/ActionSlot"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 25.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.82, 0.9, 0.87, 1)
+theme_override_font_sizes/font_size = 19
+text = "UI_HAND_TYPE_NONE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ActionBar" type="HBoxContainer" parent="SafeArea/MainLayout/ActionSlot" unique_id=1580133174]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 29.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="HintButton" type="Button" parent="SafeArea/MainLayout/ActionSlot/ActionBar" unique_id=242518060]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(104, 40)
+layout_mode = 2
+theme_override_styles/normal = SubResource("Style_button_neutral")
+theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
+theme_override_styles/hover = SubResource("Style_button_neutral_hover")
+theme_override_styles/disabled = SubResource("Style_button_disabled")
+text = "UI_RECOMMEND"
+
+[node name="PassButton" type="Button" parent="SafeArea/MainLayout/ActionSlot/ActionBar" unique_id=1877184807]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(104, 40)
+layout_mode = 2
+theme_override_styles/normal = SubResource("Style_button_pass")
+theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
+theme_override_styles/hover = SubResource("Style_button_neutral_hover")
+theme_override_styles/disabled = SubResource("Style_button_disabled")
+text = "UI_PASS"
+
+[node name="PlayButton" type="Button" parent="SafeArea/MainLayout/ActionSlot/ActionBar" unique_id=103060594]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(126, 40)
+layout_mode = 2
+theme_override_styles/normal = SubResource("Style_button_play")
+theme_override_styles/pressed = SubResource("Style_button_play_hover")
+theme_override_styles/hover = SubResource("Style_button_play_hover")
+theme_override_styles/disabled = SubResource("Style_button_disabled")
+text = "UI_PLAY"
+
+[node name="HandPanel" type="PanelContainer" parent="SafeArea/MainLayout" unique_id=1863387464]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 196)
+layout_mode = 2
+clip_contents = true
+theme_override_styles/panel = SubResource("Style_hand")
+
+[node name="BonusEffect" type="ColorRect" parent="SafeArea/MainLayout/HandPanel"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+material = SubResource("Material_bonus")
+color = Color(1, 1, 1, 1)
+
+[node name="ContentMargin" type="MarginContainer" parent="SafeArea/MainLayout/HandPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 7
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 4
+
+[node name="HandLayout" type="VBoxContainer" parent="SafeArea/MainLayout/HandPanel/ContentMargin" unique_id=1499698177]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="HandHeader" type="HBoxContainer" parent="SafeArea/MainLayout/HandPanel/ContentMargin/HandLayout" unique_id=1806985195]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+
+[node name="HandTitle" type="Label" parent="SafeArea/MainLayout/HandPanel/ContentMargin/HandLayout/HandHeader" unique_id=2066087203]
+unique_name_in_owner = true
+layout_mode = 2
+text = "UI_HAND_TITLE"
+
+[node name="HandHeaderSpacer" type="Control" parent="SafeArea/MainLayout/HandPanel/ContentMargin/HandLayout/HandHeader" unique_id=1176748300]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SelectedLabel" type="Label" parent="SafeArea/MainLayout/HandPanel/ContentMargin/HandLayout/HandHeader" unique_id=176989901]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.77, 0.28, 1)
+text = "UI_SELECTED_COUNT"
+
+[node name="HandView" type="Control" parent="SafeArea/MainLayout/HandPanel/ContentMargin/HandLayout" unique_id=1567631601]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 146)
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("2_hand")
+
+[node name="TurnIndicator" type="Control" parent="."]
+unique_name_in_owner = true
+z_index = 32
+layout_mode = 0
+offset_right = 48.0
+offset_bottom = 48.0
+mouse_filter = 2
+script = ExtResource("6_indicator")
+
+[node name="SettingsOverlay" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+z_index = 60
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="SettingsOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.12, 0.13, 0.13, 0.78)
+
+[node name="SettingsDismissButton" type="Button" parent="SettingsOverlay"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+flat = true
+
+[node name="Center" type="CenterContainer" parent="SettingsOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="SettingsPanel" parent="SettingsOverlay/Center" instance=ExtResource("5_settings")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(500, 640)
+layout_mode = 2
+
+[node name="InterpretationPopup" type="PopupPanel" parent="."]
+unique_name_in_owner = true
+size = Vector2i(440, 350)
+
+[node name="Panel" type="PanelContainer" parent="InterpretationPopup"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("Style_popup")
+
+[node name="Layout" type="VBoxContainer" parent="InterpretationPopup/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="InterpretationPopup/Panel/Layout"]
+layout_mode = 2
+theme_override_fonts/font = SubResource("Font_bold")
+theme_override_font_sizes/font_size = 21
+text = "UI_CHOOSE_INTERPRETATION"
+
+[node name="Hint" type="Label" parent="InterpretationPopup/Panel/Layout"]
+custom_minimum_size = Vector2(392, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.8, 0.78, 1)
+text = "UI_CHOOSE_INTERPRETATION_HINT"
+autowrap_mode = 2
+
+[node name="InterpretationOptions" type="VBoxContainer" parent="InterpretationPopup/Panel/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ResultOverlay" type="Control" parent="." unique_id=1297892362]
+unique_name_in_owner = true
+visible = false
+z_index = 50
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="ResultOverlay" unique_id=1121472663]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.01, 0.02, 0.022, 0.8)
+
+[node name="Center" type="CenterContainer" parent="ResultOverlay" unique_id=439615258]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ResultPanel" type="PanelContainer" parent="ResultOverlay/Center" unique_id=1676189726]
+custom_minimum_size = Vector2(360, 210)
+layout_mode = 2
+theme_override_styles/panel = SubResource("Style_result")
+
+[node name="ResultLayout" type="VBoxContainer" parent="ResultOverlay/Center/ResultPanel" unique_id=1179830948]
+layout_mode = 2
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="ResultCaption" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout" unique_id=857798699]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.77, 0.28, 1)
+theme_override_font_sizes/font_size = 13
+text = "UI_GAME_OVER"
+horizontal_alignment = 1
+
+[node name="WinnerLabel" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout" unique_id=1956149994]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.97, 0.96, 1)
+theme_override_fonts/font = SubResource("Font_bold")
+theme_override_font_sizes/font_size = 30
+text = "STATUS_WINNER"
+horizontal_alignment = 1
+
+[node name="ResultButtons" type="HBoxContainer" parent="ResultOverlay/Center/ResultPanel/ResultLayout"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RestartButton" type="Button" parent="ResultOverlay/Center/ResultPanel/ResultLayout/ResultButtons" unique_id=1644253621]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("Style_button_play")
+theme_override_styles/pressed = SubResource("Style_button_play_hover")
+theme_override_styles/hover = SubResource("Style_button_play_hover")
+text = "UI_RESTART"
+
+[node name="ResultMenuButton" type="Button" parent="ResultOverlay/Center/ResultPanel/ResultLayout/ResultButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("Style_button_neutral")
+theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
+theme_override_styles/hover = SubResource("Style_button_neutral_hover")
+text = "UI_BACK_TO_MENU"

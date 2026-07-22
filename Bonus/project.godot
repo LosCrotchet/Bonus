@@ -11,13 +11,26 @@ config_version=5
 [application]
 
 config/name="Bonus"
+config/version="0.5.1"
+run/main_scene="res://app/app.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
+[autoload]
+
+SettingsService="*res://autoload/settings_service.gd"
+
 [display]
 
+window/size/viewport_width=1280
+window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://localization/strings.en.translation", "res://localization/strings.zh_CN.translation")
+locale/fallback="zh_CN"
 
 [physics]
 

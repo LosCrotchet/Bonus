@@ -1,0 +1,125 @@
+keys,zh_CN,en
+UI_SETTINGS,设置,Settings
+UI_GAME_SETTINGS,牌局设置,Game Settings
+UI_PLAYER_COUNT,玩家数量,Players
+UI_PLAYER_COUNT_OPTION,{count} 人,{count} players
+UI_GAME_SPEED,游戏速度,Game Speed
+UI_SPEED_SLOW,慢,Slow
+UI_SPEED_MEDIUM,中,Medium
+UI_SPEED_FAST,快,Fast
+UI_RESOLUTION,分辨率,Resolution
+UI_WINDOW_MODE,显示模式,Display Mode
+UI_WINDOWED,窗口,Windowed
+UI_FULLSCREEN,全屏,Fullscreen
+UI_LANGUAGE,语言,Language
+UI_LANGUAGE_ZH_CN,简体中文,Simplified Chinese
+UI_LANGUAGE_EN,English,English
+UI_SHOW_STATUS_TEXT,显示提示文本,Show Status Text
+UI_AUTO_PASS,自动跳过,Auto Pass
+UI_DOUBLE_CLICK_ACTIONS,双击过牌与出牌,Double-click to Pass or Play
+UI_APPLY,应用,Apply
+UI_CANCEL,取消,Cancel
+UI_EXIT_TO_MENU,退出到主界面,Exit to Main Menu
+UI_CONFIRM_EXIT_MENU,确定返回主界面？,Return to main menu?
+UI_CONFIRM_EXIT_GAME,确定退出游戏？,Exit the game?
+UI_YES,是,Yes
+UI_NO,否,No
+UI_NEW_GAME,新牌局,New Game
+UI_EXIT_GAME,退出游戏,Exit Game
+UI_SINGLE_PLAYER,单人游戏,Single Player
+UI_MULTIPLAYER,多人游戏,Multiplayer
+UI_START_GAME,开始游戏,Start Game
+UI_BACK,返回,Back
+UI_BACK_TO_MENU,回到主菜单,Back to Main Menu
+RULE_INCLUDE_JOKERS,牌堆包括大小王,Include Jokers
+RULE_JOKERS_WILD,大小王可作万能牌,Jokers Are Wild
+RULE_SEQUENCE_WITH_TWO,顺子可以带 2,Straights Include 2
+RULE_VARIABLE_DRAW,未出牌时摸 7-x 张,Draw 7-x After All Pass
+UI_RECOMMEND,推荐,Hint
+UI_PASS,不出,Pass
+UI_PLAY,出牌,Play
+UI_RESTART,再来一把！,Play Again!
+UI_GAME_OVER,牌局结束,Game Over
+UI_DRAW_REMAINING,剩余 {count} 张,{count} remaining
+UI_DICE_CLICK,点击任意位置掷骰,Click anywhere to roll
+UI_DICE_WAIT,等待掷骰,Waiting
+UI_DICE_VALUE,{value} 点,{value}
+UI_DICE_ANY,任意点数,Any value
+UI_PLAY_AREA_EMPTY,出牌区 · 暂无出牌,Play Area · Empty
+UI_PLAY_AREA_PLAYED,出牌区 · {player}打出{hand_type},Play Area · {player} played {hand_type}
+UI_HAND_TITLE,南家（你） · {count} 张,South (You) · {count} cards
+UI_SELECTED_COUNT,已选 {count} 张,{count} selected
+UI_SELECTED_TARGET,已选 {count} / {target},{count} / {target} selected
+UI_SELECTED_BONUS,已选 {count} 张 · BONUS,{count} selected · BONUS
+UI_HAND_TYPE_NONE,牌型：尚未选牌,Hand: No cards selected
+UI_HAND_TYPE_INVALID,牌型：无效,Hand: Invalid
+UI_HAND_TYPE_SINGLE,牌型：{hand_type},Hand: {hand_type}
+UI_HAND_TYPE_MULTIPLE,可解读为：{hand_types},Possible: {hand_types}
+UI_CHOOSE_INTERPRETATION,选择牌型解读,Choose Interpretation
+UI_CHOOSE_INTERPRETATION_HINT,这组牌有多种合法解读，请指定本次出牌采用的牌型。,This play has several valid interpretations. Choose one.
+UI_INTERPRETATION_OPTION,{hand_type} · 主体 {rank},{hand_type} · Main rank {rank}
+UI_PASS_FEEDBACK,PASS,PASS
+UI_BONUS_FEEDBACK,BONUS!,BONUS!
+STATUS_CLICK_DICE,轮到南家，点击画面开始回合,South's turn. Click the screen to start.
+STATUS_PREPARING_ROLL,{player}准备掷骰,{player} is preparing to roll
+STATUS_ROLLING,{player}正在掷骰…,{player} is rolling...
+STATUS_WINNER,{player}获胜,{player} wins
+STATUS_BONUS,{player}获得 BONUS，必须打出至少一张合法牌,{player} has BONUS and must play at least one legal card
+STATUS_MUST_COVER,{player}需要盖过{hand_type}，或选择不出,{player} must beat {hand_type} or pass
+STATUS_MUST_PLAY,{player}需要打出 {count} 张合法牌，或选择不出,{player} must play {count} legal cards or pass
+STATUS_NO_LEGAL_PLAY,当前没有可出的合法牌，请选择不出,No legal play is available. Choose Pass.
+ERROR_PLAYER_COUNT,玩家人数必须为 2 至 4 人,Player count must be between 2 and 4
+ERROR_CANNOT_ROLL,当前阶段不能掷骰子,The die cannot be rolled now
+ERROR_DICE_RANGE,骰子点数必须为 1 至 6,Die value must be between 1 and 6
+ERROR_CANNOT_PLAY,当前阶段不能出牌,Cards cannot be played now
+ERROR_SELECT_CARDS,请先选择要出的牌,Select cards first
+ERROR_CARDS_NOT_IN_HAND,选中的牌不在当前手牌中,The selected cards are not in this hand
+ERROR_CARD_COUNT,出牌数量必须等于骰子点数,The card count must match the die
+ERROR_INVALID_HAND,所选牌不能组成合法牌型,The selected cards do not form a legal hand
+ERROR_CANNOT_COVER,所选牌型不能盖过当前出牌,The selected hand cannot beat the current play
+ERROR_INVALID_INTERPRETATION,所选牌型解读无效,The selected interpretation is invalid
+ERROR_CANNOT_PASS,当前阶段不能选择不出,Pass is not available now
+ERROR_BONUS_MUST_PLAY,BONUS 阶段必须打出至少一张牌,At least one card must be played during BONUS
+ERROR_GAME_FINISHED,游戏已经结束,The game is already over
+ERROR_PLAYER_NOT_FOUND,玩家不存在,Player does not exist
+ERROR_NOT_PLAYER_TURN,还没有轮到该玩家,It is not this player's turn
+EVENT_GAME_STARTED,牌局开始，南家先手,Game started. South goes first.
+EVENT_ROLLED,{player} 掷出了 {value} 点,{player} rolled {value}
+EVENT_PLAYED,{player} 打出{hand_type},{player} played {hand_type}
+EVENT_JOKER_PENALTY,{player} 最后一手含万能牌，摸了 {count} 张,{player}'s final play used a joker and draws {count}
+EVENT_PASSED,{player} 选择不出,{player} passed
+EVENT_ALL_PASSED,本回合无人出牌，{player} 摸了 {count} 张,No one played. {player} draws {count}
+EVENT_NEXT_ROLLER,{player} 获得下一次掷骰,{player} rolls next
+EVENT_BONUS,{player} 获得 BONUS，可打出任意合法牌型,{player} receives BONUS
+EVENT_WINNER,{player} 打完了全部手牌,{player} played all cards
+HAND_SINGLE,单张,Single
+HAND_PAIR,对子,Pair
+HAND_TRIPLE,三条,Triple
+HAND_STRAIGHT_3,三张顺子,3-card Straight
+HAND_STRAIGHT_4,四张顺子,4-card Straight
+HAND_STRAIGHT_5,五张顺子,5-card Straight
+HAND_STRAIGHT_6,六张顺子,6-card Straight
+HAND_FOUR_KIND,四条,Four of a Kind
+HAND_TRIPLE_WITH_ONE,三带一,Triple with One
+HAND_PAIR_STRAIGHT_2,二连对,Two Consecutive Pairs
+HAND_FIVE_KIND,五条,Five of a Kind
+HAND_TRIPLE_WITH_PAIR,三带二,Triple with Pair
+HAND_FOUR_WITH_ONE,四带一,Four with One
+HAND_SIX_KIND,六条,Six of a Kind
+HAND_FIVE_WITH_ONE,五带一,Five with One
+HAND_FOUR_WITH_TWO,四带二,Four with Two
+HAND_TRIPLE_WITH_TRIPLE,三带三,Triple with Triple
+HAND_PAIR_STRAIGHT_3,三连对,Three Consecutive Pairs
+HAND_UNKNOWN,未知牌型,Unknown Hand
+SEAT_SOUTH,南家,South
+SEAT_NORTH,北家,North
+SEAT_WEST,西家,West
+SEAT_EAST,东家,East
+CARD_JOKER_SMALL,小王,Black Joker
+CARD_JOKER_BIG,大王,Red Joker
+CARD_SUIT_CLUBS,梅花,Clubs
+CARD_SUIT_DIAMONDS,方块,Diamonds
+CARD_SUIT_HEARTS,红心,Hearts
+CARD_SUIT_SPADES,黑桃,Spades
+AI_STRATEGY_BASE,基础策略,Base Strategy
+AI_STRATEGY_DEFAULT,默认策略,Default Strategy
