@@ -16,6 +16,7 @@ var roller_index: int
 var last_player_index: int
 var target_pattern: HandPattern
 var visible_table_cards: Array[CardData] = []
+var rules: GameRules
 
 
 func get_player_summary(index: int) -> Dictionary:

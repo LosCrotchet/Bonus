@@ -8,7 +8,9 @@ func _init() -> void:
 	_test_bonus_once()
 	_test_explicit_wildcard_interpretation()
 	_test_all_pass_draws_three()
+	_test_variable_pass_draw_count()
 	_test_joker_finish_penalty()
+	_test_natural_joker_finish()
 	_test_winner_resolution()
 	print("BONUS_TEST_RULE_GAME_FLOW_OK")
 	quit()
@@ -97,17 +99,48 @@ func _test_all_pass_draws_three() -> void:
 	assert(session.current_player_index == session.roller_index)
 
 
+func _test_variable_pass_draw_count() -> void:
+	var rules := GameRules.new()
+	rules.draw_count_uses_dice = true
+	var session := _session_with_hands([
+		[3],
+		[4],
+		[5],
+	], rules)
+	var before := session.players[0].hand.size()
+	assert(session.accept_dice_result(0, 1))
+	assert(session.pass_turn(0))
+	assert(session.pass_turn(1))
+	assert(session.pass_turn(2))
+	assert(session.players[0].hand.size() == before + 6)
+
+
 func _test_joker_finish_penalty() -> void:
+	var session := _session_with_hands([
+		[5],
+		[5],
+		[6],
+	])
+	session.players[0].hand.append(_joker())
+	assert(session.accept_dice_result(0, 2))
+	assert(session.play_cards(0, _first_ids(session, 0, 2)))
+	assert(session.phase != GameSession.Phase.FINISHED)
+	assert(session.players[0].hand.size() == 2)
+	assert(session.last_play_pattern.uses_wildcard)
+
+
+func _test_natural_joker_finish() -> void:
 	var session := _session_with_hands([
 		[],
 		[5],
 		[6],
 	])
-	session.players[0].hand.append(_joker())
+	session.players[0].hand.append(_joker(CardData.JokerKind.BIG))
 	assert(session.accept_dice_result(0, 1))
 	assert(session.play_cards(0, [session.players[0].hand[0].card_id]))
-	assert(session.phase != GameSession.Phase.FINISHED)
-	assert(session.players[0].hand.size() == 2)
+	assert(session.phase == GameSession.Phase.FINISHED)
+	assert(session.winner_index == 0)
+	assert(not session.last_play_pattern.uses_wildcard)
 
 
 func _test_winner_resolution() -> void:
@@ -122,10 +155,13 @@ func _test_winner_resolution() -> void:
 	assert(session.winner_index == 0)
 
 
-func _session_with_hands(rank_groups: Array) -> GameSession:
+func _session_with_hands(
+	rank_groups: Array,
+	rules: GameRules = null,
+) -> GameSession:
 	var session := GameSession.new()
 	var names: Array[String] = ["南家", "北家", "西家"]
-	assert(session.start_game(names, 12345))
+	assert(session.start_game(names, 12345, rules))
 	for player_index in range(rank_groups.size()):
 		session.players[player_index].hand = _cards(rank_groups[player_index])
 	return session
@@ -145,12 +181,12 @@ func _cards(ranks: Array) -> Array[CardData]:
 	return cards
 
 
-func _joker() -> CardData:
+func _joker(kind: CardData.JokerKind = CardData.JokerKind.SMALL) -> CardData:
 	return CardData.new(
 		_take_id(),
 		0,
 		CardData.Suit.NONE,
-		CardData.JokerKind.SMALL,
+		kind,
 	)
 
 

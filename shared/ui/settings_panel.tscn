@@ -1,0 +1,199 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://shared/ui/settings_panel.gd" id="1_settings"]
+
+[sub_resource type="StyleBoxFlat" id="Style_panel"]
+bg_color = Color(0.105, 0.13, 0.13, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.29, 0.38, 0.36, 1)
+content_margin_left = 24.0
+content_margin_top = 22.0
+content_margin_right = 24.0
+content_margin_bottom = 22.0
+shadow_color = Color(0, 0, 0, 0.42)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="Style_primary"]
+bg_color = Color(0.86, 0.59, 0.18, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+content_margin_left = 16.0
+content_margin_right = 16.0
+
+[node name="SettingsPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(480, 620)
+theme_override_styles/panel = SubResource("Style_panel")
+script = ExtResource("1_settings")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.97, 0.96, 1)
+theme_override_font_sizes/font_size = 24
+text = "UI_GAME_SETTINGS"
+
+[node name="Divider" type="HSeparator" parent="Layout"]
+layout_mode = 2
+
+[node name="GameSpeedRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Layout/GameSpeedRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_GAME_SPEED"
+[node name="GameSpeedOption" type="OptionButton" parent="Layout/GameSpeedRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 38)
+layout_mode = 2
+
+[node name="ResolutionRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Layout/ResolutionRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_RESOLUTION"
+[node name="ResolutionOption" type="OptionButton" parent="Layout/ResolutionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 38)
+layout_mode = 2
+
+[node name="WindowModeRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Layout/WindowModeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_WINDOW_MODE"
+[node name="WindowModeOption" type="OptionButton" parent="Layout/WindowModeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 38)
+layout_mode = 2
+
+[node name="LanguageRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Layout/LanguageRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_LANGUAGE"
+[node name="LanguageOption" type="OptionButton" parent="Layout/LanguageRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 38)
+layout_mode = 2
+
+[node name="StatusTextRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Layout/StatusTextRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_SHOW_STATUS_TEXT"
+[node name="StatusTextToggle" type="CheckButton" parent="Layout/StatusTextRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="AutoPassRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Layout/AutoPassRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_AUTO_PASS"
+[node name="AutoPassToggle" type="CheckButton" parent="Layout/AutoPassRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="AutoSortRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Layout/AutoSortRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_AUTO_SORT_HAND"
+[node name="AutoSortToggle" type="CheckButton" parent="Layout/AutoSortRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Spacer" type="Control" parent="Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="NavigationActions" type="VBoxContainer" parent="Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ExitMenuButton" type="Button" parent="Layout/NavigationActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "UI_EXIT_TO_MENU"
+
+[node name="ExitMenuConfirmation" type="HBoxContainer" parent="Layout/NavigationActions"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+[node name="Prompt" type="Label" parent="Layout/NavigationActions/ExitMenuConfirmation"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_CONFIRM_EXIT_MENU"
+[node name="ExitMenuYes" type="Button" parent="Layout/NavigationActions/ExitMenuConfirmation"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(74, 40)
+layout_mode = 2
+text = "UI_YES"
+[node name="ExitMenuNo" type="Button" parent="Layout/NavigationActions/ExitMenuConfirmation"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(74, 40)
+layout_mode = 2
+text = "UI_NO"
+
+[node name="ExitGameButton" type="Button" parent="Layout/NavigationActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "UI_EXIT_GAME"
+
+[node name="ExitGameConfirmation" type="HBoxContainer" parent="Layout/NavigationActions"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+[node name="Prompt" type="Label" parent="Layout/NavigationActions/ExitGameConfirmation"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_CONFIRM_EXIT_GAME"
+[node name="ExitGameYes" type="Button" parent="Layout/NavigationActions/ExitGameConfirmation"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(74, 40)
+layout_mode = 2
+text = "UI_YES"
+[node name="ExitGameNo" type="Button" parent="Layout/NavigationActions/ExitGameConfirmation"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(74, 40)
+layout_mode = 2
+text = "UI_NO"
+
+[node name="BottomButtons" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 10
+[node name="CancelButton" type="Button" parent="Layout/BottomButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_CANCEL"
+[node name="ApplyButton" type="Button" parent="Layout/BottomButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("Style_primary")
+theme_override_styles/hover = SubResource("Style_primary")
+theme_override_styles/pressed = SubResource("Style_primary")
+text = "UI_APPLY"

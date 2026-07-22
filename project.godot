@@ -11,7 +11,8 @@ config_version=5
 [application]
 
 config/name="Bonus"
-run/main_scene="res://features/game/game_scene.tscn"
+config/version="0.5.0"
+run/main_scene="res://app/app.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
@@ -28,8 +29,8 @@ window/stretch/aspect="expand"
 
 [internationalization]
 
-locale/fallback="zh_CN"
 locale/translations=PackedStringArray("res://localization/strings.en.translation", "res://localization/strings.zh_CN.translation")
+locale/fallback="zh_CN"
 
 [physics]
 

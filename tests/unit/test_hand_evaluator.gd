@@ -8,6 +8,8 @@ func _init() -> void:
 	_test_sequence_boundaries()
 	_test_comparison_rules()
 	_test_wildcards()
+	_test_natural_jokers()
+	_test_optional_rules()
 	_test_distinct_wildcard_interpretations()
 	print("BONUS_TEST_HAND_EVALUATOR_OK")
 	quit()
@@ -71,6 +73,52 @@ func _test_wildcards() -> void:
 	assert(cover != null)
 	assert(cover.type == HandPattern.Type.TRIPLE)
 	assert(cover.main_rank == 9)
+	assert(cover.uses_wildcard)
+
+
+func _test_natural_jokers() -> void:
+	var two := _pattern_from_cards(_cards([CardData.Rank.TWO]), HandPattern.Type.SINGLE, CardData.Rank.TWO)
+	var small_cards: Array[CardData] = [_joker(CardData.JokerKind.SMALL)]
+	var big_cards: Array[CardData] = [_joker(CardData.JokerKind.BIG)]
+	var small := _pattern_from_cards(
+		small_cards,
+		HandPattern.Type.SINGLE,
+		16,
+	)
+	var big := _pattern_from_cards(
+		big_cards,
+		HandPattern.Type.SINGLE,
+		17,
+	)
+	assert(small != null and big != null)
+	assert(not small.uses_wildcard and not big.uses_wildcard)
+	assert(HandEvaluator.beats(small, two))
+	assert(HandEvaluator.beats(big, small))
+
+	var natural_pair: Array[CardData] = [
+		_joker(CardData.JokerKind.SMALL),
+		_joker(CardData.JokerKind.SMALL),
+	]
+	var pair := _pattern_from_cards(natural_pair, HandPattern.Type.PAIR, 16)
+	assert(pair != null and not pair.uses_wildcard)
+
+
+func _test_optional_rules() -> void:
+	var no_wild_rules := GameRules.new()
+	no_wild_rules.jokers_are_wild = false
+	var wildcard_pair := _cards([9])
+	wildcard_pair.append(_joker())
+	assert(HandEvaluator.evaluate_all(wildcard_pair, no_wild_rules).is_empty())
+
+	var allow_two_rules := GameRules.new()
+	allow_two_rules.allow_two_in_sequences = true
+	var straight := HandEvaluator.choose_lead_pattern(
+		_cards([CardData.Rank.KING, CardData.Rank.ACE, CardData.Rank.TWO]),
+		allow_two_rules,
+	)
+	assert(straight != null)
+	assert(straight.type == HandPattern.Type.STRAIGHT)
+	assert(straight.main_rank == CardData.Rank.TWO)
 
 
 func _test_distinct_wildcard_interpretations() -> void:
@@ -125,12 +173,12 @@ func _cards(ranks: Array[int]) -> Array[CardData]:
 	return cards
 
 
-func _joker() -> CardData:
+func _joker(kind: CardData.JokerKind = CardData.JokerKind.SMALL) -> CardData:
 	return CardData.new(
 		_take_id(),
 		0,
 		CardData.Suit.NONE,
-		CardData.JokerKind.SMALL,
+		kind,
 	)
 
 

@@ -16,6 +16,7 @@ const STARTING_HAND_SIZE := 17
 const PASS_DRAW_COUNT := 3
 const JOKER_FINISH_DRAW_COUNT := 2
 
+var rules := GameRules.new()
 var players: Array[PlayerState] = []
 var draw_pile: Array[CardData] = []
 var discard_pile: Array[CardData] = []
@@ -40,12 +41,18 @@ var _bonus_candidate := false
 var _random_source := RandomNumberGenerator.new()
 
 
-func start_game(player_names: Array[String], seed_value: int = 0) -> bool:
+func start_game(
+	player_names: Array[String],
+	seed_value: int = 0,
+	game_rules: GameRules = null,
+	auto_sort_hands: bool = true,
+) -> bool:
 	if player_names.size() < 2 or player_names.size() > 4:
 		return _fail(&"ERROR_PLAYER_COUNT")
 
+	rules = game_rules.clone() if game_rules != null else GameRules.new()
 	players.clear()
-	draw_pile = DeckFactory.create_two_deck()
+	draw_pile = DeckFactory.create_two_deck(rules.include_jokers)
 	discard_pile.clear()
 	last_played_cards.clear()
 	last_play_pattern = null
@@ -66,14 +73,14 @@ func start_game(player_names: Array[String], seed_value: int = 0) -> bool:
 	DeckFactory.shuffle_cards(draw_pile, _random_source)
 
 	for index in range(player_names.size()):
-		players.append(PlayerState.new(index, player_names[index]))
+		players.append(PlayerState.new(index, player_names[index], auto_sort_hands))
 
 	for _round_index in range(STARTING_HAND_SIZE):
 		for player in players:
 			player.add_card(draw_pile.pop_back())
 
 	for player in players:
-		player.sort_hand()
+		player.sort_hand_if_enabled()
 
 	phase = Phase.AWAITING_ROLL
 	state_changed.emit()
@@ -168,7 +175,7 @@ func play_cards(
 
 	# Victory is resolved only after a confirmed play changes the hand.
 	if players[player_index].hand.is_empty():
-		if selected_pattern.contains_joker:
+		if selected_pattern.uses_wildcard:
 			var drawn_count := draw_cards(player_index, JOKER_FINISH_DRAW_COUNT)
 			_set_event(
 				&"EVENT_JOKER_PENALTY",
@@ -199,7 +206,12 @@ func pass_turn(player_index: int) -> bool:
 		_round_pass_count += 1
 		if _round_pass_count >= players.size():
 			var previous_roller := roller_index
-			var drawn_count := draw_cards(previous_roller, PASS_DRAW_COUNT)
+			var draw_count := (
+				maxi(0, 7 - dice_value)
+				if rules.draw_count_uses_dice
+				else PASS_DRAW_COUNT
+			)
+			var drawn_count := draw_cards(previous_roller, draw_count)
 			_set_event(
 				&"EVENT_ALL_PASSED",
 				{"player": players[previous_roller].display_name, "count": drawn_count},
@@ -238,8 +250,29 @@ func draw_cards(player_index: int, count: int) -> int:
 			break
 		players[player_index].add_card(draw_pile.pop_back())
 		drawn_count += 1
-	players[player_index].sort_hand()
+	players[player_index].sort_hand_if_enabled()
 	return drawn_count
+
+
+func set_player_auto_sort(player_index: int, enabled: bool) -> bool:
+	if player_index < 0 or player_index >= players.size():
+		return false
+	players[player_index].auto_sort_enabled = enabled
+	if enabled:
+		players[player_index].sort_hand()
+	state_changed.emit()
+	return true
+
+
+func reorder_player_hand(player_index: int, ordered_ids: Array[int]) -> bool:
+	if player_index < 0 or player_index >= players.size():
+		return false
+	if players[player_index].auto_sort_enabled:
+		return false
+	if not players[player_index].reorder_hand(ordered_ids):
+		return false
+	state_changed.emit()
+	return true
 
 
 func get_recommended_play(player_index: int) -> Array[int]:
@@ -252,10 +285,15 @@ func get_recommended_play(player_index: int) -> Array[int]:
 		return []
 	var hand := players[player_index].hand
 	if last_play_pattern != null:
-		return LegalMoveFinder.find_play(hand, last_play_pattern.card_count, last_play_pattern)
+		return LegalMoveFinder.find_play(
+			hand,
+			last_play_pattern.card_count,
+			last_play_pattern,
+			rules,
+		)
 	if is_bonus:
-		return LegalMoveFinder.find_bonus_play(hand)
-	return LegalMoveFinder.find_play(hand, dice_value)
+		return LegalMoveFinder.find_bonus_play(hand, rules)
+	return LegalMoveFinder.find_play(hand, dice_value, null, rules)
 
 
 func get_legal_interpretations(
@@ -276,7 +314,7 @@ func get_legal_interpretations(
 		return results
 
 	var cards := _find_cards(players[player_index], card_ids)
-	for pattern in HandEvaluator.get_distinct_interpretations(cards):
+	for pattern in HandEvaluator.get_distinct_interpretations(cards, rules):
 		if last_play_pattern == null or HandEvaluator.beats(pattern, last_play_pattern):
 			results.append(pattern)
 	return results
@@ -311,6 +349,7 @@ func create_strategy_context(player_index: int) -> StrategyContext:
 	context.roller_index = roller_index
 	context.last_player_index = last_player_index
 	context.target_pattern = last_play_pattern.clone() if last_play_pattern != null else null
+	context.rules = rules.clone()
 	for card in last_played_cards:
 		context.visible_table_cards.append(card.clone())
 	return context

@@ -68,6 +68,10 @@ func get_sort_value() -> int:
 	return rank
 
 
+func get_natural_rank() -> int:
+	return get_sort_value()
+
+
 func get_name_translation_key() -> StringName:
 	if joker_kind == JokerKind.SMALL:
 		return &"CARD_JOKER_SMALL"

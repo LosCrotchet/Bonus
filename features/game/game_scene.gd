@@ -1,24 +1,22 @@
 extends Control
 
+signal return_to_menu_requested
+
 const HUMAN_PLAYER_INDEX := 0
 const DEFAULT_PLAYER_COUNT := 3
 const DICE_ROOT := "res://assets/art/dice/"
-const ACTIVE_BORDER_COLOR := Color(1.0, 0.78, 0.26, 1.0)
 const INACTIVE_BORDER_COLOR := Color(0.25, 0.4, 0.36, 0.75)
+const FLOW_BORDER_SHADER := preload("res://assets/shaders/flow_border.gdshader")
 
 @onready var settings_button: Button = %SettingsButton
-@onready var settings_popup: PopupPanel = %SettingsPopup
-@onready var player_count_option: OptionButton = %PlayerCountOption
-@onready var game_speed_option: OptionButton = %GameSpeedOption
-@onready var resolution_option: OptionButton = %ResolutionOption
-@onready var window_mode_option: OptionButton = %WindowModeOption
-@onready var language_option: OptionButton = %LanguageOption
-@onready var settings_new_game_button: Button = %SettingsNewGameButton
-@onready var exit_button: Button = %ExitButton
+@onready var settings_overlay: Control = %SettingsOverlay
+@onready var settings_panel: AppSettingsPanel = %SettingsPanel
+@onready var settings_dismiss_button: Button = %SettingsDismissButton
 @onready var status_label: Label = %StatusLabel
 @onready var deck_count_label: Label = %DeckCountLabel
 @onready var dice_button: TextureButton = %DiceButton
 @onready var dice_value_label: Label = %DiceValue
+@onready var roll_panel: PanelContainer = %RollPanel
 @onready var played_panel: PanelContainer = %PlayedPanel
 @onready var played_cards: HBoxContainer = %PlayedCards
 @onready var played_caption: Label = %PlayedCaption
@@ -37,10 +35,13 @@ const INACTIVE_BORDER_COLOR := Color(0.25, 0.4, 0.36, 0.75)
 @onready var result_overlay: Control = %ResultOverlay
 @onready var winner_label: Label = %WinnerLabel
 @onready var restart_button: Button = %RestartButton
+@onready var result_menu_button: Button = %ResultMenuButton
 
 var _session: GameSession
 var _selected_card_ids: Array[int] = []
 var _player_count := DEFAULT_PLAYER_COUNT
+var _game_rules := GameRules.new()
+var _embedded_in_app := false
 var _transient_key: StringName = &""
 var _transient_args: Dictionary = {}
 var _strategies: Dictionary = {}
@@ -56,16 +57,29 @@ var _dice_rest_position := Vector2.ZERO
 var _dice_prompt_tween: Tween
 var _action_bar_tween: Tween
 var _button_tweens: Dictionary = {}
+var _flow_borders: Dictionary = {}
+var _bonus_dice_elapsed := 0.0
+var _bonus_dice_frame := 0
+var _auto_pass_pending := false
+
+
+func configure(
+	player_count: int,
+	game_rules: GameRules = null,
+	embedded_in_app: bool = false,
+) -> void:
+	_player_count = clampi(player_count, 2, 4)
+	_game_rules = game_rules.clone() if game_rules != null else GameRules.new()
+	_embedded_in_app = embedded_in_app
 
 
 func _ready() -> void:
 	settings_button.pressed.connect(_on_settings_pressed)
-	settings_new_game_button.pressed.connect(_on_settings_new_game_pressed)
-	exit_button.pressed.connect(get_tree().quit)
-	game_speed_option.item_selected.connect(_on_game_speed_selected)
-	resolution_option.item_selected.connect(_on_resolution_selected)
-	window_mode_option.item_selected.connect(_on_window_mode_selected)
-	language_option.item_selected.connect(_on_language_selected)
+	settings_dismiss_button.pressed.connect(settings_panel.cancel_edit)
+	settings_panel.applied.connect(_on_settings_applied)
+	settings_panel.canceled.connect(_close_settings)
+	settings_panel.return_to_menu_requested.connect(_on_return_to_menu_requested)
+	settings_panel.quit_requested.connect(get_tree().quit)
 	dice_button.pressed.connect(_on_dice_pressed)
 	dice_button.mouse_entered.connect(_on_dice_mouse_entered)
 	dice_button.mouse_exited.connect(_on_dice_mouse_exited)
@@ -73,8 +87,12 @@ func _ready() -> void:
 	pass_button.pressed.connect(_on_pass_pressed)
 	play_button.pressed.connect(_on_play_pressed)
 	restart_button.pressed.connect(_start_new_game)
+	result_menu_button.pressed.connect(_on_return_to_menu_requested)
 	hand_view.selection_changed.connect(_on_hand_selection_changed)
+	hand_view.order_changed.connect(_on_hand_order_changed)
+	hand_view.play_requested.connect(_on_play_pressed)
 	SettingsService.language_changed.connect(_on_language_changed)
+	SettingsService.settings_changed.connect(_on_settings_changed)
 
 	_seat_views = {
 		"SEAT_NORTH": {
@@ -99,13 +117,29 @@ func _ready() -> void:
 
 	action_bar.visible = false
 	action_bar.modulate.a = 0.0
-	_populate_settings_options()
+	settings_overlay.visible = false
+	_setup_flow_borders()
+	if _embedded_in_app:
+		%Background.visible = false
 	_start_new_game()
 	await get_tree().process_frame
 	_dice_rest_position = dice_button.position
 	dice_button.pivot_offset = dice_button.size * 0.5
 	_setup_button_motion()
 	_refresh_dice_prompt()
+
+
+func _process(delta: float) -> void:
+	if _session == null or not _session.is_bonus or _rolling:
+		_bonus_dice_elapsed = 0.0
+		return
+	_bonus_dice_elapsed += delta
+	if _bonus_dice_elapsed < 0.14:
+		return
+	_bonus_dice_elapsed = 0.0
+	_bonus_dice_frame = (_bonus_dice_frame + 1) % 6
+	dice_button.texture_normal = _dice_texture(_bonus_dice_frame + 1)
+	dice_button.modulate = Color.WHITE
 
 
 func _start_new_game() -> void:
@@ -115,6 +149,7 @@ func _start_new_game() -> void:
 	_last_bonus_state = false
 	_pending_interpretations.clear()
 	_selected_card_ids.clear()
+	_auto_pass_pending = false
 	_clear_transient()
 	_stop_dice_prompt()
 	interpretation_popup.hide()
@@ -123,7 +158,12 @@ func _start_new_game() -> void:
 	_session.state_changed.connect(_refresh)
 	_session.game_finished.connect(_on_game_finished)
 	_session.action_resolved.connect(_on_public_action_resolved)
-	_session.start_game(_player_names_for_count(_player_count))
+	_session.start_game(
+		_player_names_for_count(_player_count),
+		0,
+		_game_rules,
+		SettingsService.auto_sort_hand,
+	)
 	_initialize_strategies()
 	result_overlay.visible = false
 	_refresh()
@@ -161,6 +201,7 @@ func _refresh() -> void:
 	_refresh_bonus_effect()
 	_refresh_dice_prompt()
 	_schedule_ai_if_needed()
+	_schedule_auto_pass_if_needed()
 
 
 func _refresh_seats() -> void:
@@ -175,20 +216,24 @@ func _refresh_seats() -> void:
 		var player := _session.players[player_index]
 		(view["name"] as Label).text = tr(player.display_name)
 		(view["count"] as Label).text = str(player.hand.size())
-		_set_panel_highlight(panel, player_index == _session.current_player_index)
+		_set_active_border(panel, player_index == _session.current_player_index)
 		_fill_card_backs(view["cards"] as HBoxContainer, player.hand.size())
 
 	hand_title.text = _translated(
 		&"UI_HAND_TITLE",
 		{"count": _session.players[HUMAN_PLAYER_INDEX].hand.size()},
 	)
-	_set_panel_highlight(hand_panel, _session.current_player_index == HUMAN_PLAYER_INDEX)
+	_set_active_border(hand_panel, _session.current_player_index == HUMAN_PLAYER_INDEX)
 
 
 func _refresh_center_table() -> void:
 	deck_count_label.text = _translated(&"UI_DRAW_REMAINING", {"count": _session.draw_pile.size()})
 	if not _rolling:
-		if _session.dice_value == 0:
+		if _session.is_bonus:
+			dice_button.texture_normal = _dice_texture(_bonus_dice_frame + 1)
+			dice_button.modulate = Color.WHITE
+			dice_value_label.text = tr(&"UI_DICE_ANY")
+		elif _session.dice_value == 0:
 			dice_button.texture_normal = _dice_texture(1)
 			dice_button.modulate = Color(1.0, 1.0, 1.0, 0.5)
 			dice_value_label.text = tr(&"UI_DICE_CLICK") if _can_human_roll() else tr(&"UI_DICE_WAIT")
@@ -225,6 +270,7 @@ func _refresh_hand() -> void:
 		_session.players[HUMAN_PLAYER_INDEX].hand,
 		_selected_card_ids,
 		can_select,
+		SettingsService.auto_sort_hand,
 	)
 	_refresh_selection_labels()
 
@@ -248,6 +294,9 @@ func _refresh_actions() -> void:
 
 
 func _refresh_status() -> void:
+	status_label.visible = SettingsService.show_status_text
+	if not status_label.visible:
+		return
 	if not _transient_key.is_empty():
 		status_label.text = _translated(_transient_key, _transient_args)
 		return
@@ -289,6 +338,11 @@ func _refresh_status() -> void:
 
 
 func _refresh_selection_labels() -> void:
+	var has_selection := _can_human_act() and not _selected_card_ids.is_empty()
+	selected_label.visible = has_selection
+	selection_type_label.visible = has_selection
+	if not has_selection:
+		return
 	if not _can_human_act():
 		selected_label.text = _translated(&"UI_SELECTED_COUNT", {"count": 0})
 	elif _session.is_bonus and _session.last_play_pattern == null:
@@ -310,10 +364,10 @@ func _refresh_selection_labels() -> void:
 			{"count": _selected_card_ids.size(), "target": _session.dice_value},
 		)
 
-	if _selected_card_ids.is_empty():
-		selection_type_label.text = tr(&"UI_HAND_TYPE_NONE")
-		return
-	var interpretations := HandEvaluator.get_distinct_interpretations(_get_selected_cards())
+	var interpretations := HandEvaluator.get_distinct_interpretations(
+		_get_selected_cards(),
+		_session.rules,
+	)
 	if interpretations.is_empty():
 		selection_type_label.text = tr(&"UI_HAND_TYPE_INVALID")
 	elif interpretations.size() == 1:
@@ -333,6 +387,9 @@ func _refresh_selection_labels() -> void:
 
 func _refresh_bonus_effect() -> void:
 	bonus_effect.visible = _session.is_bonus
+	_set_bonus_border(roll_panel, _session.is_bonus)
+	_set_bonus_border(played_panel, _session.is_bonus)
+	_set_bonus_border(hand_panel, _session.is_bonus)
 	if _session.is_bonus and not _last_bonus_state:
 		_show_center_feedback(&"UI_BONUS_FEEDBACK", Color(1.0, 0.76, 0.25))
 	_last_bonus_state = _session.is_bonus
@@ -383,6 +440,7 @@ func _on_hint_pressed() -> void:
 func _on_pass_pressed() -> void:
 	_clear_transient()
 	_selected_card_ids.clear()
+	_show_pass_feedback(HUMAN_PLAYER_INDEX)
 	if not _session.pass_turn(HUMAN_PLAYER_INDEX):
 		_show_session_error()
 	_refresh()
@@ -443,6 +501,44 @@ func _on_hand_selection_changed(selected_ids: Array[int]) -> void:
 	_selected_card_ids.assign(selected_ids)
 	_refresh_selection_labels()
 	_refresh_status()
+
+
+func _on_hand_order_changed(ordered_ids: Array[int]) -> void:
+	if SettingsService.auto_sort_hand:
+		return
+	_session.reorder_player_hand(HUMAN_PLAYER_INDEX, ordered_ids)
+
+
+func _schedule_auto_pass_if_needed() -> void:
+	if (
+		_auto_pass_pending
+		or not SettingsService.auto_pass
+		or not _can_human_act()
+		or (_session.is_bonus and _session.last_play_pattern == null)
+	):
+		return
+	# An empty recommendation is conclusive: the exhaustive finder checked every
+	# combination of the required size against the current public target.
+	if not _session.get_recommended_play(HUMAN_PLAYER_INDEX).is_empty():
+		return
+	_auto_pass_pending = true
+	_run_auto_pass.call_deferred(_game_serial, _session.current_player_index)
+
+
+func _run_auto_pass(serial: int, player_index: int) -> void:
+	await get_tree().create_timer(SettingsService.get_ui_animation_duration()).timeout
+	_auto_pass_pending = false
+	if (
+		serial != _game_serial
+		or player_index != HUMAN_PLAYER_INDEX
+		or not SettingsService.auto_pass
+		or not _can_human_act()
+		or (_session.is_bonus and _session.last_play_pattern == null)
+		or not _session.get_recommended_play(HUMAN_PLAYER_INDEX).is_empty()
+	):
+		return
+	_show_pass_feedback(HUMAN_PLAYER_INDEX)
+	_session.pass_turn(HUMAN_PLAYER_INDEX)
 
 
 func _schedule_ai_if_needed() -> void:
@@ -540,8 +636,14 @@ func _show_pass_feedback(player_index: int) -> void:
 	if panel == null:
 		return
 	var label := _create_feedback_label(tr(&"UI_PASS_FEEDBACK"), Color(0.92, 0.94, 0.93))
-	label.position = panel.get_global_rect().get_center() - global_position - Vector2(48.0, 16.0)
-	_animate_feedback_label(label, Vector2(0.0, -22.0))
+	label.size = Vector2(180.0, 54.0)
+	label.add_theme_font_size_override("font_size", 32)
+	var rect := panel.get_global_rect()
+	if player_index == HUMAN_PLAYER_INDEX:
+		label.position = rect.end - global_position - Vector2(194.0, 62.0)
+	else:
+		label.position = Vector2(rect.end.x - 150.0, rect.end.y + 4.0) - global_position
+	_animate_pass_label(label)
 
 
 func _show_center_feedback(key: StringName, color: Color) -> void:
@@ -577,102 +679,53 @@ func _animate_feedback_label(label: Label, offset: Vector2) -> void:
 	tween.chain().tween_callback(label.queue_free)
 
 
+func _animate_pass_label(label: Label) -> void:
+	label.modulate.a = 0.0
+	label.scale = Vector2(0.9, 0.9)
+	var duration := SettingsService.get_feedback_duration() * 1.45
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(label, "modulate:a", 1.0, 0.14)
+	tween.tween_property(label, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "modulate:a", 0.0, duration * 0.35).set_delay(duration * 0.65)
+	tween.chain().tween_callback(label.queue_free)
+
+
 func _on_settings_pressed() -> void:
-	_sync_settings_options()
-	settings_popup.popup_centered(Vector2i(430, 480))
+	settings_panel.begin_edit()
+	settings_overlay.visible = true
+	settings_overlay.modulate.a = 0.0
+	settings_panel.scale = Vector2(0.96, 0.96)
+	settings_panel.pivot_offset = settings_panel.size * 0.5
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(settings_overlay, "modulate:a", 1.0, SettingsService.get_ui_animation_duration())
+	tween.tween_property(settings_panel, "scale", Vector2.ONE, SettingsService.get_ui_animation_duration()).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
-func _on_settings_new_game_pressed() -> void:
-	_player_count = player_count_option.get_selected_id()
-	settings_popup.hide()
-	_start_new_game()
+func _close_settings() -> void:
+	settings_overlay.visible = false
 
 
-func _on_game_speed_selected(item_index: int) -> void:
-	SettingsService.set_game_speed(game_speed_option.get_item_id(item_index))
-
-
-func _on_resolution_selected(item_index: int) -> void:
-	SettingsService.set_resolution(resolution_option.get_item_metadata(item_index) as Vector2i)
-
-
-func _on_window_mode_selected(item_index: int) -> void:
-	SettingsService.set_window_mode(window_mode_option.get_item_id(item_index))
-
-
-func _on_language_selected(item_index: int) -> void:
-	SettingsService.set_locale(str(language_option.get_item_metadata(item_index)))
-
-
-func _on_language_changed(_locale: String) -> void:
-	_populate_settings_options()
+func _on_settings_applied() -> void:
+	settings_overlay.visible = false
 	_refresh()
 
 
-func _populate_settings_options() -> void:
-	player_count_option.clear()
-	for count in range(2, 5):
-		player_count_option.add_item(
-			_translated(&"UI_PLAYER_COUNT_OPTION", {"count": count}),
-			count,
-		)
-
-	game_speed_option.clear()
-	game_speed_option.add_item(tr(&"UI_SPEED_SLOW"), SettingsService.GameSpeed.SLOW)
-	game_speed_option.add_item(tr(&"UI_SPEED_MEDIUM"), SettingsService.GameSpeed.MEDIUM)
-	game_speed_option.add_item(tr(&"UI_SPEED_FAST"), SettingsService.GameSpeed.FAST)
-
-	resolution_option.clear()
-	for index in range(SettingsService.RESOLUTIONS.size()):
-		var resolution: Vector2i = SettingsService.RESOLUTIONS[index]
-		resolution_option.add_item(_resolution_label(resolution), index)
-		resolution_option.set_item_metadata(index, resolution)
-
-	window_mode_option.clear()
-	window_mode_option.add_item(tr(&"UI_WINDOWED"), SettingsService.WindowMode.WINDOWED)
-	window_mode_option.add_item(tr(&"UI_FULLSCREEN"), SettingsService.WindowMode.FULLSCREEN)
-
-	language_option.clear()
-	language_option.add_item(tr(&"UI_LANGUAGE_ZH_CN"), 0)
-	language_option.set_item_metadata(0, "zh_CN")
-	language_option.add_item(tr(&"UI_LANGUAGE_EN"), 1)
-	language_option.set_item_metadata(1, "en")
-	_sync_settings_options()
+func _on_settings_changed(_snapshot: Dictionary) -> void:
+	if _session != null:
+		_session.set_player_auto_sort(HUMAN_PLAYER_INDEX, SettingsService.auto_sort_hand)
+		hand_view.set_auto_sort_enabled(SettingsService.auto_sort_hand)
+	_refresh_status()
+	_schedule_auto_pass_if_needed()
 
 
-func _sync_settings_options() -> void:
-	_select_option_by_id(game_speed_option, SettingsService.game_speed)
-	_select_option_by_id(window_mode_option, SettingsService.window_mode)
-	for index in range(resolution_option.item_count):
-		if resolution_option.get_item_metadata(index) == SettingsService.resolution:
-			resolution_option.select(index)
-			break
-	for index in range(language_option.item_count):
-		if language_option.get_item_metadata(index) == SettingsService.locale:
-			language_option.select(index)
-			break
-	for index in range(player_count_option.item_count):
-		if player_count_option.get_item_id(index) == _player_count:
-			player_count_option.select(index)
-			break
+func _on_language_changed(_locale: String) -> void:
+	_refresh()
 
 
-func _select_option_by_id(option: OptionButton, item_id: int) -> void:
-	for index in range(option.item_count):
-		if option.get_item_id(index) == item_id:
-			option.select(index)
-			return
-
-
-func _resolution_label(value: Vector2i) -> String:
-	var suffixes := {
-		Vector2i(1280, 720): "720p",
-		Vector2i(1920, 1080): "1080p",
-		Vector2i(2560, 1440): "2K",
-		Vector2i(3840, 2160): "4K",
-	}
-	var suffix := suffixes.get(value, "") as String
-	return "%d × %d%s" % [value.x, value.y, " (%s)" % suffix if not suffix.is_empty() else ""]
+func _on_return_to_menu_requested() -> void:
+	settings_overlay.visible = false
+	result_overlay.visible = false
+	return_to_menu_requested.emit()
 
 
 func _on_game_finished(player_index: int) -> void:
@@ -718,9 +771,8 @@ func _setup_button_motion() -> void:
 		hint_button,
 		pass_button,
 		play_button,
-		settings_new_game_button,
-		exit_button,
 		restart_button,
+		result_menu_button,
 	]:
 		_setup_single_button_motion(button)
 
@@ -814,18 +866,102 @@ func _fill_card_backs(container: HBoxContainer, card_count: int) -> void:
 		container.add_child(card_back)
 
 
-func _set_panel_highlight(panel: PanelContainer, active: bool) -> void:
+func _set_active_border(panel: PanelContainer, active: bool) -> void:
 	var source := panel.get_theme_stylebox("panel") as StyleBoxFlat
 	if source == null:
 		return
 	var style := source.duplicate() as StyleBoxFlat
-	style.border_color = ACTIVE_BORDER_COLOR if active else INACTIVE_BORDER_COLOR
-	var width := 3 if active else 2
-	style.border_width_left = width
-	style.border_width_top = width
-	style.border_width_right = width
-	style.border_width_bottom = width
+	style.border_color = INACTIVE_BORDER_COLOR
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
 	panel.add_theme_stylebox_override("panel", style)
+	if _flow_borders.has(panel):
+		var border := _flow_borders[panel] as ColorRect
+		if not _session.is_bonus or panel not in [hand_panel, roll_panel, played_panel]:
+			border.visible = active
+
+
+func _setup_flow_borders() -> void:
+	for panel in [%NorthSeat, %WestSeat, %EastSeat, hand_panel, roll_panel, played_panel]:
+		var border := ColorRect.new()
+		border.name = "FlowBorder"
+		border.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		border.z_index = 20
+		border.visible = false
+		var border_material := ShaderMaterial.new()
+		border_material.shader = FLOW_BORDER_SHADER
+		border_material.set_shader_parameter("bonus_mode", false)
+		border_material.set_shader_parameter("rect_size", panel.size)
+		border.material = border_material
+		panel.add_child(border)
+		_flow_borders[panel] = border
+		panel.resized.connect(_update_flow_border_size.bind(panel))
+
+
+func _update_flow_border_size(panel: PanelContainer) -> void:
+	if not _flow_borders.has(panel):
+		return
+	var border := _flow_borders[panel] as ColorRect
+	(border.material as ShaderMaterial).set_shader_parameter("rect_size", panel.size)
+
+
+func _set_bonus_border(panel: PanelContainer, active: bool) -> void:
+	if not _flow_borders.has(panel):
+		return
+	var border := _flow_borders[panel] as ColorRect
+	(border.material as ShaderMaterial).set_shader_parameter("bonus_mode", active)
+	if active:
+		border.visible = true
+	elif panel in [hand_panel, roll_panel, played_panel]:
+		border.visible = panel == hand_panel and _session.current_player_index == HUMAN_PLAYER_INDEX
+
+
+func play_enter_transition() -> void:
+	await get_tree().process_frame
+	var entries := [
+		[%Header, Vector2(0.0, -70.0)],
+		[%WestSeat, Vector2(-170.0, 0.0)],
+		[%NorthSeat, Vector2(0.0, -120.0)],
+		[%EastSeat, Vector2(170.0, 0.0)],
+		[%TableRow, Vector2(0.0, -100.0)],
+		[%ActionSlot, Vector2(0.0, 70.0)],
+		[hand_panel, Vector2(0.0, 220.0)],
+	]
+	var originals := {}
+	for entry in entries:
+		var node := entry[0] as Control
+		originals[node] = node.position
+		node.position += entry[1] as Vector2
+		node.modulate.a = 0.0
+	var tween := create_tween().set_parallel(true)
+	for entry in entries:
+		var node := entry[0] as Control
+		tween.tween_property(node, "position", originals[node], 0.42).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(node, "modulate:a", 1.0, 0.3)
+	await tween.finished
+
+
+func play_exit_transition() -> void:
+	settings_overlay.visible = false
+	result_overlay.visible = false
+	var exits := [
+		[%Header, Vector2(0.0, -70.0)],
+		[%WestSeat, Vector2(-170.0, 0.0)],
+		[%NorthSeat, Vector2(0.0, -120.0)],
+		[%EastSeat, Vector2(170.0, 0.0)],
+		[%TableRow, Vector2(0.0, -100.0)],
+		[%ActionSlot, Vector2(0.0, 70.0)],
+		[hand_panel, Vector2(0.0, 220.0)],
+	]
+	var tween := create_tween().set_parallel(true)
+	for entry in exits:
+		var node := entry[0] as Control
+		tween.tween_property(node, "position", node.position + entry[1] as Vector2, 0.34).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tween.tween_property(node, "modulate:a", 0.0, 0.26)
+	await tween.finished
 
 
 func _find_player_index(display_name_key: String) -> int:

@@ -1,5 +1,6 @@
 extends Node
 
+signal settings_changed(snapshot: Dictionary)
 signal game_speed_changed(speed: GameSpeed)
 signal display_changed
 signal language_changed(locale: String)
@@ -24,11 +25,15 @@ const RESOLUTIONS: Array[Vector2i] = [
 	Vector2i(2560, 1440),
 	Vector2i(3840, 2160),
 ]
+const LOCALES: Array[String] = ["zh_CN", "en"]
 
 var game_speed := DEFAULT_GAME_SPEED
 var resolution := Vector2i(1280, 720)
 var window_mode := WindowMode.WINDOWED
 var locale := "zh_CN"
+var show_status_text := true
+var auto_pass := false
+var auto_sort_hand := true
 
 
 func _ready() -> void:
@@ -37,39 +42,80 @@ func _ready() -> void:
 	_apply_display.call_deferred()
 
 
-func set_game_speed(value: GameSpeed) -> void:
-	if value == game_speed:
-		return
-	game_speed = value
+func get_snapshot() -> Dictionary:
+	return {
+		"game_speed": game_speed,
+		"resolution": resolution,
+		"window_mode": window_mode,
+		"locale": locale,
+		"show_status_text": show_status_text,
+		"auto_pass": auto_pass,
+		"auto_sort_hand": auto_sort_hand,
+	}
+
+
+func apply_settings(candidate: Dictionary) -> bool:
+	var next_speed := int(candidate.get("game_speed", game_speed))
+	var next_resolution := candidate.get("resolution", resolution) as Vector2i
+	var next_window_mode := int(candidate.get("window_mode", window_mode))
+	var next_locale := str(candidate.get("locale", locale))
+	if next_speed < GameSpeed.SLOW or next_speed > GameSpeed.FAST:
+		return false
+	if next_resolution not in RESOLUTIONS:
+		return false
+	if next_window_mode < WindowMode.WINDOWED or next_window_mode > WindowMode.FULLSCREEN:
+		return false
+	if next_locale not in LOCALES:
+		return false
+
+	var speed_changed := next_speed != game_speed
+	var display_has_changed := (
+		next_resolution != resolution or next_window_mode != window_mode
+	)
+	var locale_has_changed := next_locale != locale
+	game_speed = next_speed as GameSpeed
+	resolution = next_resolution
+	window_mode = next_window_mode as WindowMode
+	locale = next_locale
+	show_status_text = bool(candidate.get("show_status_text", show_status_text))
+	auto_pass = bool(candidate.get("auto_pass", auto_pass))
+	auto_sort_hand = bool(candidate.get("auto_sort_hand", auto_sort_hand))
 	_save_settings()
-	game_speed_changed.emit(game_speed)
+
+	if locale_has_changed:
+		_apply_language()
+		language_changed.emit(locale)
+	if display_has_changed:
+		_apply_display.call_deferred()
+		display_changed.emit()
+	if speed_changed:
+		game_speed_changed.emit(game_speed)
+	settings_changed.emit(get_snapshot())
+	return true
+
+
+func set_game_speed(value: GameSpeed) -> void:
+	var snapshot := get_snapshot()
+	snapshot["game_speed"] = value
+	apply_settings(snapshot)
 
 
 func set_resolution(value: Vector2i) -> void:
-	if value not in RESOLUTIONS or value == resolution:
-		return
-	resolution = value
-	_save_settings()
-	_apply_display()
-	display_changed.emit()
+	var snapshot := get_snapshot()
+	snapshot["resolution"] = value
+	apply_settings(snapshot)
 
 
 func set_window_mode(value: WindowMode) -> void:
-	if value == window_mode:
-		return
-	window_mode = value
-	_save_settings()
-	_apply_display()
-	display_changed.emit()
+	var snapshot := get_snapshot()
+	snapshot["window_mode"] = value
+	apply_settings(snapshot)
 
 
 func set_locale(value: String) -> void:
-	if value not in ["zh_CN", "en"] or value == locale:
-		return
-	locale = value
-	_save_settings()
-	_apply_language()
-	language_changed.emit(locale)
+	var snapshot := get_snapshot()
+	snapshot["locale"] = value
+	apply_settings(snapshot)
 
 
 func get_ai_think_delay() -> float:
@@ -104,15 +150,18 @@ func _apply_display() -> void:
 		return
 
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	# Windows reports the old client area during the fullscreen exit frame.
+	await get_tree().process_frame
 	DisplayServer.window_set_size(resolution)
-	var screen_size := DisplayServer.screen_get_size()
-	var available_space := screen_size - resolution
-	DisplayServer.window_set_position(
-		Vector2i(
-			floori(float(available_space.x) / 2.0),
-			floori(float(available_space.y) / 2.0),
-		)
+	await get_tree().process_frame
+	var screen := DisplayServer.window_get_current_screen()
+	var usable_rect := DisplayServer.screen_get_usable_rect(screen)
+	var available_space := usable_rect.size - resolution
+	var centered_position := usable_rect.position + Vector2i(
+		floori(float(available_space.x) / 2.0),
+		floori(float(available_space.y) / 2.0),
 	)
+	DisplayServer.window_set_position(centered_position)
 
 
 func _load_settings() -> void:
@@ -124,6 +173,9 @@ func _load_settings() -> void:
 		GameSpeed.SLOW,
 		GameSpeed.FAST,
 	) as GameSpeed
+	show_status_text = bool(config.get_value("gameplay", "show_status_text", true))
+	auto_pass = bool(config.get_value("gameplay", "auto_pass", false))
+	auto_sort_hand = bool(config.get_value("gameplay", "auto_sort_hand", true))
 	var loaded_resolution := config.get_value("display", "resolution", resolution) as Vector2i
 	if loaded_resolution in RESOLUTIONS:
 		resolution = loaded_resolution
@@ -133,13 +185,16 @@ func _load_settings() -> void:
 		WindowMode.FULLSCREEN,
 	) as WindowMode
 	var loaded_locale := str(config.get_value("language", "locale", locale))
-	if loaded_locale in ["zh_CN", "en"]:
+	if loaded_locale in LOCALES:
 		locale = loaded_locale
 
 
 func _save_settings() -> void:
 	var config := ConfigFile.new()
 	config.set_value("gameplay", "speed", game_speed)
+	config.set_value("gameplay", "show_status_text", show_status_text)
+	config.set_value("gameplay", "auto_pass", auto_pass)
+	config.set_value("gameplay", "auto_sort_hand", auto_sort_hand)
 	config.set_value("display", "resolution", resolution)
 	config.set_value("display", "window_mode", window_mode)
 	config.set_value("language", "locale", locale)

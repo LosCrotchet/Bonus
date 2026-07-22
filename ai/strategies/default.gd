@@ -20,17 +20,26 @@ func choose_action(context: StrategyContext) -> PlayerDecision:
 			context.own_hand,
 			context.target_pattern.card_count,
 			context.target_pattern,
+			context.rules,
 		)
 	elif context.is_bonus:
-		card_ids = LegalMoveFinder.find_bonus_play(context.own_hand)
+		card_ids = LegalMoveFinder.find_bonus_play(context.own_hand, context.rules)
 	else:
-		card_ids = LegalMoveFinder.find_play(context.own_hand, context.dice_value)
+		card_ids = LegalMoveFinder.find_play(
+			context.own_hand,
+			context.dice_value,
+			null,
+			context.rules,
+		)
 
 	if card_ids.is_empty():
 		return PlayerDecision.create_pass()
 
 	var selected_cards := _find_cards(context.own_hand, card_ids)
-	var interpretations := HandEvaluator.get_distinct_interpretations(selected_cards)
+	var interpretations := HandEvaluator.get_distinct_interpretations(
+		selected_cards,
+		context.rules,
+	)
 	if context.target_pattern != null:
 		interpretations = interpretations.filter(
 			func(pattern: HandPattern) -> bool:

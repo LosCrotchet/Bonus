@@ -20,6 +20,8 @@ func _test_strategy_context_is_public_and_detached() -> void:
 	assert(context != null)
 	assert(context.own_hand.size() == session.players[1].hand.size())
 	assert(context.player_summaries.size() == session.players.size())
+	assert(context.rules != null)
+	assert(context.rules.jokers_are_wild)
 
 	var opponent_card_ids: Array[int] = []
 	for player_index in [0, 2]:

@@ -14,17 +14,37 @@ UI_FULLSCREEN,全屏,Fullscreen
 UI_LANGUAGE,语言,Language
 UI_LANGUAGE_ZH_CN,简体中文,Simplified Chinese
 UI_LANGUAGE_EN,English,English
+UI_SHOW_STATUS_TEXT,显示提示文本,Show Status Text
+UI_AUTO_PASS,自动跳过,Auto Pass
+UI_AUTO_SORT_HAND,自动排序手牌,Auto-sort Hand
+UI_APPLY,应用,Apply
+UI_CANCEL,取消,Cancel
+UI_EXIT_TO_MENU,退出到主界面,Exit to Main Menu
+UI_CONFIRM_EXIT_MENU,确定返回主界面？,Return to main menu?
+UI_CONFIRM_EXIT_GAME,确定退出游戏？,Exit the game?
+UI_YES,是,Yes
+UI_NO,否,No
 UI_NEW_GAME,新牌局,New Game
 UI_EXIT_GAME,退出游戏,Exit Game
+UI_SINGLE_PLAYER,单人游戏,Single Player
+UI_MULTIPLAYER,多人游戏,Multiplayer
+UI_START_GAME,开始游戏,Start Game
+UI_BACK,返回,Back
+UI_BACK_TO_MENU,回到主菜单,Back to Main Menu
+RULE_INCLUDE_JOKERS,牌堆包括大小王,Include Jokers
+RULE_JOKERS_WILD,大小王可作万能牌,Jokers Are Wild
+RULE_SEQUENCE_WITH_TWO,顺子可以带 2,Straights Include 2
+RULE_VARIABLE_DRAW,未出牌时摸 7-x 张,Draw 7-x After All Pass
 UI_RECOMMEND,推荐,Hint
 UI_PASS,不出,Pass
 UI_PLAY,出牌,Play
-UI_RESTART,再来一局,Play Again
+UI_RESTART,再来一把！,Play Again!
 UI_GAME_OVER,牌局结束,Game Over
 UI_DRAW_REMAINING,剩余 {count} 张,{count} remaining
 UI_DICE_CLICK,点击掷骰,Click to roll
 UI_DICE_WAIT,等待掷骰,Waiting
 UI_DICE_VALUE,{value} 点,{value}
+UI_DICE_ANY,任意点数,Any value
 UI_PLAY_AREA_EMPTY,出牌区 · 暂无出牌,Play Area · Empty
 UI_PLAY_AREA_PLAYED,出牌区 · {player}打出{hand_type},Play Area · {player} played {hand_type}
 UI_HAND_TITLE,南家（你） · {count} 张,South (You) · {count} cards

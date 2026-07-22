@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://dw6o55qf0ftht" path="res://features/game/presentation/hand_view.gd" id="2_hand"]
 [ext_resource type="Texture2D" uid="uid://bx0lmpsiqlanv" path="res://assets/art/cards/card_back_blue.png" id="3_back"]
 [ext_resource type="Texture2D" uid="uid://dhgiexcj863h4" path="res://assets/art/dice/die_white_1.png" id="4_die"]
+[ext_resource type="PackedScene" path="res://shared/ui/settings_panel.tscn" id="5_settings"]
 
 [sub_resource type="Theme" id="Theme_main"]
 default_font_size = 16
@@ -188,6 +189,7 @@ theme = SubResource("Theme_main")
 script = ExtResource("1_game")
 
 [node name="Background" type="ColorRect" parent="." unique_id=791974369]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -227,6 +229,7 @@ layout_mode = 2
 theme_override_constants/separation = 6
 
 [node name="Header" type="PanelContainer" parent="SafeArea/MainLayout" unique_id=290799319]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_styles/panel = SubResource("Style_header")
@@ -407,6 +410,7 @@ size_flags_horizontal = 4
 theme_override_constants/separation = -27
 
 [node name="TableRow" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea" unique_id=2014010810]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -423,6 +427,7 @@ theme_override_constants/separation = 12
 alignment = 1
 
 [node name="RollPanel" type="PanelContainer" parent="SafeArea/MainLayout/MainArea/TableRow" unique_id=340366952]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 156)
 layout_mode = 2
 theme_override_styles/panel = SubResource("Style_table_panel")
@@ -604,7 +609,7 @@ text = "UI_SELECTED_COUNT"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.76, 0.85, 0.82, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 19
 text = "UI_HAND_TYPE_NONE"
 horizontal_alignment = 1
 
@@ -615,107 +620,51 @@ layout_mode = 2
 size_flags_vertical = 3
 script = ExtResource("2_hand")
 
-[node name="SettingsPopup" type="PopupPanel" parent="." unique_id=1047205440]
+[node name="SettingsOverlay" type="Control" parent="."]
 unique_name_in_owner = true
-oversampling_override = 1.0
-size = Vector2i(430, 480)
-
-[node name="SettingsPanel" type="PanelContainer" parent="SettingsPopup" unique_id=1784946183]
+visible = false
+z_index = 60
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 4.0
-offset_top = 4.0
-offset_right = -4.0
-offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("Style_popup")
 
-[node name="SettingsLayout" type="VBoxContainer" parent="SettingsPopup/SettingsPanel" unique_id=1799577361]
-layout_mode = 2
-theme_override_constants/separation = 12
+[node name="Dim" type="ColorRect" parent="SettingsOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.12, 0.13, 0.13, 0.78)
 
-[node name="SettingsTitle" type="Label" parent="SettingsPopup/SettingsPanel/SettingsLayout" unique_id=855877948]
-layout_mode = 2
-theme_override_fonts/font = SubResource("Font_bold")
-theme_override_font_sizes/font_size = 21
-text = "UI_GAME_SETTINGS"
-
-[node name="PlayerCountCaption" type="Label" parent="SettingsPopup/SettingsPanel/SettingsLayout" unique_id=1368408594]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.72, 0.8, 0.78, 1)
-text = "UI_PLAYER_COUNT"
-
-[node name="PlayerCountOption" type="OptionButton" parent="SettingsPopup/SettingsPanel/SettingsLayout" unique_id=2054140871]
+[node name="SettingsDismissButton" type="Button" parent="SettingsOverlay"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+flat = true
 
-[node name="GameSpeedCaption" type="Label" parent="SettingsPopup/SettingsPanel/SettingsLayout"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.72, 0.8, 0.78, 1)
-text = "UI_GAME_SPEED"
+[node name="Center" type="CenterContainer" parent="SettingsOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
 
-[node name="GameSpeedOption" type="OptionButton" parent="SettingsPopup/SettingsPanel/SettingsLayout"]
+[node name="SettingsPanel" parent="SettingsOverlay/Center" instance=ExtResource("5_settings")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(500, 640)
 layout_mode = 2
-
-[node name="DisplayRow" type="GridContainer" parent="SettingsPopup/SettingsPanel/SettingsLayout"]
-layout_mode = 2
-columns = 2
-theme_override_constants/h_separation = 10
-theme_override_constants/v_separation = 8
-
-[node name="ResolutionCaption" type="Label" parent="SettingsPopup/SettingsPanel/SettingsLayout/DisplayRow"]
-layout_mode = 2
-text = "UI_RESOLUTION"
-
-[node name="ResolutionOption" type="OptionButton" parent="SettingsPopup/SettingsPanel/SettingsLayout/DisplayRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 36)
-layout_mode = 2
-
-[node name="WindowModeCaption" type="Label" parent="SettingsPopup/SettingsPanel/SettingsLayout/DisplayRow"]
-layout_mode = 2
-text = "UI_WINDOW_MODE"
-
-[node name="WindowModeOption" type="OptionButton" parent="SettingsPopup/SettingsPanel/SettingsLayout/DisplayRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 36)
-layout_mode = 2
-
-[node name="LanguageCaption" type="Label" parent="SettingsPopup/SettingsPanel/SettingsLayout/DisplayRow"]
-layout_mode = 2
-text = "UI_LANGUAGE"
-
-[node name="LanguageOption" type="OptionButton" parent="SettingsPopup/SettingsPanel/SettingsLayout/DisplayRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 36)
-layout_mode = 2
-
-[node name="SettingsSpacer" type="Control" parent="SettingsPopup/SettingsPanel/SettingsLayout" unique_id=880419347]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="SettingsNewGameButton" type="Button" parent="SettingsPopup/SettingsPanel/SettingsLayout" unique_id=1613314682]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 42)
-layout_mode = 2
-theme_override_styles/normal = SubResource("Style_button_play")
-theme_override_styles/pressed = SubResource("Style_button_play_hover")
-theme_override_styles/hover = SubResource("Style_button_play_hover")
-text = "UI_NEW_GAME"
-
-[node name="ExitButton" type="Button" parent="SettingsPopup/SettingsPanel/SettingsLayout" unique_id=2062033126]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-theme_override_styles/normal = SubResource("Style_button_neutral")
-theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
-theme_override_styles/hover = SubResource("Style_button_neutral_hover")
-text = "UI_EXIT_GAME"
 
 [node name="InterpretationPopup" type="PopupPanel" parent="."]
 unique_name_in_owner = true
@@ -809,12 +758,26 @@ theme_override_font_sizes/font_size = 30
 text = "STATUS_WINNER"
 horizontal_alignment = 1
 
-[node name="RestartButton" type="Button" parent="ResultOverlay/Center/ResultPanel/ResultLayout" unique_id=1644253621]
+[node name="ResultButtons" type="HBoxContainer" parent="ResultOverlay/Center/ResultPanel/ResultLayout"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RestartButton" type="Button" parent="ResultOverlay/Center/ResultPanel/ResultLayout/ResultButtons" unique_id=1644253621]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(180, 44)
 layout_mode = 2
-size_flags_horizontal = 4
+size_flags_horizontal = 3
 theme_override_styles/normal = SubResource("Style_button_play")
 theme_override_styles/pressed = SubResource("Style_button_play_hover")
 theme_override_styles/hover = SubResource("Style_button_play_hover")
 text = "UI_RESTART"
+
+[node name="ResultMenuButton" type="Button" parent="ResultOverlay/Center/ResultPanel/ResultLayout/ResultButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("Style_button_neutral")
+theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
+theme_override_styles/hover = SubResource("Style_button_neutral_hover")
+text = "UI_BACK_TO_MENU"

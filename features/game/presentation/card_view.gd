@@ -3,18 +3,25 @@ extends TextureButton
 
 signal left_pressed(card_id: int)
 signal pointer_entered(card_id: int)
+signal pointer_exited(card_id: int)
 
-const HOVER_OFFSET_Y := -8.0
-const SELECTED_OFFSET_Y := -20.0
-const MOVE_DURATION := 0.12
+const HOVER_OFFSET_Y := -9.0
+const SELECTED_OFFSET_Y := -22.0
+const MOVE_DURATION := 0.15
 
 var card_id := -1
 var selected := false
 var interaction_enabled := true
 
 var _hovered := false
+var _dragging := false
 var _base_position := Vector2.ZERO
+var _base_rotation := 0.0
+var _neighbor_offset := Vector2.ZERO
 var _move_tween: Tween
+var _shadow_near: TextureRect
+var _shadow_far: TextureRect
+var _last_drag_position := Vector2.ZERO
 
 
 func _ready() -> void:
@@ -22,6 +29,8 @@ func _ready() -> void:
 	stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	focus_mode = Control.FOCUS_NONE
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	pivot_offset = size * 0.5
+	_create_shadows()
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 
@@ -34,18 +43,31 @@ func configure(card: CardData, enabled: bool) -> void:
 		if card.is_joker()
 		else "%s %s" % [tr(card.get_suit_translation_key()), card.get_rank_label()]
 	)
+	_update_shadow_textures()
 	set_interaction_enabled(enabled)
 
 
-func set_base_position(value: Vector2, instant: bool = false) -> void:
+func set_base_transform(value: Vector2, angle: float, instant: bool = false) -> void:
+	if _base_position.is_equal_approx(value) and is_equal_approx(_base_rotation, angle):
+		return
 	_base_position = value
-	_animate_position(instant)
+	_base_rotation = angle
+	_animate_transform(instant)
 
 
 func set_selected(value: bool, instant: bool = false) -> void:
+	if selected == value:
+		return
 	selected = value
 	_update_tint()
-	_animate_position(instant)
+	_animate_transform(instant)
+
+
+func set_neighbor_offset(value: Vector2) -> void:
+	if _neighbor_offset == value:
+		return
+	_neighbor_offset = value
+	_animate_transform()
 
 
 func set_interaction_enabled(value: bool) -> void:
@@ -55,6 +77,51 @@ func set_interaction_enabled(value: bool) -> void:
 	if not value:
 		_hovered = false
 	_update_tint()
+
+
+func set_dragging(value: bool) -> void:
+	_dragging = value
+	if value:
+		if _move_tween != null:
+			_move_tween.kill()
+		z_index = 100
+		scale = Vector2(1.055, 1.055)
+		_last_drag_position = position
+	else:
+		scale = Vector2.ONE
+	_update_shadow_offsets()
+
+
+func set_drag_position(value: Vector2) -> void:
+	if not _dragging:
+		return
+	var velocity_x := value.x - _last_drag_position.x
+	_last_drag_position = value
+	position = value
+	rotation = lerpf(rotation, clampf(velocity_x * 0.012, -0.12, 0.12), 0.35)
+
+
+func play_entry_animation(delay: float = 0.0) -> void:
+	if not is_inside_tree():
+		return
+	if _move_tween != null:
+		_move_tween.kill()
+	position = _target_position() + Vector2(0.0, -92.0)
+	rotation = _base_rotation - 0.08
+	scale = Vector2(0.78, 0.78)
+	modulate.a = 0.0
+	_move_tween = create_tween().set_parallel(true)
+	_move_tween.tween_property(self, "position", _target_position(), 0.36).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_move_tween.tween_property(self, "rotation", _base_rotation, 0.3).set_delay(delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_move_tween.tween_property(self, "scale", Vector2.ONE, 0.32).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_move_tween.tween_property(self, "modulate:a", 1.0, 0.18).set_delay(delay)
+
+
+func snap_to_base() -> void:
+	_dragging = false
+	scale = Vector2.ONE
+	_update_shadow_offsets()
+	_animate_transform()
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -70,7 +137,7 @@ func _on_mouse_entered() -> void:
 		return
 	_hovered = true
 	_update_tint()
-	_animate_position()
+	_animate_transform()
 	pointer_entered.emit(card_id)
 
 
@@ -79,33 +146,81 @@ func _on_mouse_exited() -> void:
 		return
 	_hovered = false
 	_update_tint()
-	_animate_position()
+	_animate_transform()
+	pointer_exited.emit(card_id)
 
 
-func _animate_position(instant: bool = false) -> void:
-	var offset_y := 0.0
-	if selected:
-		offset_y = SELECTED_OFFSET_Y
-	elif _hovered:
-		offset_y = HOVER_OFFSET_Y
-	var target := _base_position + Vector2(0.0, offset_y)
-
+func _animate_transform(instant: bool = false) -> void:
+	if _dragging:
+		return
+	var target := _target_position()
 	if _move_tween != null:
 		_move_tween.kill()
+	# A container resize can interrupt the initial deal before its fade finishes.
+	# Restore a visible baseline; later draw animations run after layout is stable.
+	if modulate.a < 0.99:
+		modulate.a = 1.0
+		scale = Vector2.ONE
 	if instant or not is_inside_tree():
 		position = target
+		rotation = _base_rotation
 		return
-	_move_tween = create_tween()
+	_move_tween = create_tween().set_parallel(true)
 	_move_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_move_tween.tween_property(self, "position", target, MOVE_DURATION)
+	_move_tween.tween_property(self, "rotation", _base_rotation, MOVE_DURATION)
+
+
+func _target_position() -> Vector2:
+	var vertical_offset := 0.0
+	if selected:
+		vertical_offset = SELECTED_OFFSET_Y
+	elif _hovered:
+		vertical_offset = HOVER_OFFSET_Y
+	return _base_position + _neighbor_offset + Vector2(0.0, vertical_offset)
 
 
 func _update_tint() -> void:
 	if not interaction_enabled:
 		self_modulate = Color(0.84, 0.84, 0.84)
 	elif selected:
-		self_modulate = Color(1.0, 0.91, 0.65)
+		self_modulate = Color(1.0, 0.93, 0.72)
 	elif _hovered:
-		self_modulate = Color(1.0, 1.0, 0.9)
+		self_modulate = Color(1.0, 1.0, 0.93)
 	else:
 		self_modulate = Color.WHITE
+
+
+func _create_shadows() -> void:
+	_shadow_far = _new_shadow(Color(0.0, 0.0, 0.0, 0.12))
+	_shadow_near = _new_shadow(Color(0.0, 0.0, 0.0, 0.25))
+	_update_shadow_textures()
+	_update_shadow_offsets()
+
+
+func _new_shadow(tint: Color) -> TextureRect:
+	var shadow := TextureRect.new()
+	shadow.show_behind_parent = true
+	shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shadow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	shadow.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	shadow.modulate = tint
+	shadow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(shadow)
+	move_child(shadow, 0)
+	return shadow
+
+
+func _update_shadow_textures() -> void:
+	if _shadow_near == null:
+		return
+	_shadow_near.texture = texture_normal
+	_shadow_far.texture = texture_normal
+
+
+func _update_shadow_offsets() -> void:
+	if _shadow_near == null:
+		return
+	var multiplier := 1.8 if _dragging else 1.0
+	_shadow_near.position = Vector2(3.0, 5.0) * multiplier
+	_shadow_far.position = Vector2(6.0, 9.0) * multiplier

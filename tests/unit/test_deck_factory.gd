@@ -18,5 +18,9 @@ func _init() -> void:
 
 	assert(small_jokers == 2)
 	assert(big_jokers == 2)
+
+	var cards_without_jokers := DeckFactory.create_two_deck(false)
+	assert(cards_without_jokers.size() == 104)
+	assert(cards_without_jokers.all(func(card: CardData) -> bool: return not card.is_joker()))
 	print("BONUS_TEST_DECK_FACTORY_OK")
 	quit()

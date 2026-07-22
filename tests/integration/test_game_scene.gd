@@ -1,10 +1,12 @@
 extends Node
 
+
 func _ready() -> void:
 	_run_test.call_deferred()
 
 
 func _run_test() -> void:
+	var original_settings := SettingsService.get_snapshot()
 	var packed_scene := load("res://features/game/game_scene.tscn") as PackedScene
 	assert(packed_scene != null)
 	var game_scene := packed_scene.instantiate()
@@ -12,26 +14,22 @@ func _run_test() -> void:
 
 	await get_tree().process_frame
 	await get_tree().process_frame
-	RenderingServer.force_draw()
-
 	var session := game_scene.get("_session") as GameSession
-	var hand_view := game_scene.get_node("%HandView") as Control
+	var hand_view := game_scene.get_node("%HandView") as HandView
 	var dice_button := game_scene.get_node("%DiceButton") as TextureButton
 	var action_bar := game_scene.get_node("%ActionBar") as HBoxContainer
 	var west_seat := game_scene.get_node("%WestSeat") as PanelContainer
 	var east_seat := game_scene.get_node("%EastSeat") as PanelContainer
 	var settings_button := game_scene.get_node("%SettingsButton") as Button
-	var settings_popup := game_scene.get_node("%SettingsPopup") as PopupPanel
-	var player_count_option := game_scene.get_node("%PlayerCountOption") as OptionButton
-	var game_speed_option := game_scene.get_node("%GameSpeedOption") as OptionButton
-	var resolution_option := game_scene.get_node("%ResolutionOption") as OptionButton
-	var window_mode_option := game_scene.get_node("%WindowModeOption") as OptionButton
-	var language_option := game_scene.get_node("%LanguageOption") as OptionButton
+	var settings_overlay := game_scene.get_node("%SettingsOverlay") as Control
+	var settings_panel := game_scene.get_node("%SettingsPanel") as AppSettingsPanel
+	var settings_dismiss := game_scene.get_node("%SettingsDismissButton") as Button
 	var pass_button := game_scene.get_node("%PassButton") as Button
 	var played_panel := game_scene.get_node("%PlayedPanel") as PanelContainer
+	var roll_panel := game_scene.get_node("%RollPanel") as PanelContainer
 	var status_label := game_scene.get_node("%StatusLabel") as Label
+	var selection_type := game_scene.get_node("%SelectionTypeLabel") as Label
 	var interpretation_popup := game_scene.get_node("%InterpretationPopup") as PopupPanel
-	var new_game_button := game_scene.get_node("%SettingsNewGameButton") as Button
 	assert(session.players.size() == 3)
 	assert(session.draw_pile.size() == 57)
 	assert(hand_view.get_child_count() == 17)
@@ -41,39 +39,20 @@ func _run_test() -> void:
 	assert(not east_seat.visible)
 	assert(game_scene.size.x >= 1000.0)
 	assert(game_scene.size.y >= 600.0)
-	assert(player_count_option.item_count == 3)
-	assert(game_speed_option.item_count == 3)
-	assert(resolution_option.item_count == SettingsService.RESOLUTIONS.size())
-	assert(window_mode_option.item_count == 2)
-	assert(language_option.item_count == 2)
 	assert(played_panel.custom_minimum_size.x >= 480.0)
 	assert(status_label.global_position.y < played_panel.global_position.y)
+	assert(not selection_type.visible)
 
-	settings_button.pressed.emit()
+	_test_transactional_settings(
+		settings_button,
+		settings_overlay,
+		settings_panel,
+		settings_dismiss,
+		status_label,
+	)
 	await get_tree().process_frame
-	assert(settings_popup.visible)
-	settings_popup.hide()
-
-	player_count_option.select(0)
-	new_game_button.pressed.emit()
+	_test_manual_hand_order(session, hand_view)
 	await get_tree().process_frame
-	session = game_scene.get("_session") as GameSession
-	assert(session.players.size() == 2)
-	assert(not west_seat.visible and not east_seat.visible)
-
-	player_count_option.select(2)
-	new_game_button.pressed.emit()
-	await get_tree().process_frame
-	session = game_scene.get("_session") as GameSession
-	assert(session.players.size() == 4)
-	assert(session.players[1].display_name == "SEAT_EAST")
-	assert(west_seat.visible and east_seat.visible)
-
-	player_count_option.select(1)
-	new_game_button.pressed.emit()
-	await get_tree().process_frame
-	session = game_scene.get("_session") as GameSession
-	assert(session.players.size() == 3)
 
 	dice_button.pressed.emit()
 	assert(await _wait_until(func() -> bool: return session.dice_value != 0, 2.0))
@@ -93,6 +72,7 @@ func _run_test() -> void:
 	second_card.pointer_entered.emit(second_card.card_id)
 	var selected_ids: Array[int] = game_scene.get("_selected_card_ids")
 	assert(selected_ids.size() == 2)
+	assert(selection_type.visible)
 
 	var mouse_up := InputEventMouseButton.new()
 	mouse_up.button_index = MOUSE_BUTTON_LEFT
@@ -105,10 +85,13 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	selected_ids = game_scene.get("_selected_card_ids")
 	assert(selected_ids.is_empty())
+	assert(not selection_type.visible)
 
-	_test_bonus_controls(game_scene, session, pass_button)
+	_test_bonus_controls(game_scene, session, pass_button, roll_panel, played_panel)
 	await get_tree().process_frame
 	assert(not pass_button.visible)
+	assert((roll_panel.get_node("FlowBorder") as ColorRect).visible)
+	assert((played_panel.get_node("FlowBorder") as ColorRect).visible)
 
 	_test_interpretation_popup(game_scene, session)
 	await get_tree().process_frame
@@ -116,11 +99,81 @@ func _run_test() -> void:
 	assert(interpretation_popup.size.y <= 420)
 	assert(game_scene.get_node("%InterpretationOptions").get_child_count() == 3)
 	interpretation_popup.hide()
+	await _test_conservative_auto_pass(game_scene, session)
 
+	SettingsService.apply_settings(original_settings)
 	print("BONUS_TEST_GAME_SCENE_OK")
 	game_scene.queue_free()
 	await get_tree().process_frame
 	get_tree().quit()
+
+
+func _test_transactional_settings(
+	settings_button: Button,
+	settings_overlay: Control,
+	settings_panel: AppSettingsPanel,
+	settings_dismiss: Button,
+	status_label: Label,
+) -> void:
+	var original_speed := SettingsService.game_speed
+	settings_button.pressed.emit()
+	await get_tree().process_frame
+	assert(settings_overlay.visible)
+	var speed_option := settings_panel.get_node("%GameSpeedOption") as OptionButton
+	var draft_speed := (
+		SettingsService.GameSpeed.FAST
+		if original_speed != SettingsService.GameSpeed.FAST
+		else SettingsService.GameSpeed.SLOW
+	)
+	_select_option_by_id(speed_option, draft_speed)
+	settings_dismiss.pressed.emit()
+	await get_tree().process_frame
+	assert(not settings_overlay.visible)
+	assert(SettingsService.game_speed == original_speed)
+
+	settings_button.pressed.emit()
+	await get_tree().process_frame
+	(settings_panel.get_node("%StatusTextToggle") as CheckButton).button_pressed = false
+	(settings_panel.get_node("%ApplyButton") as Button).pressed.emit()
+	await get_tree().process_frame
+	assert(not settings_overlay.visible)
+	assert(not status_label.visible)
+
+	settings_button.pressed.emit()
+	await get_tree().process_frame
+	var exit_menu_button := settings_panel.get_node("%ExitMenuButton") as Button
+	var confirmation := settings_panel.get_node("%ExitMenuConfirmation") as HBoxContainer
+	exit_menu_button.pressed.emit()
+	assert(not exit_menu_button.visible and confirmation.visible)
+	(settings_panel.get_node("%ExitMenuNo") as Button).pressed.emit()
+	assert(exit_menu_button.visible and not confirmation.visible)
+	(settings_panel.get_node("%StatusTextToggle") as CheckButton).button_pressed = true
+	(settings_panel.get_node("%ApplyButton") as Button).pressed.emit()
+	await get_tree().process_frame
+	assert(status_label.visible)
+
+
+func _select_option_by_id(option: OptionButton, item_id: int) -> void:
+	for index in range(option.item_count):
+		if option.get_item_id(index) == item_id:
+			option.select(index)
+			return
+	assert(false)
+
+
+func _test_manual_hand_order(session: GameSession, hand_view: HandView) -> void:
+	var snapshot := SettingsService.get_snapshot()
+	snapshot["auto_sort_hand"] = false
+	assert(SettingsService.apply_settings(snapshot))
+	assert(not session.players[0].auto_sort_enabled)
+	var reversed_ids := hand_view.get_ordered_ids()
+	reversed_ids.reverse()
+	hand_view.order_changed.emit(reversed_ids)
+	assert(session.players[0].hand[0].card_id == reversed_ids[0])
+
+	snapshot["auto_sort_hand"] = true
+	assert(SettingsService.apply_settings(snapshot))
+	assert(session.players[0].auto_sort_enabled)
 
 
 func _wait_until(predicate: Callable, timeout: float) -> bool:
@@ -133,7 +186,13 @@ func _wait_until(predicate: Callable, timeout: float) -> bool:
 	return predicate.call()
 
 
-func _test_bonus_controls(game_scene: Control, session: GameSession, pass_button: Button) -> void:
+func _test_bonus_controls(
+	game_scene: Control,
+	session: GameSession,
+	pass_button: Button,
+	roll_panel: PanelContainer,
+	played_panel: PanelContainer,
+) -> void:
 	session.is_bonus = true
 	session.last_play_pattern = null
 	session.phase = GameSession.Phase.AWAITING_ACTION
@@ -142,6 +201,8 @@ func _test_bonus_controls(game_scene: Control, session: GameSession, pass_button
 	assert(not session.pass_turn(0))
 	assert(session.last_error_key == &"ERROR_BONUS_MUST_PLAY")
 	assert(not pass_button.visible)
+	assert((roll_panel.get_node("FlowBorder") as ColorRect).visible)
+	assert((played_panel.get_node("FlowBorder") as ColorRect).visible)
 
 
 func _test_interpretation_popup(game_scene: Control, session: GameSession) -> void:
@@ -164,3 +225,28 @@ func _test_interpretation_popup(game_scene: Control, session: GameSession) -> vo
 	game_scene.set("_selected_card_ids", ids)
 	game_scene.call("_refresh")
 	game_scene.call("_on_play_pressed")
+
+
+func _test_conservative_auto_pass(game_scene: Control, session: GameSession) -> void:
+	var snapshot := SettingsService.get_snapshot()
+	snapshot["auto_pass"] = true
+	assert(SettingsService.apply_settings(snapshot))
+	session.players[0].hand = [
+		CardData.new(9100, CardData.Rank.THREE, CardData.Suit.CLUBS),
+	]
+	session.is_bonus = true
+	session.last_play_pattern = null
+	session.phase = GameSession.Phase.AWAITING_ACTION
+	session.current_player_index = 0
+	game_scene.call("_refresh")
+	await get_tree().create_timer(0.4).timeout
+	assert(session.current_player_index == 0)
+
+	session.is_bonus = false
+	session.phase = GameSession.Phase.AWAITING_ROLL
+	session.current_player_index = 0
+	session.roller_index = 0
+	session.dice_value = 0
+	assert(session.accept_dice_result(0, 2))
+	await get_tree().create_timer(0.4).timeout
+	assert(session.current_player_index == 1)

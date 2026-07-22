@@ -22,13 +22,21 @@ var type: Type
 var card_count: int
 var main_rank: int
 var contains_joker: bool
+var uses_wildcard: bool
 
 
-func _init(p_type: Type, p_card_count: int, p_main_rank: int, p_contains_joker: bool) -> void:
+func _init(
+	p_type: Type,
+	p_card_count: int,
+	p_main_rank: int,
+	p_contains_joker: bool,
+	p_uses_wildcard: bool = false,
+) -> void:
 	type = p_type
 	card_count = p_card_count
 	main_rank = p_main_rank
 	contains_joker = p_contains_joker
+	uses_wildcard = p_uses_wildcard
 
 
 func is_full_kind() -> bool:
@@ -36,7 +44,7 @@ func is_full_kind() -> bool:
 
 
 func clone() -> HandPattern:
-	return HandPattern.new(type, card_count, main_rank, contains_joker)
+	return HandPattern.new(type, card_count, main_rank, contains_joker, uses_wildcard)
 
 
 func get_translation_key() -> StringName:
@@ -62,4 +70,4 @@ func get_translation_key() -> StringName:
 
 
 func get_key() -> String:
-	return "%d:%d:%d" % [type, card_count, main_rank]
+	return "%d:%d:%d:%d" % [type, card_count, main_rank, int(uses_wildcard)]

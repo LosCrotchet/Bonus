@@ -4,7 +4,7 @@ extends RefCounted
 const DECK_COPIES := 2
 
 
-static func create_two_deck() -> Array[CardData]:
+static func create_two_deck(include_jokers: bool = true) -> Array[CardData]:
 	var cards: Array[CardData] = []
 	var next_card_id := 0
 
@@ -19,26 +19,27 @@ static func create_two_deck() -> Array[CardData]:
 				cards.append(CardData.new(next_card_id, rank, suit, CardData.JokerKind.NONE, deck_index))
 				next_card_id += 1
 
-		cards.append(
-			CardData.new(
-				next_card_id,
-				0,
-				CardData.Suit.NONE,
-				CardData.JokerKind.SMALL,
-				deck_index,
+		if include_jokers:
+			cards.append(
+				CardData.new(
+					next_card_id,
+					0,
+					CardData.Suit.NONE,
+					CardData.JokerKind.SMALL,
+					deck_index,
+				)
 			)
-		)
-		next_card_id += 1
-		cards.append(
-			CardData.new(
-				next_card_id,
-				0,
-				CardData.Suit.NONE,
-				CardData.JokerKind.BIG,
-				deck_index,
+			next_card_id += 1
+			cards.append(
+				CardData.new(
+					next_card_id,
+					0,
+					CardData.Suit.NONE,
+					CardData.JokerKind.BIG,
+					deck_index,
+				)
 			)
-		)
-		next_card_id += 1
+			next_card_id += 1
 
 	return cards
 
