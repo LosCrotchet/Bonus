@@ -52,6 +52,27 @@ static func choose_cover_pattern(cards: Array[CardData], target: HandPattern) ->
 	return candidates[0]
 
 
+static func get_distinct_interpretations(cards: Array[CardData]) -> Array[HandPattern]:
+	return distill_interpretations(evaluate_all(cards))
+
+
+static func distill_interpretations(patterns: Array[HandPattern]) -> Array[HandPattern]:
+	var strongest_by_type := {}
+	for pattern in patterns:
+		var type_key := pattern.type
+		if (
+			not strongest_by_type.has(type_key)
+			or pattern.main_rank > (strongest_by_type[type_key] as HandPattern).main_rank
+		):
+			strongest_by_type[type_key] = pattern
+
+	var results: Array[HandPattern] = []
+	for pattern in strongest_by_type.values():
+		results.append(pattern)
+	results.sort_custom(_is_pattern_preferred)
+	return results
+
+
 static func beats(candidate: HandPattern, target: HandPattern) -> bool:
 	if candidate == null or target == null or candidate.card_count != target.card_count:
 		return false

@@ -3,6 +3,7 @@ extends RefCounted
 
 signal state_changed
 signal game_finished(winner_index: int)
+signal action_resolved(public_action: Dictionary)
 
 enum Phase {
 	READY,
@@ -28,8 +29,10 @@ var dice_value := 0
 var winner_index := -1
 var phase := Phase.READY
 var is_bonus := false
-var last_error := ""
-var event_message := ""
+var last_error_key: StringName = &""
+var last_error_args: Dictionary = {}
+var event_key: StringName = &""
+var event_args: Dictionary = {}
 
 var _passes_since_play := 0
 var _round_pass_count := 0
@@ -39,7 +42,7 @@ var _random_source := RandomNumberGenerator.new()
 
 func start_game(player_names: Array[String], seed_value: int = 0) -> bool:
 	if player_names.size() < 2 or player_names.size() > 4:
-		return _fail("玩家人数必须为 2 至 4 人")
+		return _fail(&"ERROR_PLAYER_COUNT")
 
 	players.clear()
 	draw_pile = DeckFactory.create_two_deck()
@@ -52,8 +55,8 @@ func start_game(player_names: Array[String], seed_value: int = 0) -> bool:
 	played_by_index = -1
 	dice_value = 0
 	winner_index = -1
-	last_error = ""
-	event_message = "牌局开始，南家先手"
+	_clear_error()
+	_set_event(&"EVENT_GAME_STARTED")
 	_reset_round_tracking()
 
 	if seed_value == 0:
@@ -85,42 +88,51 @@ func accept_dice_result(player_index: int, value: int) -> bool:
 	if not _can_current_player_act(player_index):
 		return false
 	if phase != Phase.AWAITING_ROLL:
-		return _fail("当前阶段不能掷骰子")
+		return _fail(&"ERROR_CANNOT_ROLL")
 	if value < 1 or value > 6:
-		return _fail("骰子点数必须为 1 至 6")
+		return _fail(&"ERROR_DICE_RANGE")
 
 	_discard_table_cards()
 	dice_value = value
 	last_player_index = -1
 	phase = Phase.AWAITING_ACTION
-	last_error = ""
-	event_message = "%s 掷出了 %d 点" % [players[player_index].display_name, value]
+	_clear_error()
+	_set_event(&"EVENT_ROLLED", {"player": players[player_index].display_name, "value": value})
+	_emit_public_action(&"roll", player_index, {"dice_value": value})
 	state_changed.emit()
 	return true
 
 
-func play_cards(player_index: int, card_ids: Array[int]) -> bool:
+func play_cards(
+	player_index: int,
+	card_ids: Array[int],
+	interpretation_key: String = "",
+) -> bool:
 	if not _can_current_player_act(player_index):
 		return false
 	if phase != Phase.AWAITING_ACTION:
-		return _fail("当前阶段不能出牌")
+		return _fail(&"ERROR_CANNOT_PLAY")
 	if card_ids.is_empty():
-		return _fail("请先选择要出的牌")
+		return _fail(&"ERROR_SELECT_CARDS")
 	if not players[player_index].has_cards(card_ids):
-		return _fail("选中的牌不在当前手牌中")
+		return _fail(&"ERROR_CARDS_NOT_IN_HAND")
 
-	var selected_cards := _find_cards(players[player_index], card_ids)
-	var selected_pattern: HandPattern
-	if last_play_pattern == null:
-		if not is_bonus and card_ids.size() != dice_value:
-			return _fail("出牌数量必须等于骰子点数")
-		selected_pattern = HandEvaluator.choose_lead_pattern(selected_cards)
+	if last_play_pattern == null and not is_bonus and card_ids.size() != dice_value:
+		return _fail(&"ERROR_CARD_COUNT")
+	var interpretations := get_legal_interpretations(player_index, card_ids)
+	if interpretations.is_empty():
+		return _fail(
+			&"ERROR_CANNOT_COVER" if last_play_pattern != null else &"ERROR_INVALID_HAND"
+		)
+	var selected_pattern := interpretations[0]
+	if not interpretation_key.is_empty():
+		selected_pattern = null
+		for pattern in interpretations:
+			if pattern.get_key() == interpretation_key:
+				selected_pattern = pattern
+				break
 		if selected_pattern == null:
-			return _fail("所选牌不能组成合法牌型")
-	else:
-		selected_pattern = HandEvaluator.choose_cover_pattern(selected_cards, last_play_pattern)
-		if selected_pattern == null:
-			return _fail("所选牌型不能盖过当前出牌")
+			return _fail(&"ERROR_INVALID_INTERPRETATION")
 
 	var was_opening_play := last_play_pattern == null
 	if not was_opening_play:
@@ -137,17 +149,31 @@ func play_cards(player_index: int, card_ids: Array[int]) -> bool:
 	if was_opening_play:
 		_bonus_candidate = player_index == roller_index and not is_bonus
 
-	last_error = ""
-	event_message = "%s 打出%s" % [players[player_index].display_name, selected_pattern.get_display_name()]
+	_clear_error()
+	_set_event(
+		&"EVENT_PLAYED",
+		{
+			"player": players[player_index].display_name,
+			"hand_type": selected_pattern.get_translation_key(),
+		},
+	)
+	_emit_public_action(
+		&"play",
+		player_index,
+		{
+			"cards": _cards_to_snapshots(played_cards),
+			"interpretation_key": selected_pattern.get_key(),
+		},
+	)
 
 	# Victory is resolved only after a confirmed play changes the hand.
 	if players[player_index].hand.is_empty():
 		if selected_pattern.contains_joker:
 			var drawn_count := draw_cards(player_index, JOKER_FINISH_DRAW_COUNT)
-			event_message = "%s 最后一手含万能牌，摸了 %d 张" % [
-				players[player_index].display_name,
-				drawn_count,
-			]
+			_set_event(
+				&"EVENT_JOKER_PENALTY",
+				{"player": players[player_index].display_name, "count": drawn_count},
+			)
 		else:
 			_finish_game(player_index)
 			return true
@@ -161,28 +187,30 @@ func pass_turn(player_index: int) -> bool:
 	if not _can_current_player_act(player_index):
 		return false
 	if phase != Phase.AWAITING_ACTION:
-		return _fail("当前阶段不能选择不出")
-
-	last_error = ""
-	event_message = "%s 选择不出" % players[player_index].display_name
+		return _fail(&"ERROR_CANNOT_PASS")
 
 	if is_bonus and last_play_pattern == null:
-		_begin_new_round(roller_index)
-		state_changed.emit()
-		return true
+		return _fail(&"ERROR_BONUS_MUST_PLAY")
+
+	_clear_error()
+	_set_event(&"EVENT_PASSED", {"player": players[player_index].display_name})
 
 	if last_play_pattern == null:
 		_round_pass_count += 1
 		if _round_pass_count >= players.size():
 			var previous_roller := roller_index
 			var drawn_count := draw_cards(previous_roller, PASS_DRAW_COUNT)
-			event_message = "本回合无人出牌，%s 摸了 %d 张" % [
-				players[previous_roller].display_name,
-				drawn_count,
-			]
+			_set_event(
+				&"EVENT_ALL_PASSED",
+				{"player": players[previous_roller].display_name, "count": drawn_count},
+			)
 			_begin_new_round(_next_player(previous_roller))
+			_emit_public_action(&"pass", player_index)
+			state_changed.emit()
+			return true
 		else:
 			current_player_index = _next_player(player_index)
+		_emit_public_action(&"pass", player_index)
 		state_changed.emit()
 		return true
 
@@ -192,10 +220,11 @@ func pass_turn(player_index: int) -> bool:
 			_start_bonus()
 		else:
 			var next_roller := last_player_index
-			event_message = "%s 获得下一次掷骰" % players[next_roller].display_name
+			_set_event(&"EVENT_NEXT_ROLLER", {"player": players[next_roller].display_name})
 			_begin_new_round(next_roller)
 	else:
 		current_player_index = _next_player(player_index)
+	_emit_public_action(&"pass", player_index)
 	state_changed.emit()
 	return true
 
@@ -229,6 +258,64 @@ func get_recommended_play(player_index: int) -> Array[int]:
 	return LegalMoveFinder.find_play(hand, dice_value)
 
 
+func get_legal_interpretations(
+	player_index: int,
+	card_ids: Array[int],
+) -> Array[HandPattern]:
+	var results: Array[HandPattern] = []
+	if (
+		phase != Phase.AWAITING_ACTION
+		or player_index != current_player_index
+		or player_index < 0
+		or player_index >= players.size()
+		or card_ids.is_empty()
+		or not players[player_index].has_cards(card_ids)
+	):
+		return results
+	if last_play_pattern == null and not is_bonus and card_ids.size() != dice_value:
+		return results
+
+	var cards := _find_cards(players[player_index], card_ids)
+	for pattern in HandEvaluator.get_distinct_interpretations(cards):
+		if last_play_pattern == null or HandEvaluator.beats(pattern, last_play_pattern):
+			results.append(pattern)
+	return results
+
+
+func create_strategy_context(player_index: int) -> StrategyContext:
+	if player_index < 0 or player_index >= players.size():
+		return null
+	var context := StrategyContext.new()
+	context.player_index = player_index
+	context.phase = (
+		StrategyContext.PHASE_ROLL
+		if phase == Phase.AWAITING_ROLL
+		else StrategyContext.PHASE_ACTION
+	)
+	for card in players[player_index].hand:
+		context.own_hand.append(card.clone())
+	for index in range(players.size()):
+		context.player_summaries.append(
+			{
+				"player_index": index,
+				"display_name_key": players[index].display_name,
+				"hand_count": players[index].hand.size(),
+				"is_current": index == current_player_index,
+				"is_roller": index == roller_index,
+			}
+		)
+	context.draw_pile_count = draw_pile.size()
+	context.discard_pile_count = discard_pile.size()
+	context.dice_value = dice_value
+	context.is_bonus = is_bonus
+	context.roller_index = roller_index
+	context.last_player_index = last_player_index
+	context.target_pattern = last_play_pattern.clone() if last_play_pattern != null else null
+	for card in last_played_cards:
+		context.visible_table_cards.append(card.clone())
+	return context
+
+
 func get_total_card_count() -> int:
 	var total := draw_pile.size() + discard_pile.size() + last_played_cards.size()
 	for player in players:
@@ -243,7 +330,7 @@ func _start_bonus() -> void:
 	_bonus_candidate = false
 	_passes_since_play = 0
 	_round_pass_count = 0
-	event_message = "%s 获得 BONUS，可打出任意合法牌型" % players[roller_index].display_name
+	_set_event(&"EVENT_BONUS", {"player": players[roller_index].display_name})
 
 
 func _begin_new_round(next_roller: int) -> void:
@@ -264,7 +351,7 @@ func _reset_round_tracking() -> void:
 func _finish_game(player_index: int) -> void:
 	winner_index = player_index
 	phase = Phase.FINISHED
-	event_message = "%s 打完了全部手牌" % players[player_index].display_name
+	_set_event(&"EVENT_WINNER", {"player": players[player_index].display_name})
 	state_changed.emit()
 	game_finished.emit(winner_index)
 
@@ -300,14 +387,53 @@ func _next_player(player_index: int) -> int:
 
 func _can_current_player_act(player_index: int) -> bool:
 	if phase == Phase.FINISHED:
-		return _fail("游戏已经结束")
+		return _fail(&"ERROR_GAME_FINISHED")
 	if player_index < 0 or player_index >= players.size():
-		return _fail("玩家不存在")
+		return _fail(&"ERROR_PLAYER_NOT_FOUND")
 	if player_index != current_player_index:
-		return _fail("还没有轮到该玩家")
+		return _fail(&"ERROR_NOT_PLAYER_TURN")
 	return true
 
 
-func _fail(message: String) -> bool:
-	last_error = message
+func _fail(key: StringName, args: Dictionary = {}) -> bool:
+	last_error_key = key
+	last_error_args = args.duplicate(true)
 	return false
+
+
+func _clear_error() -> void:
+	last_error_key = &""
+	last_error_args.clear()
+
+
+func _set_event(key: StringName, args: Dictionary = {}) -> void:
+	event_key = key
+	event_args = args.duplicate(true)
+
+
+func _emit_public_action(
+	action_type: StringName,
+	player_index: int,
+	extra: Dictionary = {},
+) -> void:
+	var action := {
+		"type": action_type,
+		"player_index": player_index,
+		"hand_count": players[player_index].hand.size(),
+	}
+	action.merge(extra, true)
+	action_resolved.emit(action)
+
+
+func _cards_to_snapshots(cards: Array[CardData]) -> Array[Dictionary]:
+	var snapshots: Array[Dictionary] = []
+	for card in cards:
+		snapshots.append(
+			{
+				"card_id": card.card_id,
+				"rank": card.rank,
+				"suit": card.suit,
+				"joker_kind": card.joker_kind,
+			}
+		)
+	return snapshots

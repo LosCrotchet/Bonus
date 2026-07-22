@@ -6,6 +6,7 @@ var _next_card_id := 2000
 func _init() -> void:
 	_test_following_and_turn_resolution()
 	_test_bonus_once()
+	_test_explicit_wildcard_interpretation()
 	_test_all_pass_draws_three()
 	_test_joker_finish_penalty()
 	_test_winner_resolution()
@@ -45,6 +46,8 @@ func _test_bonus_once() -> void:
 	assert(session.is_bonus)
 	assert(session.current_player_index == 0)
 	assert(session.last_play_pattern == null)
+	assert(not session.pass_turn(0))
+	assert(session.last_error_key == &"ERROR_BONUS_MUST_PLAY")
 
 	var pair_ids: Array[int] = [session.players[0].hand[0].card_id, session.players[0].hand[1].card_id]
 	assert(session.play_cards(0, pair_ids))
@@ -54,6 +57,27 @@ func _test_bonus_once() -> void:
 	assert(not session.is_bonus)
 	assert(session.phase == GameSession.Phase.AWAITING_ROLL)
 	assert(session.roller_index == 0)
+
+
+func _test_explicit_wildcard_interpretation() -> void:
+	var session := _session_with_hands([
+		[3, 3, 4, 4],
+		[5],
+		[6],
+	])
+	session.players[0].hand.append(_joker())
+	session.players[0].hand.append(_joker())
+	assert(session.accept_dice_result(0, 6))
+	var ids := _first_ids(session, 0, 6)
+	var interpretations := session.get_legal_interpretations(0, ids)
+	assert(interpretations.size() == 3)
+	var triple_with_triple: HandPattern
+	for pattern in interpretations:
+		if pattern.type == HandPattern.Type.TRIPLE_WITH_TRIPLE:
+			triple_with_triple = pattern
+	assert(triple_with_triple != null)
+	assert(session.play_cards(0, ids, triple_with_triple.get_key()))
+	assert(session.last_play_pattern.type == HandPattern.Type.TRIPLE_WITH_TRIPLE)
 
 
 func _test_all_pass_draws_three() -> void:
@@ -70,6 +94,7 @@ func _test_all_pass_draws_three() -> void:
 	assert(session.players[0].hand.size() == before + 3)
 	assert(session.phase == GameSession.Phase.AWAITING_ROLL)
 	assert(session.roller_index == 1)
+	assert(session.current_player_index == session.roller_index)
 
 
 func _test_joker_finish_penalty() -> void:

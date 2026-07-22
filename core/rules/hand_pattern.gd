@@ -35,24 +35,30 @@ func is_full_kind() -> bool:
 	return type in [Type.FOUR_KIND, Type.FIVE_KIND, Type.SIX_KIND]
 
 
-func get_display_name() -> String:
-	var names := {
-		Type.SINGLE: "单张",
-		Type.PAIR: "对子",
-		Type.TRIPLE: "三条",
-		Type.STRAIGHT: "%d张顺子" % card_count,
-		Type.FOUR_KIND: "四条",
-		Type.TRIPLE_WITH_ONE: "三带一",
-		Type.PAIR_STRAIGHT: "二连对" if card_count == 4 else "三连对",
-		Type.FIVE_KIND: "五条",
-		Type.TRIPLE_WITH_PAIR: "三带二",
-		Type.FOUR_WITH_ONE: "四带一",
-		Type.SIX_KIND: "六条",
-		Type.FIVE_WITH_ONE: "五带一",
-		Type.FOUR_WITH_TWO: "四带二",
-		Type.TRIPLE_WITH_TRIPLE: "三带三",
+func clone() -> HandPattern:
+	return HandPattern.new(type, card_count, main_rank, contains_joker)
+
+
+func get_translation_key() -> StringName:
+	var keys := {
+		Type.SINGLE: &"HAND_SINGLE",
+		Type.PAIR: &"HAND_PAIR",
+		Type.TRIPLE: &"HAND_TRIPLE",
+		Type.FOUR_KIND: &"HAND_FOUR_KIND",
+		Type.TRIPLE_WITH_ONE: &"HAND_TRIPLE_WITH_ONE",
+		Type.FIVE_KIND: &"HAND_FIVE_KIND",
+		Type.TRIPLE_WITH_PAIR: &"HAND_TRIPLE_WITH_PAIR",
+		Type.FOUR_WITH_ONE: &"HAND_FOUR_WITH_ONE",
+		Type.SIX_KIND: &"HAND_SIX_KIND",
+		Type.FIVE_WITH_ONE: &"HAND_FIVE_WITH_ONE",
+		Type.FOUR_WITH_TWO: &"HAND_FOUR_WITH_TWO",
+		Type.TRIPLE_WITH_TRIPLE: &"HAND_TRIPLE_WITH_TRIPLE",
 	}
-	return names.get(type, "未知牌型")
+	if type == Type.STRAIGHT:
+		return &"HAND_STRAIGHT_%d" % card_count
+	if type == Type.PAIR_STRAIGHT:
+		return &"HAND_PAIR_STRAIGHT_2" if card_count == 4 else &"HAND_PAIR_STRAIGHT_3"
+	return keys.get(type, &"HAND_UNKNOWN")
 
 
 func get_key() -> String:

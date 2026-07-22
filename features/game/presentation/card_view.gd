@@ -29,7 +29,11 @@ func _ready() -> void:
 func configure(card: CardData, enabled: bool) -> void:
 	card_id = card.card_id
 	texture_normal = CardTextureCatalog.get_texture(card)
-	tooltip_text = card.get_display_name()
+	tooltip_text = (
+		tr(card.get_name_translation_key())
+		if card.is_joker()
+		else "%s %s" % [tr(card.get_suit_translation_key()), card.get_rank_label()]
+	)
 	set_interaction_enabled(enabled)
 
 

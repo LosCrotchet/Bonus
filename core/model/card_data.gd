@@ -56,6 +56,10 @@ func is_joker() -> bool:
 	return joker_kind != JokerKind.NONE
 
 
+func clone() -> CardData:
+	return CardData.new(card_id, rank, suit, joker_kind, deck_index)
+
+
 func get_sort_value() -> int:
 	if joker_kind == JokerKind.SMALL:
 		return 16
@@ -64,12 +68,19 @@ func get_sort_value() -> int:
 	return rank
 
 
-func get_display_name() -> String:
+func get_name_translation_key() -> StringName:
 	if joker_kind == JokerKind.SMALL:
-		return "小王"
+		return &"CARD_JOKER_SMALL"
 	if joker_kind == JokerKind.BIG:
-		return "大王"
+		return &"CARD_JOKER_BIG"
+	return get_suit_translation_key()
 
+
+func get_rank_label() -> String:
+	return rank_to_label(rank)
+
+
+static func rank_to_label(value: int) -> String:
 	var rank_names := {
 		Rank.JACK: "J",
 		Rank.QUEEN: "Q",
@@ -77,10 +88,14 @@ func get_display_name() -> String:
 		Rank.ACE: "A",
 		Rank.TWO: "2",
 	}
-	var suit_names := {
-		Suit.CLUBS: "梅花",
-		Suit.DIAMONDS: "方块",
-		Suit.HEARTS: "红心",
-		Suit.SPADES: "黑桃",
+	return rank_names.get(value, str(value))
+
+
+func get_suit_translation_key() -> StringName:
+	var suit_keys := {
+		Suit.CLUBS: &"CARD_SUIT_CLUBS",
+		Suit.DIAMONDS: &"CARD_SUIT_DIAMONDS",
+		Suit.HEARTS: &"CARD_SUIT_HEARTS",
+		Suit.SPADES: &"CARD_SUIT_SPADES",
 	}
-	return "%s%s" % [suit_names.get(suit, ""), rank_names.get(rank, str(rank))]
+	return suit_keys.get(suit, &"")

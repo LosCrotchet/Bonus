@@ -15,12 +15,21 @@ run/main_scene="res://features/game/game_scene.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
+[autoload]
+
+SettingsService="*res://autoload/settings_service.gd"
+
 [display]
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+
+[internationalization]
+
+locale/fallback="zh_CN"
+locale/translations=PackedStringArray("res://localization/strings.en.translation", "res://localization/strings.zh_CN.translation")
 
 [physics]
 

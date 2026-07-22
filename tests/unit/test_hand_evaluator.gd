@@ -8,6 +8,7 @@ func _init() -> void:
 	_test_sequence_boundaries()
 	_test_comparison_rules()
 	_test_wildcards()
+	_test_distinct_wildcard_interpretations()
 	print("BONUS_TEST_HAND_EVALUATOR_OK")
 	quit()
 
@@ -70,6 +71,24 @@ func _test_wildcards() -> void:
 	assert(cover != null)
 	assert(cover.type == HandPattern.Type.TRIPLE)
 	assert(cover.main_rank == 9)
+
+
+func _test_distinct_wildcard_interpretations() -> void:
+	var cards := _cards([3, 3, 4, 4])
+	cards.append(_joker())
+	cards.append(_joker())
+	var interpretations := HandEvaluator.get_distinct_interpretations(cards)
+	assert(interpretations.size() == 3)
+	assert(_find_type(interpretations, HandPattern.Type.PAIR_STRAIGHT).main_rank == 5)
+	assert(_find_type(interpretations, HandPattern.Type.TRIPLE_WITH_TRIPLE).main_rank == 4)
+	assert(_find_type(interpretations, HandPattern.Type.FOUR_WITH_TWO).main_rank == 4)
+
+
+func _find_type(patterns: Array[HandPattern], type: HandPattern.Type) -> HandPattern:
+	for pattern in patterns:
+		if pattern.type == type:
+			return pattern
+	return null
 
 
 func _assert_pattern(ranks: Array[int], type: HandPattern.Type, main_rank: int) -> void:

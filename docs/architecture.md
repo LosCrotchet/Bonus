@@ -53,6 +53,7 @@ res://
 │   └── transitions/
 ├── ai/
 │   └── strategies/              # 可替换的 AI 策略
+├── localization/                # 翻译源文件与语言资源
 ├── multiplayer/
 │   ├── protocol/                # 可序列化消息和版本定义
 │   └── transports/              # ENet、WebSocket 等传输实现
@@ -160,9 +161,11 @@ SETUP -> DEALING -> WAITING_FOR_ROLL -> WAITING_FOR_ACTION -> RESOLVING -> FINIS
 
 ## AI 扩展
 
-AI 策略通过 `core/ports/` 中的玩家代理接口接收只读状态快照和合法动作列表，并返回一个 `GameAction`。策略不得访问场景节点或直接修改状态。
+AI 策略通过 `core/ports/` 中的玩家代理接口接收与真实牌局分离的公开信息快照，并返回一个 `PlayerDecision`。策略不得访问场景节点、其他玩家手牌或直接修改状态；牌局会统一验证策略返回的动作。
 
 基础随机策略、规则策略或以后接入的外部算法都使用同一接口，因此替换算法不需要修改游戏场景。
+
+策略接口、上下文字段和注册方式见 [AI 策略接口](ai_strategy_api.md)。
 
 ## 多人联机扩展
 
