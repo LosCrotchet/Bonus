@@ -48,7 +48,6 @@ func _draw() -> void:
 			base_center + Vector2(cos(angle) * 13.0, sin(angle) * 5.5)
 		)
 
-	draw_ellipse_shadow(base_center + Vector2(0.0, 6.0))
 	for index in range(3):
 		var next_index := (index + 1) % 3
 		var light := 0.58 + 0.28 * sin(_phase + float(index) * TAU / 3.0)
@@ -70,11 +69,3 @@ func _draw() -> void:
 	)
 	draw_line(tip, vertices[0], accent_color.lightened(0.38), 1.2, true)
 	draw_circle(tip, 1.7, Color(1.0, 0.96, 0.72, 0.95))
-
-
-func draw_ellipse_shadow(center: Vector2) -> void:
-	var points := PackedVector2Array()
-	for index in range(18):
-		var angle := TAU * float(index) / 18.0
-		points.append(center + Vector2(cos(angle) * 11.0, sin(angle) * 3.0))
-	draw_colored_polygon(points, Color(0.0, 0.0, 0.0, 0.24))

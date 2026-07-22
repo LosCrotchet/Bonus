@@ -6,9 +6,10 @@
 [ext_resource type="Texture2D" uid="uid://dhgiexcj863h4" path="res://assets/art/dice/die_white_1.png" id="4_die"]
 [ext_resource type="PackedScene" path="res://shared/ui/settings_panel.tscn" id="5_settings"]
 [ext_resource type="Script" path="res://features/game/presentation/turn_indicator.gd" id="6_indicator"]
-
-[sub_resource type="Theme" id="Theme_main"]
-default_font_size = 16
+[ext_resource type="Theme" path="res://assets/themes/cartoon_ui/theme.tres" id="7_theme"]
+[ext_resource type="Texture2D" path="res://assets/icons/settings.png" id="8_settings_icon"]
+[ext_resource type="Texture2D" path="res://assets/icons/restart_left.png" id="9_restart_icon"]
+[ext_resource type="Texture2D" path="res://assets/icons/button_home.png" id="10_home_icon"]
 
 [sub_resource type="StyleBoxFlat" id="Style_header"]
 content_margin_left = 18.0
@@ -26,28 +27,6 @@ corner_radius_bottom_left = 6
 [sub_resource type="SystemFont" id="Font_bold"]
 font_names = PackedStringArray("Microsoft YaHei UI", "Noto Sans CJK SC", "Arial")
 font_weight = 700
-
-[sub_resource type="StyleBoxFlat" id="Style_button_neutral"]
-content_margin_left = 18.0
-content_margin_top = 8.0
-content_margin_right = 18.0
-content_margin_bottom = 8.0
-bg_color = Color(0.18, 0.24, 0.24, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="Style_button_neutral_hover"]
-content_margin_left = 18.0
-content_margin_top = 8.0
-content_margin_right = 18.0
-content_margin_bottom = 8.0
-bg_color = Color(0.28, 0.37, 0.35, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="Style_seat"]
 content_margin_left = 11.0
@@ -76,50 +55,6 @@ border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
 border_color = Color(0.3, 0.46, 0.41, 0.8)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="Style_button_disabled"]
-content_margin_left = 18.0
-content_margin_top = 8.0
-content_margin_right = 18.0
-content_margin_bottom = 8.0
-bg_color = Color(0.11, 0.14, 0.14, 0.7)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="Style_button_pass"]
-content_margin_left = 20.0
-content_margin_top = 8.0
-content_margin_right = 20.0
-content_margin_bottom = 8.0
-bg_color = Color(0.62, 0.22, 0.23, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="Style_button_play"]
-content_margin_left = 24.0
-content_margin_top = 8.0
-content_margin_right = 24.0
-content_margin_bottom = 8.0
-bg_color = Color(0.12, 0.48, 0.7, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="Style_button_play_hover"]
-content_margin_left = 24.0
-content_margin_top = 8.0
-content_margin_right = 24.0
-content_margin_bottom = 8.0
-bg_color = Color(0.18, 0.61, 0.84, 1)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
@@ -186,7 +121,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = SubResource("Theme_main")
+theme = ExtResource("7_theme")
 script = ExtResource("1_game")
 
 [node name="Background" type="ColorRect" parent="." unique_id=791974369]
@@ -238,12 +173,13 @@ theme_override_styles/panel = SubResource("Style_header")
 [node name="HeaderRow" type="HBoxContainer" parent="SafeArea/MainLayout/Header" unique_id=1051263841]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="SafeArea/MainLayout/Header/HeaderRow" unique_id=934492499]
+[node name="HeaderTitle" type="Label" parent="SafeArea/MainLayout/Header/HeaderRow" unique_id=934492499]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.98, 0.76, 0.26, 1)
 theme_override_fonts/font = SubResource("Font_bold")
 theme_override_font_sizes/font_size = 25
-text = "BONUS"
+text = "UI_GAME_HEADER"
 vertical_alignment = 1
 
 [node name="HeaderSpacer" type="Control" parent="SafeArea/MainLayout/Header/HeaderRow" unique_id=885260335]
@@ -254,10 +190,10 @@ size_flags_horizontal = 3
 unique_name_in_owner = true
 custom_minimum_size = Vector2(92, 36)
 layout_mode = 2
-theme_override_styles/normal = SubResource("Style_button_neutral")
-theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
-theme_override_styles/hover = SubResource("Style_button_neutral_hover")
 text = "UI_SETTINGS"
+icon = ExtResource("8_settings_icon")
+expand_icon = true
+icon_max_width = 22
 
 [node name="MainArea" type="Control" parent="SafeArea/MainLayout" unique_id=248286084]
 custom_minimum_size = Vector2(0, 246)
@@ -532,14 +468,18 @@ clip_contents = true
 [node name="SelectionTypeLabel" type="Label" parent="SafeArea/MainLayout/ActionSlot"]
 unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_bottom = 25.0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 226.0
+offset_top = 18.0
+offset_right = 586.0
+offset_bottom = 60.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.82, 0.9, 0.87, 1)
 theme_override_font_sizes/font_size = 19
 text = "UI_HAND_TYPE_NONE"
-horizontal_alignment = 1
+horizontal_alignment = 0
 vertical_alignment = 1
 
 [node name="ActionBar" type="HBoxContainer" parent="SafeArea/MainLayout/ActionSlot" unique_id=1580133174]
@@ -548,40 +488,29 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 29.0
+offset_top = 16.0
+offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 18
 alignment = 1
 
 [node name="HintButton" type="Button" parent="SafeArea/MainLayout/ActionSlot/ActionBar" unique_id=242518060]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(104, 40)
 layout_mode = 2
-theme_override_styles/normal = SubResource("Style_button_neutral")
-theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
-theme_override_styles/hover = SubResource("Style_button_neutral_hover")
-theme_override_styles/disabled = SubResource("Style_button_disabled")
 text = "UI_RECOMMEND"
 
 [node name="PassButton" type="Button" parent="SafeArea/MainLayout/ActionSlot/ActionBar" unique_id=1877184807]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(104, 40)
 layout_mode = 2
-theme_override_styles/normal = SubResource("Style_button_pass")
-theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
-theme_override_styles/hover = SubResource("Style_button_neutral_hover")
-theme_override_styles/disabled = SubResource("Style_button_disabled")
 text = "UI_PASS"
 
 [node name="PlayButton" type="Button" parent="SafeArea/MainLayout/ActionSlot/ActionBar" unique_id=103060594]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(126, 40)
 layout_mode = 2
-theme_override_styles/normal = SubResource("Style_button_play")
-theme_override_styles/pressed = SubResource("Style_button_play_hover")
-theme_override_styles/hover = SubResource("Style_button_play_hover")
-theme_override_styles/disabled = SubResource("Style_button_disabled")
 text = "UI_PLAY"
 
 [node name="HandPanel" type="PanelContainer" parent="SafeArea/MainLayout" unique_id=1863387464]
@@ -688,7 +617,7 @@ mouse_filter = 1
 
 [node name="SettingsPanel" parent="SettingsOverlay/Center" instance=ExtResource("5_settings")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(500, 640)
+custom_minimum_size = Vector2(500, 680)
 layout_mode = 2
 
 [node name="InterpretationPopup" type="PopupPanel" parent="."]
@@ -792,17 +721,17 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(180, 44)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/normal = SubResource("Style_button_play")
-theme_override_styles/pressed = SubResource("Style_button_play_hover")
-theme_override_styles/hover = SubResource("Style_button_play_hover")
 text = "UI_RESTART"
+icon = ExtResource("9_restart_icon")
+expand_icon = true
+icon_max_width = 22
 
 [node name="ResultMenuButton" type="Button" parent="ResultOverlay/Center/ResultPanel/ResultLayout/ResultButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(180, 44)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/normal = SubResource("Style_button_neutral")
-theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
-theme_override_styles/hover = SubResource("Style_button_neutral_hover")
 text = "UI_BACK_TO_MENU"
+icon = ExtResource("10_home_icon")
+expand_icon = true
+icon_max_width = 22

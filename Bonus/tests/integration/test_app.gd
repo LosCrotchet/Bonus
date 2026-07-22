@@ -13,10 +13,11 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	assert((app.get_node("Version") as Label).text == "v0.5.1")
+	assert((app.get_node("Version") as Label).text == "v0.5.2")
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
 	assert(menu != null)
+	assert((menu.get_node("%SinglePlayerButton") as Button).icon != null)
 	assert((menu.get_node("%MenuPanel") as PanelContainer).size.y >= 700.0)
 	assert(not (menu.get_node("%SinglePlayerPanel") as PanelContainer).visible)
 

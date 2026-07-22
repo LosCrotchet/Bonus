@@ -24,6 +24,8 @@ var _menu_target_position := Vector2.ZERO
 
 
 func _ready() -> void:
+	%SinglePlayerBackButton.set_meta(&"ui_sound", &"ui_cancel")
+	%ExitNoButton.set_meta(&"ui_sound", &"ui_cancel")
 	%SinglePlayerButton.pressed.connect(_open_single_player)
 	%SettingsButton.pressed.connect(_open_settings)
 	%StartGameButton.pressed.connect(_start_single_player)

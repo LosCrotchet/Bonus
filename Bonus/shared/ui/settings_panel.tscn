@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://shared/ui/settings_panel.gd" id="1_settings"]
 
@@ -16,23 +16,14 @@ content_margin_bottom = 22.0
 shadow_color = Color(0, 0, 0, 0.42)
 shadow_size = 12
 
-[sub_resource type="StyleBoxFlat" id="Style_primary"]
-bg_color = Color(0.86, 0.59, 0.18, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
-content_margin_left = 16.0
-content_margin_right = 16.0
-
 [node name="SettingsPanel" type="PanelContainer"]
-custom_minimum_size = Vector2(480, 620)
+custom_minimum_size = Vector2(480, 660)
 theme_override_styles/panel = SubResource("Style_panel")
 script = ExtResource("1_settings")
 
 [node name="Layout" type="VBoxContainer" parent="."]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 7
 
 [node name="Title" type="Label" parent="Layout"]
 unique_name_in_owner = true
@@ -87,6 +78,60 @@ text = "UI_LANGUAGE"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(220, 38)
 layout_mode = 2
+
+[node name="MasterVolumeRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Layout/MasterVolumeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_MASTER_VOLUME"
+[node name="MasterVolumeSlider" type="HSlider" parent="Layout/MasterVolumeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(158, 30)
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+[node name="MasterVolumeValue" type="Label" parent="Layout/MasterVolumeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(52, 0)
+layout_mode = 2
+horizontal_alignment = 2
+
+[node name="SfxVolumeRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Layout/SfxVolumeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_SFX_VOLUME"
+[node name="SfxVolumeSlider" type="HSlider" parent="Layout/SfxVolumeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(158, 30)
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+[node name="SfxVolumeValue" type="Label" parent="Layout/SfxVolumeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(52, 0)
+layout_mode = 2
+horizontal_alignment = 2
+
+[node name="MusicVolumeRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Layout/MusicVolumeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_MUSIC_VOLUME"
+[node name="MusicVolumeSlider" type="HSlider" parent="Layout/MusicVolumeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(158, 30)
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+[node name="MusicVolumeValue" type="Label" parent="Layout/MusicVolumeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(52, 0)
+layout_mode = 2
+horizontal_alignment = 2
 
 [node name="StatusTextRow" type="HBoxContainer" parent="Layout"]
 layout_mode = 2
@@ -193,7 +238,15 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/normal = SubResource("Style_primary")
-theme_override_styles/hover = SubResource("Style_primary")
-theme_override_styles/pressed = SubResource("Style_primary")
 text = "UI_APPLY"
+
+[node name="ApplyStatus" type="Label" parent="Layout/BottomButtons"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(108, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.95, 0.66, 1)
+theme_override_font_sizes/font_size = 16
+text = "UI_APPLY_SUCCESS"
+horizontal_alignment = 1
+vertical_alignment = 1

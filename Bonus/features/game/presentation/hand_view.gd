@@ -84,6 +84,29 @@ func set_interaction_enabled(value: bool) -> void:
 		card_view.set_interaction_enabled(value)
 
 
+func get_animation_snapshots(card_ids: Array[int]) -> Array[Dictionary]:
+	var snapshots: Array[Dictionary] = []
+	for card_id in card_ids:
+		var card_view := _find_card_view(card_id)
+		if card_view == null:
+			continue
+		snapshots.append({
+			"card_id": card_id,
+			"texture": card_view.texture_normal,
+			"global_position": card_view.global_position,
+			"global_rotation": card_view.get_global_transform().get_rotation(),
+			"size": card_view.size,
+		})
+	return snapshots
+
+
+func set_cards_animation_hidden(card_ids: Array[int], should_hide: bool) -> void:
+	for card_id in card_ids:
+		var card_view := _find_card_view(card_id)
+		if card_view != null:
+			card_view.visible = not should_hide
+
+
 func _input(event: InputEvent) -> void:
 	if event is not InputEventMouseButton:
 		return

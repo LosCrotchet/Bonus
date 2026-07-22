@@ -1,0 +1,65 @@
+[gd_resource type="Theme" load_steps=10 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/themes/cartoon_ui/button wide idle.png" id="1_idle"]
+[ext_resource type="Texture2D" path="res://assets/themes/cartoon_ui/button wide hover.png" id="2_hover"]
+[ext_resource type="Texture2D" path="res://assets/themes/cartoon_ui/button wide clicked.png" id="3_pressed"]
+[ext_resource type="Texture2D" path="res://assets/themes/cartoon_ui/toggle_off.png" id="4_toggle_off"]
+[ext_resource type="Texture2D" path="res://assets/themes/cartoon_ui/toggle_on.png" id="5_toggle_on"]
+
+[sub_resource type="StyleBoxTexture" id="Style_button_idle"]
+texture = ExtResource("1_idle")
+texture_margin_left = 22.0
+texture_margin_top = 12.0
+texture_margin_right = 22.0
+texture_margin_bottom = 12.0
+content_margin_left = 18.0
+content_margin_top = 7.0
+content_margin_right = 18.0
+content_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxTexture" id="Style_button_hover"]
+texture = ExtResource("2_hover")
+texture_margin_left = 22.0
+texture_margin_top = 12.0
+texture_margin_right = 22.0
+texture_margin_bottom = 12.0
+content_margin_left = 18.0
+content_margin_top = 7.0
+content_margin_right = 18.0
+content_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxTexture" id="Style_button_pressed"]
+texture = ExtResource("3_pressed")
+texture_margin_left = 22.0
+texture_margin_top = 12.0
+texture_margin_right = 22.0
+texture_margin_bottom = 12.0
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 6.0
+
+[sub_resource type="StyleBoxEmpty" id="Style_empty"]
+
+[resource]
+default_font_size = 16
+Button/colors/font_color = Color(0.95, 0.98, 1, 1)
+Button/colors/font_hover_color = Color(1, 1, 1, 1)
+Button/colors/font_pressed_color = Color(0.94, 0.98, 1, 1)
+Button/colors/font_disabled_color = Color(0.56, 0.63, 0.66, 0.8)
+Button/styles/normal = SubResource("Style_button_idle")
+Button/styles/hover = SubResource("Style_button_hover")
+Button/styles/pressed = SubResource("Style_button_pressed")
+Button/styles/disabled = SubResource("Style_button_idle")
+Button/styles/focus = SubResource("Style_empty")
+CheckButton/colors/font_color = Color(0.95, 0.98, 1, 1)
+CheckButton/icons/checked = ExtResource("5_toggle_on")
+CheckButton/icons/checked_disabled = ExtResource("5_toggle_on")
+CheckButton/icons/checked_mirrored = ExtResource("5_toggle_on")
+CheckButton/icons/unchecked = ExtResource("4_toggle_off")
+CheckButton/icons/unchecked_disabled = ExtResource("4_toggle_off")
+CheckButton/icons/unchecked_mirrored = ExtResource("4_toggle_off")
+CheckButton/styles/normal = SubResource("Style_empty")
+CheckButton/styles/hover = SubResource("Style_empty")
+CheckButton/styles/pressed = SubResource("Style_empty")
+CheckButton/styles/focus = SubResource("Style_empty")

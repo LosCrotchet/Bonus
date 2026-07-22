@@ -25,13 +25,17 @@ func _capture() -> void:
 	await get_tree().process_frame
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
-	if state == "settings":
+	if state in ["settings", "settings_applied"]:
 		(menu.get_node("%SettingsButton") as Button).pressed.emit()
 		await get_tree().create_timer(0.35).timeout
-	if state in ["single", "game", "game_settings", "bonus"]:
+		if state == "settings_applied":
+			var panel := menu.get_node("%SettingsSidePanel") as AppSettingsPanel
+			(panel.get_node("%ApplyButton") as Button).pressed.emit()
+			await get_tree().create_timer(0.18).timeout
+	if state in ["single", "game", "selected", "game_settings", "bonus"]:
 		(menu.get_node("%SinglePlayerButton") as Button).pressed.emit()
 		await get_tree().create_timer(0.35).timeout
-	if state in ["game", "game_settings", "bonus"]:
+	if state in ["game", "selected", "game_settings", "bonus"]:
 		(menu.get_node("%StartGameButton") as Button).pressed.emit()
 		while bool(app.get("_transitioning")) or content.get_child(0).name != "GameScene":
 			await get_tree().process_frame
@@ -48,6 +52,13 @@ func _capture() -> void:
 			session.current_player_index = 0
 			game.call("_refresh")
 			await get_tree().create_timer(0.35).timeout
+		elif state == "selected":
+			var session := game.get("_session") as GameSession
+			session.accept_dice_result(0, 1)
+			var selected_ids: Array[int] = [session.players[0].hand[0].card_id]
+			game.set("_selected_card_ids", selected_ids)
+			game.call("_refresh")
+			await get_tree().create_timer(0.25).timeout
 
 	await get_tree().process_frame
 	RenderingServer.force_draw()
