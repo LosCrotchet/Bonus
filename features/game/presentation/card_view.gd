@@ -14,14 +14,12 @@ var selected := false
 var interaction_enabled := true
 
 var _hovered := false
-var _dragging := false
 var _base_position := Vector2.ZERO
 var _base_rotation := 0.0
 var _neighbor_offset := Vector2.ZERO
 var _move_tween: Tween
 var _shadow_near: TextureRect
 var _shadow_far: TextureRect
-var _last_drag_position := Vector2.ZERO
 
 
 func _ready() -> void:
@@ -38,11 +36,7 @@ func _ready() -> void:
 func configure(card: CardData, enabled: bool) -> void:
 	card_id = card.card_id
 	texture_normal = CardTextureCatalog.get_texture(card)
-	tooltip_text = (
-		tr(card.get_name_translation_key())
-		if card.is_joker()
-		else "%s %s" % [tr(card.get_suit_translation_key()), card.get_rank_label()]
-	)
+	tooltip_text = ""
 	_update_shadow_textures()
 	set_interaction_enabled(enabled)
 
@@ -79,28 +73,6 @@ func set_interaction_enabled(value: bool) -> void:
 	_update_tint()
 
 
-func set_dragging(value: bool) -> void:
-	_dragging = value
-	if value:
-		if _move_tween != null:
-			_move_tween.kill()
-		z_index = 100
-		scale = Vector2(1.055, 1.055)
-		_last_drag_position = position
-	else:
-		scale = Vector2.ONE
-	_update_shadow_offsets()
-
-
-func set_drag_position(value: Vector2) -> void:
-	if not _dragging:
-		return
-	var velocity_x := value.x - _last_drag_position.x
-	_last_drag_position = value
-	position = value
-	rotation = lerpf(rotation, clampf(velocity_x * 0.012, -0.12, 0.12), 0.35)
-
-
 func play_entry_animation(delay: float = 0.0) -> void:
 	if not is_inside_tree():
 		return
@@ -115,13 +87,6 @@ func play_entry_animation(delay: float = 0.0) -> void:
 	_move_tween.tween_property(self, "rotation", _base_rotation, 0.3).set_delay(delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_move_tween.tween_property(self, "scale", Vector2.ONE, 0.32).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_move_tween.tween_property(self, "modulate:a", 1.0, 0.18).set_delay(delay)
-
-
-func snap_to_base() -> void:
-	_dragging = false
-	scale = Vector2.ONE
-	_update_shadow_offsets()
-	_animate_transform()
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -151,8 +116,6 @@ func _on_mouse_exited() -> void:
 
 
 func _animate_transform(instant: bool = false) -> void:
-	if _dragging:
-		return
 	var target := _target_position()
 	if _move_tween != null:
 		_move_tween.kill()
@@ -221,6 +184,5 @@ func _update_shadow_textures() -> void:
 func _update_shadow_offsets() -> void:
 	if _shadow_near == null:
 		return
-	var multiplier := 1.8 if _dragging else 1.0
-	_shadow_near.position = Vector2(3.0, 5.0) * multiplier
-	_shadow_far.position = Vector2(6.0, 9.0) * multiplier
+	_shadow_near.position = Vector2(3.0, 5.0)
+	_shadow_far.position = Vector2(6.0, 9.0)

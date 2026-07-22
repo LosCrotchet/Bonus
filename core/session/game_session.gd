@@ -45,7 +45,6 @@ func start_game(
 	player_names: Array[String],
 	seed_value: int = 0,
 	game_rules: GameRules = null,
-	auto_sort_hands: bool = true,
 ) -> bool:
 	if player_names.size() < 2 or player_names.size() > 4:
 		return _fail(&"ERROR_PLAYER_COUNT")
@@ -73,14 +72,14 @@ func start_game(
 	DeckFactory.shuffle_cards(draw_pile, _random_source)
 
 	for index in range(player_names.size()):
-		players.append(PlayerState.new(index, player_names[index], auto_sort_hands))
+		players.append(PlayerState.new(index, player_names[index]))
 
 	for _round_index in range(STARTING_HAND_SIZE):
 		for player in players:
 			player.add_card(draw_pile.pop_back())
 
 	for player in players:
-		player.sort_hand_if_enabled()
+		player.sort_hand()
 
 	phase = Phase.AWAITING_ROLL
 	state_changed.emit()
@@ -250,29 +249,8 @@ func draw_cards(player_index: int, count: int) -> int:
 			break
 		players[player_index].add_card(draw_pile.pop_back())
 		drawn_count += 1
-	players[player_index].sort_hand_if_enabled()
+	players[player_index].sort_hand()
 	return drawn_count
-
-
-func set_player_auto_sort(player_index: int, enabled: bool) -> bool:
-	if player_index < 0 or player_index >= players.size():
-		return false
-	players[player_index].auto_sort_enabled = enabled
-	if enabled:
-		players[player_index].sort_hand()
-	state_changed.emit()
-	return true
-
-
-func reorder_player_hand(player_index: int, ordered_ids: Array[int]) -> bool:
-	if player_index < 0 or player_index >= players.size():
-		return false
-	if players[player_index].auto_sort_enabled:
-		return false
-	if not players[player_index].reorder_hand(ordered_ids):
-		return false
-	state_changed.emit()
-	return true
 
 
 func get_recommended_play(player_index: int) -> Array[int]:

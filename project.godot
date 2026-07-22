@@ -11,14 +11,19 @@ config_version=5
 [application]
 
 config/name="Bonus"
-config/version="0.5.0"
+config/version="0.5.2"
 run/main_scene="res://app/app.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
+[audio]
+
+default_bus_layout="res://default_bus_layout.tres"
+
 [autoload]
 
 SettingsService="*res://autoload/settings_service.gd"
+AudioService="*res://autoload/audio_service.gd"
 
 [display]
 

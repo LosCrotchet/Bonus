@@ -2,31 +2,22 @@ class_name HandView
 extends Control
 
 signal selection_changed(selected_ids: Array[int])
-signal order_changed(ordered_ids: Array[int])
-signal play_requested
+signal blank_double_clicked
 
 const CARD_SIZE := Vector2(96.0, 134.0)
 const MAX_SPACING := 72.0
 const MIN_SPACING := 18.0
-const LONG_PRESS_SECONDS := 0.22
 const SWIPE_THRESHOLD := 10.0
-const FAN_DEPTH := 13.0
-const MAX_FAN_ANGLE := 0.105
-const RIGHT_SAFE_AREA := 100.0
+const FAN_DEPTH := 10.0
+const MAX_FAN_ANGLE := 0.078
 
 var _card_views: Array[CardView] = []
 var _selected_ids: Array[int] = []
 var _interaction_enabled := false
-var _auto_sort_enabled := true
 var _selection_drag_active := false
 var _drag_visited := {}
 var _pressed_card_id := -1
-var _pressed_was_selected := false
-var _press_elapsed := 0.0
 var _press_origin := Vector2.ZERO
-var _reorder_active := false
-var _dragged_card: CardView
-var _drag_grab_offset := Vector2.ZERO
 var _hovered_card_id := -1
 
 
@@ -34,7 +25,6 @@ func _ready() -> void:
 	resized.connect(_layout_cards)
 	mouse_filter = Control.MOUSE_FILTER_PASS
 	gui_input.connect(_on_background_gui_input)
-	set_process(true)
 	set_process_input(true)
 
 
@@ -42,11 +32,9 @@ func set_hand(
 	cards: Array[CardData],
 	selected_ids: Array[int],
 	enabled: bool,
-	auto_sort_enabled: bool = true,
 ) -> void:
 	_selected_ids.assign(selected_ids)
 	_interaction_enabled = enabled
-	_auto_sort_enabled = auto_sort_enabled
 	var existing := {}
 	for card_view in _card_views:
 		existing[card_view.card_id] = card_view
@@ -96,54 +84,42 @@ func set_interaction_enabled(value: bool) -> void:
 		card_view.set_interaction_enabled(value)
 
 
-func set_auto_sort_enabled(value: bool) -> void:
-	_auto_sort_enabled = value
-	if value and _reorder_active:
-		_finish_reorder()
+func get_animation_snapshots(card_ids: Array[int]) -> Array[Dictionary]:
+	var snapshots: Array[Dictionary] = []
+	for card_id in card_ids:
+		var card_view := _find_card_view(card_id)
+		if card_view == null:
+			continue
+		snapshots.append({
+			"card_id": card_id,
+			"texture": card_view.texture_normal,
+			"global_position": card_view.global_position,
+			"global_rotation": card_view.get_global_transform().get_rotation(),
+			"size": card_view.size,
+		})
+	return snapshots
 
 
-func get_ordered_ids() -> Array[int]:
-	var ordered_ids: Array[int] = []
-	for card_view in _card_views:
-		ordered_ids.append(card_view.card_id)
-	return ordered_ids
-
-
-func _process(delta: float) -> void:
-	if (
-		_pressed_card_id == -1
-		or _reorder_active
-		or _auto_sort_enabled
-		or not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-	):
-		return
-	_press_elapsed += delta
-	if (
-		_press_elapsed >= LONG_PRESS_SECONDS
-		and get_global_mouse_position().distance_to(_press_origin) <= SWIPE_THRESHOLD
-	):
-		_begin_reorder()
+func set_cards_animation_hidden(card_ids: Array[int], should_hide: bool) -> void:
+	for card_id in card_ids:
+		var card_view := _find_card_view(card_id)
+		if card_view != null:
+			card_view.visible = not should_hide
 
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and _reorder_active:
-		_update_reorder(event.position)
-		return
 	if event is not InputEventMouseButton:
 		return
 	if event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
-		if _reorder_active:
-			_finish_reorder()
-		else:
-			_reset_pointer_state()
+		_reset_pointer_state()
 	elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed and _interaction_enabled:
 		clear_selection()
 
 
-func _layout_cards(instant: bool = false, skip_dragged: bool = false) -> void:
+func _layout_cards(instant: bool = false) -> void:
 	if _card_views.is_empty() or size.x <= 0.0:
 		return
-	var available_width := maxf(CARD_SIZE.x, size.x - RIGHT_SAFE_AREA)
+	var available_width := maxf(CARD_SIZE.x, size.x)
 	var spacing := MAX_SPACING
 	if _card_views.size() > 1:
 		spacing = clampf(
@@ -159,8 +135,7 @@ func _layout_cards(instant: bool = false, skip_dragged: bool = false) -> void:
 		var card_view := _card_views[index]
 		card_view.size = CARD_SIZE
 		card_view.pivot_offset = CARD_SIZE * 0.5
-		if not (skip_dragged and card_view == _dragged_card):
-			card_view.z_index = index
+		card_view.z_index = index
 		var normalized := (
 			0.0
 			if _card_views.size() == 1
@@ -190,8 +165,6 @@ func _on_card_left_pressed(card_id: int) -> void:
 	if not _interaction_enabled:
 		return
 	_pressed_card_id = card_id
-	_pressed_was_selected = _selected_ids.has(card_id)
-	_press_elapsed = 0.0
 	_press_origin = get_global_mouse_position()
 	_selection_drag_active = true
 	_drag_visited.clear()
@@ -203,7 +176,6 @@ func _on_card_pointer_entered(card_id: int) -> void:
 	_update_neighbor_avoidance()
 	if (
 		_selection_drag_active
-		and not _reorder_active
 		and _interaction_enabled
 		and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	):
@@ -237,64 +209,9 @@ func _set_card_selected(card_id: int, value: bool) -> void:
 		card_view.set_selected(value)
 
 
-func _begin_reorder() -> void:
-	_dragged_card = _find_card_view(_pressed_card_id)
-	if _dragged_card == null:
-		_reset_pointer_state()
-		return
-	# The press was provisionally treated as a click. Restore it before dragging.
-	_set_card_selected(_pressed_card_id, _pressed_was_selected)
-	_emit_selection()
-	_reorder_active = true
-	_selection_drag_active = false
-	_drag_grab_offset = get_global_mouse_position() - _dragged_card.global_position
-	_dragged_card.set_dragging(true)
-
-
-func _update_reorder(global_mouse_position: Vector2) -> void:
-	if _dragged_card == null:
-		return
-	var local_target := global_mouse_position - global_position - _drag_grab_offset
-	local_target.x = clampf(local_target.x, 0.0, maxf(0.0, size.x - CARD_SIZE.x))
-	local_target.y = clampf(local_target.y, -28.0, maxf(0.0, size.y - CARD_SIZE.y))
-	_dragged_card.set_drag_position(local_target)
-
-	var old_index := _card_views.find(_dragged_card)
-	var target_center_x := local_target.x + CARD_SIZE.x * 0.5
-	var new_index := old_index
-	for index in range(_card_views.size()):
-		if _card_views[index] == _dragged_card:
-			continue
-		var other_center := _card_views[index].position.x + CARD_SIZE.x * 0.5
-		if target_center_x > other_center:
-			new_index = index
-		elif index < old_index:
-			new_index = index
-			break
-	if new_index != old_index:
-		_card_views.remove_at(old_index)
-		_card_views.insert(clampi(new_index, 0, _card_views.size()), _dragged_card)
-		_layout_cards(false, true)
-
-
-func _finish_reorder() -> void:
-	if not _reorder_active:
-		_reset_pointer_state()
-		return
-	_reorder_active = false
-	if _dragged_card != null:
-		_dragged_card.set_dragging(false)
-	_layout_cards()
-	order_changed.emit(get_ordered_ids())
-	_reset_pointer_state()
-
-
 func _reset_pointer_state() -> void:
 	_pressed_card_id = -1
-	_press_elapsed = 0.0
 	_selection_drag_active = false
-	_reorder_active = false
-	_dragged_card = null
 	_drag_visited.clear()
 
 
@@ -328,7 +245,7 @@ func _on_background_gui_input(event: InputEvent) -> void:
 		and event.pressed
 		and event.double_click
 	):
-		play_requested.emit()
+		blank_double_clicked.emit()
 		accept_event()
 
 

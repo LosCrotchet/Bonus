@@ -5,9 +5,11 @@
 [ext_resource type="Texture2D" uid="uid://bx0lmpsiqlanv" path="res://assets/art/cards/card_back_blue.png" id="3_back"]
 [ext_resource type="Texture2D" uid="uid://dhgiexcj863h4" path="res://assets/art/dice/die_white_1.png" id="4_die"]
 [ext_resource type="PackedScene" path="res://shared/ui/settings_panel.tscn" id="5_settings"]
-
-[sub_resource type="Theme" id="Theme_main"]
-default_font_size = 16
+[ext_resource type="Script" path="res://features/game/presentation/turn_indicator.gd" id="6_indicator"]
+[ext_resource type="Theme" path="res://assets/themes/cartoon_ui/theme.tres" id="7_theme"]
+[ext_resource type="Texture2D" path="res://assets/icons/settings.png" id="8_settings_icon"]
+[ext_resource type="Texture2D" path="res://assets/icons/restart_left.png" id="9_restart_icon"]
+[ext_resource type="Texture2D" path="res://assets/icons/button_home.png" id="10_home_icon"]
 
 [sub_resource type="StyleBoxFlat" id="Style_header"]
 content_margin_left = 18.0
@@ -25,28 +27,6 @@ corner_radius_bottom_left = 6
 [sub_resource type="SystemFont" id="Font_bold"]
 font_names = PackedStringArray("Microsoft YaHei UI", "Noto Sans CJK SC", "Arial")
 font_weight = 700
-
-[sub_resource type="StyleBoxFlat" id="Style_button_neutral"]
-content_margin_left = 18.0
-content_margin_top = 8.0
-content_margin_right = 18.0
-content_margin_bottom = 8.0
-bg_color = Color(0.18, 0.24, 0.24, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="Style_button_neutral_hover"]
-content_margin_left = 18.0
-content_margin_top = 8.0
-content_margin_right = 18.0
-content_margin_bottom = 8.0
-bg_color = Color(0.28, 0.37, 0.35, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="Style_seat"]
 content_margin_left = 11.0
@@ -80,55 +60,11 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[sub_resource type="StyleBoxFlat" id="Style_button_disabled"]
-content_margin_left = 18.0
-content_margin_top = 8.0
-content_margin_right = 18.0
-content_margin_bottom = 8.0
-bg_color = Color(0.11, 0.14, 0.14, 0.7)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="Style_button_pass"]
-content_margin_left = 20.0
-content_margin_top = 8.0
-content_margin_right = 20.0
-content_margin_bottom = 8.0
-bg_color = Color(0.62, 0.22, 0.23, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="Style_button_play"]
-content_margin_left = 24.0
-content_margin_top = 8.0
-content_margin_right = 24.0
-content_margin_bottom = 8.0
-bg_color = Color(0.12, 0.48, 0.7, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="Style_button_play_hover"]
-content_margin_left = 24.0
-content_margin_top = 8.0
-content_margin_right = 24.0
-content_margin_bottom = 8.0
-bg_color = Color(0.18, 0.61, 0.84, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
 [sub_resource type="StyleBoxFlat" id="Style_hand"]
-content_margin_left = 14.0
-content_margin_top = 7.0
-content_margin_right = 14.0
-content_margin_bottom = 4.0
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
 bg_color = Color(0.027, 0.052, 0.055, 0.98)
 border_width_left = 2
 border_width_top = 2
@@ -173,7 +109,7 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [sub_resource type="Shader" id="Shader_bonus"]
-code = "shader_type canvas_item;\n\nvoid fragment() {\n\tvec2 uv = UV;\n\tfloat wave = sin((uv.x * 7.0 + uv.y * 3.0) + TIME * 1.8);\n\tvec3 color = 0.55 + 0.45 * cos(TIME * 1.2 + uv.xyx * vec3(5.0, 7.0, 9.0) + vec3(0.0, 2.1, 4.2));\n\tfloat edge = smoothstep(0.0, 0.16, uv.y) * smoothstep(1.0, 0.84, uv.y);\n\tCOLOR = vec4(color, (0.2 + 0.1 * wave) * edge);\n}\n"
+code = "shader_type canvas_item;\n\nvoid fragment() {\n\tvec2 uv = UV;\n\tfloat wave = sin((uv.x * 7.0 + uv.y * 3.0) + TIME * 1.8);\n\tvec3 color = 0.55 + 0.45 * cos(TIME * 1.2 + uv.xyx * vec3(5.0, 7.0, 9.0) + vec3(0.0, 2.1, 4.2));\n\tfloat pulse = 0.24 + 0.07 * wave;\n\tCOLOR = vec4(color, pulse);\n}\n"
 
 [sub_resource type="ShaderMaterial" id="Material_bonus"]
 shader = SubResource("Shader_bonus")
@@ -185,7 +121,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = SubResource("Theme_main")
+theme = ExtResource("7_theme")
 script = ExtResource("1_game")
 
 [node name="Background" type="ColorRect" parent="." unique_id=791974369]
@@ -237,12 +173,13 @@ theme_override_styles/panel = SubResource("Style_header")
 [node name="HeaderRow" type="HBoxContainer" parent="SafeArea/MainLayout/Header" unique_id=1051263841]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="SafeArea/MainLayout/Header/HeaderRow" unique_id=934492499]
+[node name="HeaderTitle" type="Label" parent="SafeArea/MainLayout/Header/HeaderRow" unique_id=934492499]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.98, 0.76, 0.26, 1)
 theme_override_fonts/font = SubResource("Font_bold")
 theme_override_font_sizes/font_size = 25
-text = "BONUS"
+text = "UI_GAME_HEADER"
 vertical_alignment = 1
 
 [node name="HeaderSpacer" type="Control" parent="SafeArea/MainLayout/Header/HeaderRow" unique_id=885260335]
@@ -253,10 +190,10 @@ size_flags_horizontal = 3
 unique_name_in_owner = true
 custom_minimum_size = Vector2(92, 36)
 layout_mode = 2
-theme_override_styles/normal = SubResource("Style_button_neutral")
-theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
-theme_override_styles/hover = SubResource("Style_button_neutral_hover")
 text = "UI_SETTINGS"
+icon = ExtResource("8_settings_icon")
+expand_icon = true
+icon_max_width = 22
 
 [node name="MainArea" type="Control" parent="SafeArea/MainLayout" unique_id=248286084]
 custom_minimum_size = Vector2(0, 246)
@@ -272,9 +209,9 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -460.0
-offset_top = -198.0
+offset_top = -216.0
 offset_right = 460.0
-offset_bottom = -164.0
+offset_bottom = -182.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
@@ -293,9 +230,9 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -530.0
-offset_top = 47.0
+offset_top = 35.0
 offset_right = -300.0
-offset_bottom = 130.0
+offset_bottom = 118.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("Style_seat")
 
@@ -334,9 +271,9 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -115.0
-offset_top = 38.0
+offset_top = 26.0
 offset_right = 115.0
-offset_bottom = 121.0
+offset_bottom = 109.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("Style_seat")
 
@@ -375,9 +312,9 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = 300.0
-offset_top = 47.0
+offset_top = 35.0
 offset_right = 530.0
-offset_bottom = 130.0
+offset_bottom = 118.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("Style_seat")
 
@@ -418,9 +355,9 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -390.0
-offset_top = -158.0
+offset_top = -176.0
 offset_right = 390.0
-offset_bottom = -2.0
+offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = 12
@@ -443,6 +380,7 @@ theme_override_constants/separation = 1
 alignment = 1
 
 [node name="DrawPile" type="TextureRect" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DrawGroup" unique_id=1246680439]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 102)
 layout_mode = 2
 texture = ExtResource("3_back")
@@ -523,9 +461,26 @@ horizontal_alignment = 1
 
 [node name="ActionSlot" type="Control" parent="SafeArea/MainLayout"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
 clip_contents = true
+
+[node name="SelectionTypeLabel" type="Label" parent="SafeArea/MainLayout/ActionSlot"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 226.0
+offset_top = 18.0
+offset_right = 586.0
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.82, 0.9, 0.87, 1)
+theme_override_font_sizes/font_size = 19
+text = "UI_HAND_TYPE_NONE"
+horizontal_alignment = 0
+vertical_alignment = 1
 
 [node name="ActionBar" type="HBoxContainer" parent="SafeArea/MainLayout/ActionSlot" unique_id=1580133174]
 unique_name_in_owner = true
@@ -533,45 +488,36 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = 16.0
+offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 18
 alignment = 1
 
 [node name="HintButton" type="Button" parent="SafeArea/MainLayout/ActionSlot/ActionBar" unique_id=242518060]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(104, 40)
 layout_mode = 2
-theme_override_styles/normal = SubResource("Style_button_neutral")
-theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
-theme_override_styles/hover = SubResource("Style_button_neutral_hover")
-theme_override_styles/disabled = SubResource("Style_button_disabled")
 text = "UI_RECOMMEND"
 
 [node name="PassButton" type="Button" parent="SafeArea/MainLayout/ActionSlot/ActionBar" unique_id=1877184807]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(104, 40)
 layout_mode = 2
-theme_override_styles/normal = SubResource("Style_button_pass")
-theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
-theme_override_styles/hover = SubResource("Style_button_neutral_hover")
-theme_override_styles/disabled = SubResource("Style_button_disabled")
 text = "UI_PASS"
 
 [node name="PlayButton" type="Button" parent="SafeArea/MainLayout/ActionSlot/ActionBar" unique_id=103060594]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(126, 40)
 layout_mode = 2
-theme_override_styles/normal = SubResource("Style_button_play")
-theme_override_styles/pressed = SubResource("Style_button_play_hover")
-theme_override_styles/hover = SubResource("Style_button_play_hover")
-theme_override_styles/disabled = SubResource("Style_button_disabled")
 text = "UI_PLAY"
 
 [node name="HandPanel" type="PanelContainer" parent="SafeArea/MainLayout" unique_id=1863387464]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 196)
 layout_mode = 2
+clip_contents = true
 theme_override_styles/panel = SubResource("Style_hand")
 
 [node name="BonusEffect" type="ColorRect" parent="SafeArea/MainLayout/HandPanel"]
@@ -582,43 +528,51 @@ mouse_filter = 2
 material = SubResource("Material_bonus")
 color = Color(1, 1, 1, 1)
 
-[node name="HandLayout" type="VBoxContainer" parent="SafeArea/MainLayout/HandPanel" unique_id=1499698177]
+[node name="ContentMargin" type="MarginContainer" parent="SafeArea/MainLayout/HandPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 7
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 4
+
+[node name="HandLayout" type="VBoxContainer" parent="SafeArea/MainLayout/HandPanel/ContentMargin" unique_id=1499698177]
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="HandHeader" type="HBoxContainer" parent="SafeArea/MainLayout/HandPanel/HandLayout" unique_id=1806985195]
+[node name="HandHeader" type="HBoxContainer" parent="SafeArea/MainLayout/HandPanel/ContentMargin/HandLayout" unique_id=1806985195]
 custom_minimum_size = Vector2(0, 22)
 layout_mode = 2
 
-[node name="HandTitle" type="Label" parent="SafeArea/MainLayout/HandPanel/HandLayout/HandHeader" unique_id=2066087203]
+[node name="HandTitle" type="Label" parent="SafeArea/MainLayout/HandPanel/ContentMargin/HandLayout/HandHeader" unique_id=2066087203]
 unique_name_in_owner = true
 layout_mode = 2
 text = "UI_HAND_TITLE"
 
-[node name="HandHeaderSpacer" type="Control" parent="SafeArea/MainLayout/HandPanel/HandLayout/HandHeader" unique_id=1176748300]
+[node name="HandHeaderSpacer" type="Control" parent="SafeArea/MainLayout/HandPanel/ContentMargin/HandLayout/HandHeader" unique_id=1176748300]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="SelectedLabel" type="Label" parent="SafeArea/MainLayout/HandPanel/HandLayout/HandHeader" unique_id=176989901]
+[node name="SelectedLabel" type="Label" parent="SafeArea/MainLayout/HandPanel/ContentMargin/HandLayout/HandHeader" unique_id=176989901]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.98, 0.77, 0.28, 1)
 text = "UI_SELECTED_COUNT"
 
-[node name="SelectionTypeLabel" type="Label" parent="SafeArea/MainLayout/HandPanel/HandLayout"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.76, 0.85, 0.82, 1)
-theme_override_font_sizes/font_size = 19
-text = "UI_HAND_TYPE_NONE"
-horizontal_alignment = 1
-
-[node name="HandView" type="Control" parent="SafeArea/MainLayout/HandPanel/HandLayout" unique_id=1567631601]
+[node name="HandView" type="Control" parent="SafeArea/MainLayout/HandPanel/ContentMargin/HandLayout" unique_id=1567631601]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 146)
 layout_mode = 2
 size_flags_vertical = 3
 script = ExtResource("2_hand")
+
+[node name="TurnIndicator" type="Control" parent="."]
+unique_name_in_owner = true
+z_index = 32
+layout_mode = 0
+offset_right = 48.0
+offset_bottom = 48.0
+mouse_filter = 2
+script = ExtResource("6_indicator")
 
 [node name="SettingsOverlay" type="Control" parent="."]
 unique_name_in_owner = true
@@ -663,7 +617,7 @@ mouse_filter = 1
 
 [node name="SettingsPanel" parent="SettingsOverlay/Center" instance=ExtResource("5_settings")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(500, 640)
+custom_minimum_size = Vector2(500, 680)
 layout_mode = 2
 
 [node name="InterpretationPopup" type="PopupPanel" parent="."]
@@ -767,17 +721,17 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(180, 44)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/normal = SubResource("Style_button_play")
-theme_override_styles/pressed = SubResource("Style_button_play_hover")
-theme_override_styles/hover = SubResource("Style_button_play_hover")
 text = "UI_RESTART"
+icon = ExtResource("9_restart_icon")
+expand_icon = true
+icon_max_width = 22
 
 [node name="ResultMenuButton" type="Button" parent="ResultOverlay/Center/ResultPanel/ResultLayout/ResultButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(180, 44)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/normal = SubResource("Style_button_neutral")
-theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
-theme_override_styles/hover = SubResource("Style_button_neutral_hover")
 text = "UI_BACK_TO_MENU"
+icon = ExtResource("10_home_icon")
+expand_icon = true
+icon_max_width = 22

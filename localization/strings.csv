@@ -14,10 +14,14 @@ UI_FULLSCREEN,全屏,Fullscreen
 UI_LANGUAGE,语言,Language
 UI_LANGUAGE_ZH_CN,简体中文,Simplified Chinese
 UI_LANGUAGE_EN,English,English
+UI_MASTER_VOLUME,总音量,Master Volume
+UI_SFX_VOLUME,音效音量,SFX Volume
+UI_MUSIC_VOLUME,音乐音量,Music Volume
 UI_SHOW_STATUS_TEXT,显示提示文本,Show Status Text
 UI_AUTO_PASS,自动跳过,Auto Pass
-UI_AUTO_SORT_HAND,自动排序手牌,Auto-sort Hand
+UI_DOUBLE_CLICK_ACTIONS,双击出牌与过牌,Double-click Play and Pass
 UI_APPLY,应用,Apply
+UI_APPLY_SUCCESS,应用成功,Applied
 UI_CANCEL,取消,Cancel
 UI_EXIT_TO_MENU,退出到主界面,Exit to Main Menu
 UI_CONFIRM_EXIT_MENU,确定返回主界面？,Return to main menu?
@@ -27,6 +31,7 @@ UI_NO,否,No
 UI_NEW_GAME,新牌局,New Game
 UI_EXIT_GAME,退出游戏,Exit Game
 UI_SINGLE_PLAYER,单人游戏,Single Player
+UI_GAME_HEADER,BONUS | {mode}（{count}）,BONUS | {mode} ({count})
 UI_MULTIPLAYER,多人游戏,Multiplayer
 UI_START_GAME,开始游戏,Start Game
 UI_BACK,返回,Back
@@ -41,7 +46,7 @@ UI_PLAY,出牌,Play
 UI_RESTART,再来一把！,Play Again!
 UI_GAME_OVER,牌局结束,Game Over
 UI_DRAW_REMAINING,剩余 {count} 张,{count} remaining
-UI_DICE_CLICK,点击掷骰,Click to roll
+UI_DICE_CLICK,点击任意位置掷骰,Click anywhere to roll
 UI_DICE_WAIT,等待掷骰,Waiting
 UI_DICE_VALUE,{value} 点,{value}
 UI_DICE_ANY,任意点数,Any value
@@ -60,7 +65,7 @@ UI_CHOOSE_INTERPRETATION_HINT,这组牌有多种合法解读，请指定本次�
 UI_INTERPRETATION_OPTION,{hand_type} · 主体 {rank},{hand_type} · Main rank {rank}
 UI_PASS_FEEDBACK,PASS,PASS
 UI_BONUS_FEEDBACK,BONUS!,BONUS!
-STATUS_CLICK_DICE,轮到南家，点击骰子开始回合,South's turn. Click the die to start.
+STATUS_CLICK_DICE,轮到南家，点击画面开始回合,South's turn. Click the screen to start.
 STATUS_PREPARING_ROLL,{player}准备掷骰,{player} is preparing to roll
 STATUS_ROLLING,{player}正在掷骰…,{player} is rolling...
 STATUS_WINNER,{player}获胜,{player} wins

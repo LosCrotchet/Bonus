@@ -4,13 +4,11 @@ extends RefCounted
 var player_id: int
 var display_name: String
 var hand: Array[CardData] = []
-var auto_sort_enabled := true
 
 
-func _init(p_player_id: int, p_display_name: String, p_auto_sort_enabled: bool = true) -> void:
+func _init(p_player_id: int, p_display_name: String) -> void:
 	player_id = p_player_id
 	display_name = p_display_name
-	auto_sort_enabled = p_auto_sort_enabled
 
 
 func add_card(card: CardData) -> void:
@@ -19,24 +17,6 @@ func add_card(card: CardData) -> void:
 
 func sort_hand() -> void:
 	hand.sort_custom(_is_card_less)
-
-
-func sort_hand_if_enabled() -> void:
-	if auto_sort_enabled:
-		sort_hand()
-
-
-func reorder_hand(ordered_ids: Array[int]) -> bool:
-	if ordered_ids.size() != hand.size():
-		return false
-	var reordered: Array[CardData] = []
-	for card_id in ordered_ids:
-		var index := find_card_index(card_id)
-		if index == -1 or reordered.has(hand[index]):
-			return false
-		reordered.append(hand[index])
-	hand.assign(reordered)
-	return true
 
 
 func has_cards(card_ids: Array[int]) -> bool:

@@ -13,10 +13,11 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	assert((app.get_node("Version") as Label).text == "v0.5.0")
+	assert((app.get_node("Version") as Label).text == "v0.5.2")
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
 	assert(menu != null)
+	assert((menu.get_node("%SinglePlayerButton") as Button).icon != null)
 	assert((menu.get_node("%MenuPanel") as PanelContainer).size.y >= 700.0)
 	assert(not (menu.get_node("%SinglePlayerPanel") as PanelContainer).visible)
 
@@ -29,6 +30,34 @@ func _run_test() -> void:
 	assert((menu.get_node("%JokersWildToggle") as CheckButton).button_pressed)
 	assert(not (menu.get_node("%SequencesIncludeTwoToggle") as CheckButton).button_pressed)
 	assert(not (menu.get_node("%VariableDrawToggle") as CheckButton).button_pressed)
+	await get_tree().create_timer(0.35).timeout
+	var secondary_position := single_panel.position
+	var secondary_size := single_panel.size
+
+	(menu.get_node("%SinglePlayerBackButton") as Button).pressed.emit()
+	assert(await _wait_until(func() -> bool: return not single_panel.visible, 1.0))
+	(menu.get_node("%SettingsButton") as Button).pressed.emit()
+	var menu_settings := menu.get_node("%SettingsSidePanel") as AppSettingsPanel
+	assert(await _wait_until(func() -> bool: return menu_settings.visible, 1.0))
+	await get_tree().create_timer(0.35).timeout
+	assert(
+		menu_settings.position.is_equal_approx(secondary_position),
+		"Secondary panel positions differ: %s vs %s" % [menu_settings.position, secondary_position],
+	)
+	assert(
+		menu_settings.size.is_equal_approx(secondary_size),
+		"Secondary panel sizes differ: %s vs %s" % [menu_settings.size, secondary_size],
+	)
+	(menu_settings.get_node("%ApplyButton") as Button).pressed.emit()
+	await get_tree().process_frame
+	assert(menu_settings.visible)
+	(menu_settings.get_node("%CancelButton") as Button).pressed.emit()
+	assert(await _wait_until(func() -> bool: return not menu_settings.visible, 1.0))
+
+	(menu.get_node("%SinglePlayerButton") as Button).pressed.emit()
+	assert(await _wait_until(func() -> bool: return single_panel.visible, 1.0))
+	await get_tree().create_timer(0.35).timeout
+	assert(single_panel.position == secondary_position)
 
 	(menu.get_node("%StartGameButton") as Button).pressed.emit()
 	assert(await _wait_until(

@@ -30,6 +30,10 @@ func _run_test() -> void:
 	var status_label := game_scene.get_node("%StatusLabel") as Label
 	var selection_type := game_scene.get_node("%SelectionTypeLabel") as Label
 	var interpretation_popup := game_scene.get_node("%InterpretationPopup") as PopupPanel
+	var turn_indicator := game_scene.get_node("%TurnIndicator") as Control
+	var hand_title := game_scene.get_node("%HandTitle") as Label
+	var north_cards := game_scene.get_node("%NorthCards") as HBoxContainer
+	var header_title := game_scene.get_node("%HeaderTitle") as Label
 	assert(session.players.size() == 3)
 	assert(session.draw_pile.size() == 57)
 	assert(hand_view.get_child_count() == 17)
@@ -42,17 +46,25 @@ func _run_test() -> void:
 	assert(played_panel.custom_minimum_size.x >= 480.0)
 	assert(status_label.global_position.y < played_panel.global_position.y)
 	assert(not selection_type.visible)
+	assert(header_title.text.begins_with("BONUS |"))
+	assert(int(game_scene.get("_indicator_player_index")) == 0)
+	assert(turn_indicator.get_global_rect().get_center().y < hand_title.get_global_rect().position.y)
+	assert(turn_indicator.get_global_rect().get_center().x < hand_title.get_global_rect().get_center().x)
+	assert(north_cards.get_child_count() == 8)
+	assert(north_cards.get_child(7) is Label)
+	assert(AudioServer.get_bus_index(&"SFX") != -1)
+	assert(AudioServer.get_bus_index(&"Music") != -1)
+	var hand_panel := game_scene.get_node("%HandPanel") as PanelContainer
+	var hand_height := hand_panel.size.y
 
-	_test_transactional_settings(
+	await _test_transactional_settings(
 		settings_button,
 		settings_overlay,
 		settings_panel,
 		settings_dismiss,
 		status_label,
 	)
-	await get_tree().process_frame
-	_test_manual_hand_order(session, hand_view)
-	await get_tree().process_frame
+	assert(_is_hand_sorted(session.players[0].hand))
 
 	dice_button.pressed.emit()
 	assert(await _wait_until(func() -> bool: return session.dice_value != 0, 2.0))
@@ -73,6 +85,8 @@ func _run_test() -> void:
 	var selected_ids: Array[int] = game_scene.get("_selected_card_ids")
 	assert(selected_ids.size() == 2)
 	assert(selection_type.visible)
+	assert(selection_type.global_position.x > (game_scene.get_node("%PlayButton") as Button).get_global_rect().end.x)
+	assert(is_equal_approx(hand_panel.size.y, hand_height))
 
 	var mouse_up := InputEventMouseButton.new()
 	mouse_up.button_index = MOUSE_BUTTON_LEFT
@@ -100,8 +114,12 @@ func _run_test() -> void:
 	assert(game_scene.get_node("%InterpretationOptions").get_child_count() == 3)
 	interpretation_popup.hide()
 	await _test_conservative_auto_pass(game_scene, session)
+	await _test_global_double_clicks(game_scene)
 
 	SettingsService.apply_settings(original_settings)
+	SettingsService.set_master_volume(float(original_settings["master_volume"]))
+	SettingsService.set_sfx_volume(float(original_settings["sfx_volume"]))
+	SettingsService.set_music_volume(float(original_settings["music_volume"]))
 	print("BONUS_TEST_GAME_SCENE_OK")
 	game_scene.queue_free()
 	await get_tree().process_frame
@@ -116,9 +134,15 @@ func _test_transactional_settings(
 	status_label: Label,
 ) -> void:
 	var original_speed := SettingsService.game_speed
+	var original_master := SettingsService.master_volume
 	settings_button.pressed.emit()
 	await get_tree().process_frame
 	assert(settings_overlay.visible)
+	var master_slider := settings_panel.get_node("%MasterVolumeSlider") as HSlider
+	var live_master := 0.31 if original_master > 0.5 else 0.79
+	master_slider.value = live_master
+	await get_tree().process_frame
+	assert(is_equal_approx(SettingsService.master_volume, live_master))
 	var speed_option := settings_panel.get_node("%GameSpeedOption") as OptionButton
 	var draft_speed := (
 		SettingsService.GameSpeed.FAST
@@ -127,17 +151,21 @@ func _test_transactional_settings(
 	)
 	_select_option_by_id(speed_option, draft_speed)
 	settings_dismiss.pressed.emit()
-	await get_tree().process_frame
+	assert(await _wait_until(func() -> bool: return not settings_overlay.visible, 1.0))
 	assert(not settings_overlay.visible)
 	assert(SettingsService.game_speed == original_speed)
+	assert(is_equal_approx(SettingsService.master_volume, live_master))
 
 	settings_button.pressed.emit()
 	await get_tree().process_frame
 	(settings_panel.get_node("%StatusTextToggle") as CheckButton).button_pressed = false
 	(settings_panel.get_node("%ApplyButton") as Button).pressed.emit()
 	await get_tree().process_frame
-	assert(not settings_overlay.visible)
+	assert(settings_overlay.visible)
 	assert(not status_label.visible)
+	assert((settings_panel.get_node("%ApplyStatus") as Label).visible)
+	settings_dismiss.pressed.emit()
+	assert(await _wait_until(func() -> bool: return not settings_overlay.visible, 1.0))
 
 	settings_button.pressed.emit()
 	await get_tree().process_frame
@@ -150,7 +178,10 @@ func _test_transactional_settings(
 	(settings_panel.get_node("%StatusTextToggle") as CheckButton).button_pressed = true
 	(settings_panel.get_node("%ApplyButton") as Button).pressed.emit()
 	await get_tree().process_frame
+	assert(settings_overlay.visible)
 	assert(status_label.visible)
+	settings_dismiss.pressed.emit()
+	assert(await _wait_until(func() -> bool: return not settings_overlay.visible, 1.0))
 
 
 func _select_option_by_id(option: OptionButton, item_id: int) -> void:
@@ -161,19 +192,11 @@ func _select_option_by_id(option: OptionButton, item_id: int) -> void:
 	assert(false)
 
 
-func _test_manual_hand_order(session: GameSession, hand_view: HandView) -> void:
-	var snapshot := SettingsService.get_snapshot()
-	snapshot["auto_sort_hand"] = false
-	assert(SettingsService.apply_settings(snapshot))
-	assert(not session.players[0].auto_sort_enabled)
-	var reversed_ids := hand_view.get_ordered_ids()
-	reversed_ids.reverse()
-	hand_view.order_changed.emit(reversed_ids)
-	assert(session.players[0].hand[0].card_id == reversed_ids[0])
-
-	snapshot["auto_sort_hand"] = true
-	assert(SettingsService.apply_settings(snapshot))
-	assert(session.players[0].auto_sort_enabled)
+func _is_hand_sorted(cards: Array[CardData]) -> bool:
+	for index in range(1, cards.size()):
+		if cards[index - 1].get_sort_value() > cards[index].get_sort_value():
+			return false
+	return true
 
 
 func _wait_until(predicate: Callable, timeout: float) -> bool:
@@ -248,5 +271,62 @@ func _test_conservative_auto_pass(game_scene: Control, session: GameSession) -> 
 	session.roller_index = 0
 	session.dice_value = 0
 	assert(session.accept_dice_result(0, 2))
+	var action_bar := game_scene.get_node("%ActionBar") as HBoxContainer
+	var play_button := game_scene.get_node("%PlayButton") as Button
+	assert(not action_bar.visible or play_button.disabled)
 	await get_tree().create_timer(0.4).timeout
 	assert(session.current_player_index == 1)
+
+
+func _test_global_double_clicks(game_scene: Control) -> void:
+	var snapshot := SettingsService.get_snapshot()
+	snapshot["auto_pass"] = false
+	snapshot["double_click_actions"] = true
+	assert(SettingsService.apply_settings(snapshot))
+	game_scene.call("_start_new_game")
+	await get_tree().process_frame
+	var session := game_scene.get("_session") as GameSession
+	var card := CardData.new(9200, CardData.Rank.THREE, CardData.Suit.CLUBS)
+	session.players[0].hand = [card]
+	session.phase = GameSession.Phase.AWAITING_ACTION
+	session.current_player_index = 0
+	session.roller_index = 0
+	session.dice_value = 1
+	session.last_play_pattern = null
+	var selected_ids: Array[int] = [card.card_id]
+	game_scene.set("_selected_card_ids", selected_ids)
+	game_scene.call("_refresh")
+	await get_tree().process_frame
+
+	var header_event := _double_click(MOUSE_BUTTON_LEFT, (game_scene.get_node("%Header") as Control).get_global_rect().get_center())
+	game_scene.call("_input", header_event)
+	await get_tree().process_frame
+	assert(session.players[0].hand.size() == 1)
+
+	var panel_event := _double_click(MOUSE_BUTTON_LEFT, (game_scene.get_node("%PlayedPanel") as Control).get_global_rect().get_center())
+	game_scene.call("_input", panel_event)
+	assert(await _wait_until(func() -> bool: return session.phase == GameSession.Phase.FINISHED, 1.5))
+	assert(session.winner_index == 0)
+
+	game_scene.call("_start_new_game")
+	await get_tree().process_frame
+	session = game_scene.get("_session") as GameSession
+	session.phase = GameSession.Phase.AWAITING_ACTION
+	session.current_player_index = 0
+	session.roller_index = 0
+	session.dice_value = 1
+	selected_ids = [session.players[0].hand[0].card_id]
+	game_scene.set("_selected_card_ids", selected_ids)
+	game_scene.call("_refresh")
+	var label_event := _double_click(MOUSE_BUTTON_RIGHT, (game_scene.get_node("%StatusLabel") as Control).get_global_rect().get_center())
+	game_scene.call("_input", label_event)
+	assert(session.current_player_index != 0)
+
+
+func _double_click(button_index: int, position: Vector2) -> InputEventMouseButton:
+	var event := InputEventMouseButton.new()
+	event.button_index = button_index
+	event.position = position
+	event.pressed = true
+	event.double_click = true
+	return event

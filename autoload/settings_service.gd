@@ -4,6 +4,7 @@ signal settings_changed(snapshot: Dictionary)
 signal game_speed_changed(speed: GameSpeed)
 signal display_changed
 signal language_changed(locale: String)
+signal audio_changed(master: float, sfx: float, music: float)
 
 enum GameSpeed {
 	SLOW,
@@ -33,12 +34,23 @@ var window_mode := WindowMode.WINDOWED
 var locale := "zh_CN"
 var show_status_text := true
 var auto_pass := false
-var auto_sort_hand := true
+var double_click_actions := false
+var master_volume := 0.8
+var sfx_volume := 0.75
+var music_volume := 0.65
+
+var _audio_save_timer: Timer
 
 
 func _ready() -> void:
+	_audio_save_timer = Timer.new()
+	_audio_save_timer.one_shot = true
+	_audio_save_timer.wait_time = 0.3
+	_audio_save_timer.timeout.connect(_save_settings)
+	add_child(_audio_save_timer)
 	_load_settings()
 	_apply_language()
+	_apply_audio()
 	_apply_display.call_deferred()
 
 
@@ -50,7 +62,10 @@ func get_snapshot() -> Dictionary:
 		"locale": locale,
 		"show_status_text": show_status_text,
 		"auto_pass": auto_pass,
-		"auto_sort_hand": auto_sort_hand,
+		"double_click_actions": double_click_actions,
+		"master_volume": master_volume,
+		"sfx_volume": sfx_volume,
+		"music_volume": music_volume,
 	}
 
 
@@ -79,7 +94,7 @@ func apply_settings(candidate: Dictionary) -> bool:
 	locale = next_locale
 	show_status_text = bool(candidate.get("show_status_text", show_status_text))
 	auto_pass = bool(candidate.get("auto_pass", auto_pass))
-	auto_sort_hand = bool(candidate.get("auto_sort_hand", auto_sort_hand))
+	double_click_actions = bool(candidate.get("double_click_actions", double_click_actions))
 	_save_settings()
 
 	if locale_has_changed:
@@ -118,6 +133,24 @@ func set_locale(value: String) -> void:
 	apply_settings(snapshot)
 
 
+func set_master_volume(value: float) -> void:
+	master_volume = clampf(value, 0.0, 1.0)
+	_apply_audio_bus(&"Master", master_volume)
+	_emit_audio_change()
+
+
+func set_sfx_volume(value: float) -> void:
+	sfx_volume = clampf(value, 0.0, 1.0)
+	_apply_audio_bus(&"SFX", sfx_volume)
+	_emit_audio_change()
+
+
+func set_music_volume(value: float) -> void:
+	music_volume = clampf(value, 0.0, 1.0)
+	_apply_audio_bus(&"Music", music_volume)
+	_emit_audio_change()
+
+
 func get_ai_think_delay() -> float:
 	return [1.15, 0.8, 0.58][game_speed]
 
@@ -142,17 +175,37 @@ func _apply_language() -> void:
 	TranslationServer.set_locale(locale)
 
 
+func _apply_audio() -> void:
+	_apply_audio_bus(&"Master", master_volume)
+	_apply_audio_bus(&"SFX", sfx_volume)
+	_apply_audio_bus(&"Music", music_volume)
+
+
+func _apply_audio_bus(bus_name: StringName, value: float) -> void:
+	var bus_index := AudioServer.get_bus_index(bus_name)
+	if bus_index == -1:
+		return
+	AudioServer.set_bus_volume_db(bus_index, linear_to_db(maxf(value, 0.0001)))
+
+
+func _emit_audio_change() -> void:
+	audio_changed.emit(master_volume, sfx_volume, music_volume)
+	if _audio_save_timer != null:
+		_audio_save_timer.start()
+
+
 func _apply_display() -> void:
 	if DisplayServer.get_name() == "headless":
 		return
+	var window := get_window()
 	if window_mode == WindowMode.FULLSCREEN:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		window.mode = Window.MODE_FULLSCREEN
 		return
 
-	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	window.mode = Window.MODE_WINDOWED
 	# Windows reports the old client area during the fullscreen exit frame.
 	await get_tree().process_frame
-	DisplayServer.window_set_size(resolution)
+	window.size = resolution
 	await get_tree().process_frame
 	var screen := DisplayServer.window_get_current_screen()
 	var usable_rect := DisplayServer.screen_get_usable_rect(screen)
@@ -175,7 +228,10 @@ func _load_settings() -> void:
 	) as GameSpeed
 	show_status_text = bool(config.get_value("gameplay", "show_status_text", true))
 	auto_pass = bool(config.get_value("gameplay", "auto_pass", false))
-	auto_sort_hand = bool(config.get_value("gameplay", "auto_sort_hand", true))
+	double_click_actions = bool(config.get_value("gameplay", "double_click_actions", false))
+	master_volume = clampf(config.get_value("audio", "master_volume", master_volume), 0.0, 1.0)
+	sfx_volume = clampf(config.get_value("audio", "sfx_volume", sfx_volume), 0.0, 1.0)
+	music_volume = clampf(config.get_value("audio", "music_volume", music_volume), 0.0, 1.0)
 	var loaded_resolution := config.get_value("display", "resolution", resolution) as Vector2i
 	if loaded_resolution in RESOLUTIONS:
 		resolution = loaded_resolution
@@ -194,8 +250,11 @@ func _save_settings() -> void:
 	config.set_value("gameplay", "speed", game_speed)
 	config.set_value("gameplay", "show_status_text", show_status_text)
 	config.set_value("gameplay", "auto_pass", auto_pass)
-	config.set_value("gameplay", "auto_sort_hand", auto_sort_hand)
+	config.set_value("gameplay", "double_click_actions", double_click_actions)
 	config.set_value("display", "resolution", resolution)
 	config.set_value("display", "window_mode", window_mode)
 	config.set_value("language", "locale", locale)
+	config.set_value("audio", "master_volume", master_volume)
+	config.set_value("audio", "sfx_volume", sfx_volume)
+	config.set_value("audio", "music_volume", music_volume)
 	config.save(SETTINGS_PATH)

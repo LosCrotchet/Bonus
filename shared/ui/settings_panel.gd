@@ -16,15 +16,27 @@ signal quit_requested
 @onready var language_option: OptionButton = %LanguageOption
 @onready var status_text_toggle: CheckButton = %StatusTextToggle
 @onready var auto_pass_toggle: CheckButton = %AutoPassToggle
-@onready var auto_sort_toggle: CheckButton = %AutoSortToggle
+@onready var double_click_toggle: CheckButton = %DoubleClickToggle
+@onready var master_volume_slider: HSlider = %MasterVolumeSlider
+@onready var sfx_volume_slider: HSlider = %SfxVolumeSlider
+@onready var music_volume_slider: HSlider = %MusicVolumeSlider
+@onready var master_volume_value: Label = %MasterVolumeValue
+@onready var sfx_volume_value: Label = %SfxVolumeValue
+@onready var music_volume_value: Label = %MusicVolumeValue
+@onready var apply_status: Label = %ApplyStatus
 @onready var navigation_actions: VBoxContainer = %NavigationActions
 @onready var exit_menu_button: Button = %ExitMenuButton
 @onready var exit_menu_confirmation: HBoxContainer = %ExitMenuConfirmation
 @onready var exit_game_button: Button = %ExitGameButton
 @onready var exit_game_confirmation: HBoxContainer = %ExitGameConfirmation
 
+var _apply_feedback_tween: Tween
+
 
 func _ready() -> void:
+	%CancelButton.set_meta(&"ui_sound", &"ui_cancel")
+	%ExitMenuNo.set_meta(&"ui_sound", &"ui_cancel")
+	%ExitGameNo.set_meta(&"ui_sound", &"ui_cancel")
 	title_label.text = tr(title_key)
 	%ApplyButton.pressed.connect(_on_apply_pressed)
 	%CancelButton.pressed.connect(cancel_edit)
@@ -34,6 +46,10 @@ func _ready() -> void:
 	exit_game_button.pressed.connect(_show_exit_game_confirmation)
 	%ExitGameYes.pressed.connect(func() -> void: quit_requested.emit())
 	%ExitGameNo.pressed.connect(_hide_confirmations)
+	master_volume_slider.value_changed.connect(SettingsService.set_master_volume)
+	sfx_volume_slider.value_changed.connect(SettingsService.set_sfx_volume)
+	music_volume_slider.value_changed.connect(SettingsService.set_music_volume)
+	SettingsService.audio_changed.connect(_on_audio_changed)
 	SettingsService.language_changed.connect(_on_language_changed)
 	navigation_actions.visible = show_navigation_actions
 	_populate_options()
@@ -43,6 +59,7 @@ func _ready() -> void:
 func begin_edit() -> void:
 	_sync_from_snapshot(SettingsService.get_snapshot())
 	_hide_confirmations()
+	_hide_apply_status()
 
 
 func cancel_edit() -> void:
@@ -58,9 +75,10 @@ func _on_apply_pressed() -> void:
 		"locale": language_option.get_item_metadata(language_option.selected),
 		"show_status_text": status_text_toggle.button_pressed,
 		"auto_pass": auto_pass_toggle.button_pressed,
-		"auto_sort_hand": auto_sort_toggle.button_pressed,
+		"double_click_actions": double_click_toggle.button_pressed,
 	}
 	if SettingsService.apply_settings(snapshot):
+		_show_apply_success()
 		applied.emit()
 
 
@@ -100,7 +118,11 @@ func _sync_from_snapshot(snapshot: Dictionary) -> void:
 			break
 	status_text_toggle.button_pressed = bool(snapshot["show_status_text"])
 	auto_pass_toggle.button_pressed = bool(snapshot["auto_pass"])
-	auto_sort_toggle.button_pressed = bool(snapshot["auto_sort_hand"])
+	double_click_toggle.button_pressed = bool(snapshot["double_click_actions"])
+	master_volume_slider.set_value_no_signal(float(snapshot["master_volume"]))
+	sfx_volume_slider.set_value_no_signal(float(snapshot["sfx_volume"]))
+	music_volume_slider.set_value_no_signal(float(snapshot["music_volume"]))
+	_update_volume_labels()
 
 
 func _select_option_by_id(option: OptionButton, item_id: int) -> void:
@@ -142,6 +164,47 @@ func _hide_confirmations() -> void:
 	exit_menu_confirmation.visible = false
 	exit_game_button.visible = true
 	exit_game_confirmation.visible = false
+
+
+func _on_audio_changed(master: float, sfx: float, music: float) -> void:
+	master_volume_slider.set_value_no_signal(master)
+	sfx_volume_slider.set_value_no_signal(sfx)
+	music_volume_slider.set_value_no_signal(music)
+	_update_volume_labels()
+
+
+func _update_volume_labels() -> void:
+	master_volume_value.text = "%d%%" % roundi(master_volume_slider.value * 100.0)
+	sfx_volume_value.text = "%d%%" % roundi(sfx_volume_slider.value * 100.0)
+	music_volume_value.text = "%d%%" % roundi(music_volume_slider.value * 100.0)
+
+
+func _show_apply_success() -> void:
+	if _apply_feedback_tween != null:
+		_apply_feedback_tween.kill()
+	apply_status.text = tr(&"UI_APPLY_SUCCESS")
+	apply_status.visible = true
+	apply_status.modulate.a = 0.0
+	apply_status.position = Vector2.ZERO
+	_apply_feedback_tween = create_tween().set_parallel(true)
+	_apply_feedback_tween.tween_property(apply_status, "modulate:a", 1.0, 0.14)
+	_apply_feedback_tween.tween_property(apply_status, "position:y", -10.0, 0.28).set_delay(0.85)
+	_apply_feedback_tween.tween_property(apply_status, "modulate:a", 0.0, 0.28).set_delay(0.85)
+	_apply_feedback_tween.chain().tween_callback(_finish_apply_status)
+
+
+func _hide_apply_status() -> void:
+	if _apply_feedback_tween != null:
+		_apply_feedback_tween.kill()
+		_apply_feedback_tween = null
+	_finish_apply_status()
+
+
+func _finish_apply_status() -> void:
+	apply_status.visible = false
+	apply_status.modulate.a = 1.0
+	apply_status.position = Vector2.ZERO
+	_apply_feedback_tween = null
 
 
 func _on_language_changed(_locale: String) -> void:

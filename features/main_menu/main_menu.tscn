@@ -1,10 +1,14 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://features/main_menu/main_menu.gd" id="1_menu"]
 [ext_resource type="PackedScene" path="res://shared/ui/settings_panel.tscn" id="2_settings"]
-
-[sub_resource type="Theme" id="Theme_menu"]
-default_font_size = 17
+[ext_resource type="Theme" path="res://assets/themes/cartoon_ui/theme.tres" id="3_theme"]
+[ext_resource type="Texture2D" path="res://assets/icons/single_player.png" id="4_single"]
+[ext_resource type="Texture2D" path="res://assets/icons/multiplayer_2.png" id="5_multi"]
+[ext_resource type="Texture2D" path="res://assets/icons/settings.png" id="6_settings"]
+[ext_resource type="Texture2D" path="res://assets/icons/button_power.png" id="7_power"]
+[ext_resource type="Texture2D" path="res://assets/icons/arrow_right.png" id="8_forward"]
+[ext_resource type="Texture2D" path="res://assets/icons/arrow_left.png" id="9_back"]
 
 [sub_resource type="StyleBoxFlat" id="Style_main_panel"]
 bg_color = Color(0.105, 0.125, 0.125, 0.97)
@@ -28,28 +32,6 @@ content_margin_bottom = 28.0
 shadow_color = Color(0, 0, 0, 0.3)
 shadow_size = 12
 
-[sub_resource type="StyleBoxFlat" id="Style_menu_button"]
-content_margin_left = 12.0
-content_margin_top = 11.0
-content_margin_right = 12.0
-content_margin_bottom = 11.0
-bg_color = Color(0, 0, 0, 0)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-
-[sub_resource type="StyleBoxFlat" id="Style_menu_hover"]
-content_margin_left = 12.0
-content_margin_top = 11.0
-content_margin_right = 12.0
-content_margin_bottom = 11.0
-bg_color = Color(0.25, 0.31, 0.3, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-
 [node name="MainMenu" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -57,7 +39,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = SubResource("Theme_menu")
+theme = ExtResource("3_theme")
 script = ExtResource("1_menu")
 
 [node name="MenuPanel" type="PanelContainer" parent="."]
@@ -94,44 +76,44 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_font_sizes/font_size = 21
-theme_override_styles/normal = SubResource("Style_menu_button")
-theme_override_styles/hover = SubResource("Style_menu_hover")
-theme_override_styles/pressed = SubResource("Style_menu_hover")
 text = "UI_SINGLE_PLAYER"
 alignment = 0
+icon = ExtResource("4_single")
+expand_icon = true
+icon_max_width = 27
 
 [node name="MultiplayerButton" type="Button" parent="MenuPanel/Layout/MenuButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_font_sizes/font_size = 21
-theme_override_styles/normal = SubResource("Style_menu_button")
-theme_override_styles/hover = SubResource("Style_menu_hover")
-theme_override_styles/pressed = SubResource("Style_menu_hover")
 text = "UI_MULTIPLAYER"
 alignment = 0
+icon = ExtResource("5_multi")
+expand_icon = true
+icon_max_width = 27
 
 [node name="SettingsButton" type="Button" parent="MenuPanel/Layout/MenuButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_font_sizes/font_size = 21
-theme_override_styles/normal = SubResource("Style_menu_button")
-theme_override_styles/hover = SubResource("Style_menu_hover")
-theme_override_styles/pressed = SubResource("Style_menu_hover")
 text = "UI_SETTINGS"
 alignment = 0
+icon = ExtResource("6_settings")
+expand_icon = true
+icon_max_width = 27
 
 [node name="ExitGameButton" type="Button" parent="MenuPanel/Layout/MenuButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_font_sizes/font_size = 21
-theme_override_styles/normal = SubResource("Style_menu_button")
-theme_override_styles/hover = SubResource("Style_menu_hover")
-theme_override_styles/pressed = SubResource("Style_menu_hover")
 text = "UI_EXIT_GAME"
 alignment = 0
+icon = ExtResource("7_power")
+expand_icon = true
+icon_max_width = 27
 
 [node name="ExitConfirmation" type="HBoxContainer" parent="MenuPanel/Layout/MenuButtons"]
 unique_name_in_owner = true
@@ -165,7 +147,7 @@ layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
 offset_left = 350.0
-offset_right = 820.0
+offset_right = 850.0
 grow_vertical = 2
 theme_override_styles/panel = SubResource("Style_secondary")
 
@@ -240,12 +222,18 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 text = "UI_START_GAME"
+icon = ExtResource("8_forward")
+expand_icon = true
+icon_max_width = 22
 
 [node name="SinglePlayerBackButton" type="Button" parent="SinglePlayerPanel/Layout"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 text = "UI_BACK"
+icon = ExtResource("9_back")
+expand_icon = true
+icon_max_width = 22
 
 [node name="SettingsSidePanel" parent="." instance=ExtResource("2_settings")]
 unique_name_in_owner = true
@@ -256,5 +244,6 @@ anchor_bottom = 1.0
 offset_left = 350.0
 offset_right = 850.0
 grow_vertical = 2
+theme_override_styles/panel = SubResource("Style_secondary")
 show_navigation_actions = false
 title_key = &"UI_SETTINGS"
