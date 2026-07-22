@@ -1,0 +1,589 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://features/game/game_scene.gd" id="1_game"]
+[ext_resource type="Script" path="res://features/game/presentation/hand_view.gd" id="2_hand"]
+[ext_resource type="Texture2D" path="res://assets/art/cards/card_back_blue.png" id="3_back"]
+[ext_resource type="Texture2D" path="res://assets/art/dice/die_white_1.png" id="4_die"]
+
+[sub_resource type="Theme" id="Theme_main"]
+default_font_size = 17
+
+[sub_resource type="StyleBoxFlat" id="Style_header"]
+bg_color = Color(0.047, 0.071, 0.075, 0.96)
+border_width_bottom = 1
+border_color = Color(0.25, 0.37, 0.35, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="Style_opponent"]
+bg_color = Color(0.071, 0.122, 0.118, 0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.28, 0.45, 0.39, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="Style_center"]
+bg_color = Color(0.04, 0.09, 0.08, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.25, 0.42, 0.36, 0.72)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 14.0
+content_margin_top = 10.0
+content_margin_right = 14.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="Style_status"]
+bg_color = Color(0.95, 0.72, 0.23, 0.96)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 18.0
+content_margin_top = 7.0
+content_margin_right = 18.0
+content_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxFlat" id="Style_hand"]
+bg_color = Color(0.037, 0.067, 0.067, 0.96)
+border_width_top = 1
+border_color = Color(0.22, 0.38, 0.33, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="Style_button_neutral"]
+bg_color = Color(0.18, 0.24, 0.24, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="Style_button_neutral_hover"]
+bg_color = Color(0.25, 0.34, 0.33, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="Style_button_roll"]
+bg_color = Color(0.95, 0.69, 0.17, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 22.0
+content_margin_top = 10.0
+content_margin_right = 22.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="Style_button_roll_hover"]
+bg_color = Color(1, 0.78, 0.29, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 22.0
+content_margin_top = 10.0
+content_margin_right = 22.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="Style_button_play"]
+bg_color = Color(0.13, 0.48, 0.7, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 24.0
+content_margin_top = 10.0
+content_margin_right = 24.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="Style_button_play_hover"]
+bg_color = Color(0.18, 0.59, 0.83, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 24.0
+content_margin_top = 10.0
+content_margin_right = 24.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="Style_button_pass"]
+bg_color = Color(0.63, 0.23, 0.24, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 20.0
+content_margin_top = 10.0
+content_margin_right = 20.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="Style_button_disabled"]
+bg_color = Color(0.12, 0.16, 0.16, 0.72)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="Style_result"]
+bg_color = Color(0.055, 0.082, 0.086, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.95, 0.72, 0.23, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 36.0
+content_margin_top = 28.0
+content_margin_right = 36.0
+content_margin_bottom = 28.0
+
+[node name="GameScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_main")
+script = ExtResource("1_game")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.055, 0.235, 0.19, 1)
+
+[node name="SafeArea" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 18
+
+[node name="MainLayout" type="VBoxContainer" parent="SafeArea"]
+layout_mode = 2
+theme_override_constants/separation = 9
+
+[node name="Header" type="PanelContainer" parent="SafeArea/MainLayout"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_override_styles/panel = SubResource("Style_header")
+
+[node name="HeaderRow" type="HBoxContainer" parent="SafeArea/MainLayout/Header"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Brand" type="VBoxContainer" parent="SafeArea/MainLayout/Header/HeaderRow"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Title" type="Label" parent="SafeArea/MainLayout/Header/HeaderRow/Brand"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.78, 0.31, 1)
+theme_override_font_sizes/font_size = 26
+text = "BONUS"
+
+[node name="TableName" type="Label" parent="SafeArea/MainLayout/Header/HeaderRow/Brand"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.7, 0.67, 1)
+theme_override_font_sizes/font_size = 11
+text = "LOCAL TABLE"
+
+[node name="HeaderSpacer" type="Control" parent="SafeArea/MainLayout/Header/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TurnLabel" type="Label" parent="SafeArea/MainLayout/Header/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.96, 0.94, 1)
+theme_override_font_sizes/font_size = 18
+text = "你的回合"
+vertical_alignment = 1
+
+[node name="DeckInfo" type="VBoxContainer" parent="SafeArea/MainLayout/Header/HeaderRow"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="DeckCaption" type="Label" parent="SafeArea/MainLayout/Header/HeaderRow/DeckInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.67, 0.64, 1)
+theme_override_font_sizes/font_size = 11
+text = "牌堆"
+horizontal_alignment = 1
+
+[node name="DeckCount" type="Label" parent="SafeArea/MainLayout/Header/HeaderRow/DeckInfo"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.96, 0.93, 1)
+text = "74 张"
+horizontal_alignment = 1
+
+[node name="NewGameButton" type="Button" parent="SafeArea/MainLayout/Header/HeaderRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(92, 40)
+layout_mode = 2
+theme_override_styles/normal = SubResource("Style_button_neutral")
+theme_override_styles/hover = SubResource("Style_button_neutral_hover")
+theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
+text = "新牌局"
+
+[node name="MainArea" type="Control" parent="SafeArea/MainLayout"]
+custom_minimum_size = Vector2(0, 285)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="OpponentPanel" type="PanelContainer" parent="SafeArea/MainLayout/MainArea"]
+layout_mode = 1
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -180.0
+offset_top = 4.0
+offset_right = 180.0
+offset_bottom = 94.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("Style_opponent")
+
+[node name="OpponentLayout" type="VBoxContainer" parent="SafeArea/MainLayout/MainArea/OpponentPanel"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="OpponentInfo" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/OpponentPanel/OpponentLayout"]
+layout_mode = 2
+
+[node name="OpponentName" type="Label" parent="SafeArea/MainLayout/MainArea/OpponentPanel/OpponentLayout/OpponentInfo"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.96, 0.94, 1)
+text = "北家"
+
+[node name="OpponentSpacer" type="Control" parent="SafeArea/MainLayout/MainArea/OpponentPanel/OpponentLayout/OpponentInfo"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="OpponentCount" type="Label" parent="SafeArea/MainLayout/MainArea/OpponentPanel/OpponentLayout/OpponentInfo"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.78, 0.31, 1)
+text = "17 张"
+
+[node name="OpponentCardsCenter" type="CenterContainer" parent="SafeArea/MainLayout/MainArea/OpponentPanel/OpponentLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="OpponentCardRow" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/OpponentPanel/OpponentLayout/OpponentCardsCenter"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = -22
+
+[node name="InitialBack" type="TextureRect" parent="SafeArea/MainLayout/MainArea/OpponentPanel/OpponentLayout/OpponentCardsCenter/OpponentCardRow"]
+custom_minimum_size = Vector2(44, 62)
+layout_mode = 2
+texture = ExtResource("3_back")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TableCenter" type="PanelContainer" parent="SafeArea/MainLayout/MainArea"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -42.0
+offset_right = 280.0
+offset_bottom = 92.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("Style_center")
+
+[node name="CenterRow" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/TableCenter"]
+layout_mode = 2
+theme_override_constants/separation = 22
+alignment = 1
+
+[node name="DrawPileGroup" type="VBoxContainer" parent="SafeArea/MainLayout/MainArea/TableCenter/CenterRow"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="DrawPile" type="TextureRect" parent="SafeArea/MainLayout/MainArea/TableCenter/CenterRow/DrawPileGroup"]
+custom_minimum_size = Vector2(70, 98)
+layout_mode = 2
+texture = ExtResource("3_back")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DrawPileCaption" type="Label" parent="SafeArea/MainLayout/MainArea/TableCenter/CenterRow/DrawPileGroup"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.68, 0.78, 0.74, 1)
+theme_override_font_sizes/font_size = 12
+text = "摸牌堆"
+horizontal_alignment = 1
+
+[node name="DiceGroup" type="VBoxContainer" parent="SafeArea/MainLayout/MainArea/TableCenter/CenterRow"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="DiceTexture" type="TextureRect" parent="SafeArea/MainLayout/MainArea/TableCenter/CenterRow/DiceGroup"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(82, 82)
+layout_mode = 2
+modulate = Color(1, 1, 1, 0.28)
+texture = ExtResource("4_die")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DiceValue" type="Label" parent="SafeArea/MainLayout/MainArea/TableCenter/CenterRow/DiceGroup"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.78, 0.31, 1)
+theme_override_font_sizes/font_size = 13
+text = "等待掷骰"
+horizontal_alignment = 1
+
+[node name="PlayedGroup" type="VBoxContainer" parent="SafeArea/MainLayout/MainArea/TableCenter/CenterRow"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="PlayedCardsCenter" type="CenterContainer" parent="SafeArea/MainLayout/MainArea/TableCenter/CenterRow/PlayedGroup"]
+custom_minimum_size = Vector2(250, 98)
+layout_mode = 2
+
+[node name="PlayedCards" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/TableCenter/CenterRow/PlayedGroup/PlayedCardsCenter"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = -14
+alignment = 1
+
+[node name="PlayedCaption" type="Label" parent="SafeArea/MainLayout/MainArea/TableCenter/CenterRow/PlayedGroup"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.68, 0.78, 0.74, 1)
+theme_override_font_sizes/font_size = 12
+text = "等待出牌"
+horizontal_alignment = 1
+
+[node name="StatusPanel" type="PanelContainer" parent="SafeArea/MainLayout/MainArea"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -230.0
+offset_top = -42.0
+offset_right = 230.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("Style_status")
+
+[node name="StatusLabel" type="Label" parent="SafeArea/MainLayout/MainArea/StatusPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.12, 0.11, 0.07, 1)
+theme_override_font_sizes/font_size = 15
+text = "轮到你了，先掷骰子"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HandPanel" type="PanelContainer" parent="SafeArea/MainLayout"]
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+theme_override_styles/panel = SubResource("Style_hand")
+
+[node name="HandLayout" type="VBoxContainer" parent="SafeArea/MainLayout/HandPanel"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="HandHeader" type="HBoxContainer" parent="SafeArea/MainLayout/HandPanel/HandLayout"]
+layout_mode = 2
+
+[node name="HandTitle" type="Label" parent="SafeArea/MainLayout/HandPanel/HandLayout/HandHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.96, 0.94, 1)
+text = "你的手牌"
+
+[node name="HandHeaderSpacer" type="Control" parent="SafeArea/MainLayout/HandPanel/HandLayout/HandHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SelectedLabel" type="Label" parent="SafeArea/MainLayout/HandPanel/HandLayout/HandHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.78, 0.31, 1)
+text = "已选 0 / 0"
+
+[node name="HandView" type="Control" parent="SafeArea/MainLayout/HandPanel/HandLayout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 144)
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("2_hand")
+
+[node name="ActionBar" type="HBoxContainer" parent="SafeArea/MainLayout"]
+custom_minimum_size = Vector2(0, 58)
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="RollButton" type="Button" parent="SafeArea/MainLayout/ActionBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(126, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.12, 0.1, 0.05, 1)
+theme_override_colors/font_hover_color = Color(0.12, 0.1, 0.05, 1)
+theme_override_styles/normal = SubResource("Style_button_roll")
+theme_override_styles/hover = SubResource("Style_button_roll_hover")
+theme_override_styles/pressed = SubResource("Style_button_roll_hover")
+theme_override_styles/disabled = SubResource("Style_button_disabled")
+text = "掷骰子"
+
+[node name="HintButton" type="Button" parent="SafeArea/MainLayout/ActionBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(102, 48)
+layout_mode = 2
+theme_override_styles/normal = SubResource("Style_button_neutral")
+theme_override_styles/hover = SubResource("Style_button_neutral_hover")
+theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
+theme_override_styles/disabled = SubResource("Style_button_disabled")
+text = "推荐"
+
+[node name="PassButton" type="Button" parent="SafeArea/MainLayout/ActionBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(102, 48)
+layout_mode = 2
+theme_override_styles/normal = SubResource("Style_button_pass")
+theme_override_styles/hover = SubResource("Style_button_neutral_hover")
+theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
+theme_override_styles/disabled = SubResource("Style_button_disabled")
+text = "不出"
+
+[node name="PlayButton" type="Button" parent="SafeArea/MainLayout/ActionBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(126, 48)
+layout_mode = 2
+theme_override_styles/normal = SubResource("Style_button_play")
+theme_override_styles/hover = SubResource("Style_button_play_hover")
+theme_override_styles/pressed = SubResource("Style_button_play_hover")
+theme_override_styles/disabled = SubResource("Style_button_disabled")
+text = "出牌"
+
+[node name="ResultOverlay" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+z_index = 50
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="ResultOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.015, 0.025, 0.027, 0.78)
+
+[node name="Center" type="CenterContainer" parent="ResultOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ResultPanel" type="PanelContainer" parent="ResultOverlay/Center"]
+custom_minimum_size = Vector2(360, 210)
+layout_mode = 2
+theme_override_styles/panel = SubResource("Style_result")
+
+[node name="ResultLayout" type="VBoxContainer" parent="ResultOverlay/Center/ResultPanel"]
+layout_mode = 2
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="ResultCaption" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.78, 0.31, 1)
+theme_override_font_sizes/font_size = 13
+text = "牌局结束"
+horizontal_alignment = 1
+
+[node name="WinnerLabel" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.97, 0.96, 1)
+theme_override_font_sizes/font_size = 30
+text = "你 获胜"
+horizontal_alignment = 1
+
+[node name="RestartButton" type="Button" parent="ResultOverlay/Center/ResultPanel/ResultLayout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/normal = SubResource("Style_button_play")
+theme_override_styles/hover = SubResource("Style_button_play_hover")
+theme_override_styles/pressed = SubResource("Style_button_play_hover")
+text = "再来一局"
