@@ -167,6 +167,10 @@ func get_card_travel_duration() -> float:
 	return [0.58, 0.42, 0.3][game_speed]
 
 
+func get_deal_card_duration() -> float:
+	return [0.19, 0.13, 0.085][game_speed]
+
+
 func get_feedback_duration() -> float:
 	return [0.9, 0.65, 0.45][game_speed]
 

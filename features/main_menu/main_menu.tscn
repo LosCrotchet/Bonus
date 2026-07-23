@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://features/main_menu/main_menu.gd" id="1_menu"]
 [ext_resource type="PackedScene" path="res://shared/ui/settings_panel.tscn" id="2_settings"]
@@ -8,9 +8,12 @@
 [ext_resource type="Texture2D" path="res://assets/icons/button_power.png" id="7_power"]
 [ext_resource type="Texture2D" path="res://assets/icons/arrow_right.png" id="8_forward"]
 [ext_resource type="Texture2D" path="res://assets/icons/arrow_left.png" id="9_back"]
+[ext_resource type="FontFile" path="res://assets/fonts/SourceHanSans-VF.otf.ttc" id="10_font"]
 
 [sub_resource type="Theme" id="Theme_menu"]
+default_font = ExtResource("10_font")
 default_font_size = 17
+Button/constants/h_separation = 12
 
 [sub_resource type="StyleBoxFlat" id="Style_main_panel"]
 bg_color = Color(0.105, 0.125, 0.125, 0.97)
@@ -56,6 +59,32 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
+[sub_resource type="StyleBoxFlat" id="Style_info_button"]
+bg_color = Color(0.16, 0.2, 0.2, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.65, 0.62, 0.9)
+corner_radius_top_left = 11
+corner_radius_top_right = 11
+corner_radius_bottom_right = 11
+corner_radius_bottom_left = 11
+
+[sub_resource type="StyleBoxFlat" id="Style_info_hover"]
+bg_color = Color(0.26, 0.34, 0.32, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.82, 0.72, 0.34, 1)
+corner_radius_top_left = 11
+corner_radius_top_right = 11
+corner_radius_bottom_right = 11
+corner_radius_bottom_left = 11
+
+[sub_resource type="StyleBoxEmpty" id="Style_info_focus"]
+
 [node name="MainMenu" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -97,6 +126,7 @@ theme_override_constants/separation = 6
 
 [node name="SinglePlayerButton" type="Button" parent="MenuPanel/Layout/MenuButtons"]
 unique_name_in_owner = true
+texture_filter = 4
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_font_sizes/font_size = 21
@@ -111,6 +141,7 @@ icon_max_width = 27
 
 [node name="MultiplayerButton" type="Button" parent="MenuPanel/Layout/MenuButtons"]
 unique_name_in_owner = true
+texture_filter = 4
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_font_sizes/font_size = 21
@@ -125,6 +156,7 @@ icon_max_width = 27
 
 [node name="SettingsButton" type="Button" parent="MenuPanel/Layout/MenuButtons"]
 unique_name_in_owner = true
+texture_filter = 4
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_font_sizes/font_size = 21
@@ -139,6 +171,7 @@ icon_max_width = 27
 
 [node name="ExitGameButton" type="Button" parent="MenuPanel/Layout/MenuButtons"]
 unique_name_in_owner = true
+texture_filter = 4
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_font_sizes/font_size = 21
@@ -220,12 +253,24 @@ unique_name_in_owner = true
 layout_mode = 2
 
 [node name="JokersWildRow" type="HBoxContainer" parent="SinglePlayerPanel/Layout"]
+unique_name_in_owner = true
 layout_mode = 2
 [node name="Label" type="Label" parent="SinglePlayerPanel/Layout/JokersWildRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "RULE_JOKERS_WILD"
 [node name="JokersWildToggle" type="CheckButton" parent="SinglePlayerPanel/Layout/JokersWildRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="WildcardFinishRow" type="HBoxContainer" parent="SinglePlayerPanel/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+[node name="Label" type="Label" parent="SinglePlayerPanel/Layout/WildcardFinishRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "RULE_WILDCARD_FINISH_DRAW"
+[node name="WildcardFinishToggle" type="CheckButton" parent="SinglePlayerPanel/Layout/WildcardFinishRow"]
 unique_name_in_owner = true
 layout_mode = 2
 
@@ -245,6 +290,17 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 text = "RULE_VARIABLE_DRAW"
+[node name="VariableDrawInfo" type="Button" parent="SinglePlayerPanel/Layout/VariableDrawRow"]
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("Style_info_button")
+theme_override_styles/hover = SubResource("Style_info_hover")
+theme_override_styles/pressed = SubResource("Style_info_hover")
+theme_override_styles/focus = SubResource("Style_info_focus")
+text = "?"
+tooltip_text = "RULE_VARIABLE_DRAW_HINT"
 [node name="VariableDrawToggle" type="CheckButton" parent="SinglePlayerPanel/Layout/VariableDrawRow"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -255,6 +311,7 @@ size_flags_vertical = 3
 
 [node name="StartGameButton" type="Button" parent="SinglePlayerPanel/Layout"]
 unique_name_in_owner = true
+texture_filter = 4
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 text = "UI_START_GAME"
@@ -264,6 +321,7 @@ icon_max_width = 22
 
 [node name="SinglePlayerBackButton" type="Button" parent="SinglePlayerPanel/Layout"]
 unique_name_in_owner = true
+texture_filter = 4
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 text = "UI_BACK"

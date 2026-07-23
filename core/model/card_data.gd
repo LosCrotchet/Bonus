@@ -1,6 +1,8 @@
 class_name CardData
 extends RefCounted
 
+const NATURAL_JOKER_GROUP_RANK := 16
+
 enum Suit {
 	CLUBS,
 	DIAMONDS,

@@ -40,7 +40,7 @@ func _init(
 
 
 func is_full_kind() -> bool:
-	return type in [Type.FOUR_KIND, Type.FIVE_KIND, Type.SIX_KIND]
+	return type in [Type.TRIPLE, Type.FOUR_KIND, Type.FIVE_KIND, Type.SIX_KIND]
 
 
 func clone() -> HandPattern:

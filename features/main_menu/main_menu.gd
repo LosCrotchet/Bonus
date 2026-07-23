@@ -9,7 +9,10 @@ signal quit_requested
 @onready var settings_side_panel: AppSettingsPanel = %SettingsSidePanel
 @onready var player_count_option: OptionButton = %PlayerCountOption
 @onready var include_jokers_toggle: CheckButton = %IncludeJokersToggle
+@onready var jokers_wild_row: HBoxContainer = %JokersWildRow
 @onready var jokers_wild_toggle: CheckButton = %JokersWildToggle
+@onready var wildcard_finish_row: HBoxContainer = %WildcardFinishRow
+@onready var wildcard_finish_toggle: CheckButton = %WildcardFinishToggle
 @onready var sequences_include_two_toggle: CheckButton = %SequencesIncludeTwoToggle
 @onready var variable_draw_toggle: CheckButton = %VariableDrawToggle
 @onready var exit_game_button: Button = %ExitGameButton
@@ -24,8 +27,6 @@ var _menu_target_position := Vector2.ZERO
 
 
 func _ready() -> void:
-	%SinglePlayerBackButton.set_meta(&"ui_sound", &"ui_cancel")
-	%ExitNoButton.set_meta(&"ui_sound", &"ui_cancel")
 	%SinglePlayerButton.pressed.connect(_open_single_player)
 	%SettingsButton.pressed.connect(_open_settings)
 	%StartGameButton.pressed.connect(_start_single_player)
@@ -34,6 +35,8 @@ func _ready() -> void:
 	exit_game_button.pressed.connect(_show_exit_confirmation)
 	%ExitYesButton.pressed.connect(func() -> void: quit_requested.emit())
 	%ExitNoButton.pressed.connect(_hide_exit_confirmation)
+	include_jokers_toggle.toggled.connect(_on_include_jokers_toggled)
+	jokers_wild_toggle.toggled.connect(_on_jokers_wild_toggled)
 	_populate_player_counts()
 	_reset_single_player_options()
 	single_player_panel.visible = false
@@ -89,8 +92,33 @@ func _populate_player_counts() -> void:
 func _reset_single_player_options() -> void:
 	include_jokers_toggle.button_pressed = true
 	jokers_wild_toggle.button_pressed = true
+	wildcard_finish_toggle.button_pressed = true
 	sequences_include_two_toggle.button_pressed = false
 	variable_draw_toggle.button_pressed = false
+	_refresh_rule_dependencies()
+
+
+func _on_include_jokers_toggled(enabled: bool) -> void:
+	if not enabled:
+		jokers_wild_toggle.set_pressed_no_signal(false)
+	_refresh_rule_dependencies()
+
+
+func _on_jokers_wild_toggled(enabled: bool) -> void:
+	if not enabled:
+		wildcard_finish_toggle.set_pressed_no_signal(false)
+	_refresh_rule_dependencies()
+
+
+func _refresh_rule_dependencies() -> void:
+	var show_wild_rules := include_jokers_toggle.button_pressed
+	if not show_wild_rules:
+		jokers_wild_toggle.set_pressed_no_signal(false)
+	if not show_wild_rules or not jokers_wild_toggle.button_pressed:
+		wildcard_finish_toggle.set_pressed_no_signal(false)
+	jokers_wild_row.visible = show_wild_rules
+	var show_finish_rule := show_wild_rules and jokers_wild_toggle.button_pressed
+	wildcard_finish_row.visible = show_finish_rule
 
 
 func _open_single_player() -> void:
@@ -166,6 +194,7 @@ func _start_single_player() -> void:
 	var rules := GameRules.new()
 	rules.include_jokers = include_jokers_toggle.button_pressed
 	rules.jokers_are_wild = jokers_wild_toggle.button_pressed
+	rules.draw_two_on_wildcard_finish = wildcard_finish_toggle.button_pressed
 	rules.allow_two_in_sequences = sequences_include_two_toggle.button_pressed
 	rules.draw_count_uses_dice = variable_draw_toggle.button_pressed
 	single_player_requested.emit(player_count_option.get_selected_id(), rules)

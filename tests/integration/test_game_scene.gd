@@ -15,6 +15,9 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var session := game_scene.get("_session") as GameSession
+	assert(bool(game_scene.get("_dealing")))
+	game_scene.call("skip_initial_deal")
+	await get_tree().process_frame
 	var hand_view := game_scene.get_node("%HandView") as HandView
 	var dice_button := game_scene.get_node("%DiceButton") as TextureButton
 	var action_bar := game_scene.get_node("%ActionBar") as HBoxContainer
@@ -27,6 +30,9 @@ func _run_test() -> void:
 	var pass_button := game_scene.get_node("%PassButton") as Button
 	var played_panel := game_scene.get_node("%PlayedPanel") as PanelContainer
 	var roll_panel := game_scene.get_node("%RollPanel") as PanelContainer
+	var table_band := game_scene.get_node("%TableBand") as PanelContainer
+	var table_bonus := game_scene.get_node("%TableBonusEffect") as ColorRect
+	var hand_bonus := game_scene.get_node("%BonusEffect") as ColorRect
 	var status_label := game_scene.get_node("%StatusLabel") as Label
 	var selection_type := game_scene.get_node("%SelectionTypeLabel") as Label
 	var interpretation_popup := game_scene.get_node("%InterpretationPopup") as PopupPanel
@@ -34,6 +40,9 @@ func _run_test() -> void:
 	var hand_title := game_scene.get_node("%HandTitle") as Label
 	var north_cards := game_scene.get_node("%NorthCards") as HBoxContainer
 	var header_title := game_scene.get_node("%HeaderTitle") as Label
+	var hand_types_button := game_scene.get_node("%HandTypesButton") as Button
+	var hand_types_overlay := game_scene.get_node("%HandTypesOverlay") as Control
+	var hand_types_dialog := game_scene.get_node("%HandTypesDialog") as HandTypesDialog
 	assert(session.players.size() == 3)
 	assert(session.draw_pile.size() == 57)
 	assert(hand_view.get_child_count() == 17)
@@ -44,18 +53,45 @@ func _run_test() -> void:
 	assert(game_scene.size.x >= 1000.0)
 	assert(game_scene.size.y >= 600.0)
 	assert(played_panel.custom_minimum_size.x >= 480.0)
+	assert(is_equal_approx(table_band.size.y, 156.0))
+	assert(table_band.get_global_rect().position.x <= 1.0)
+	assert(table_band.get_global_rect().end.x >= game_scene.get_global_rect().end.x - 1.0)
 	assert(status_label.global_position.y < played_panel.global_position.y)
 	assert(not selection_type.visible)
 	assert(header_title.text.begins_with("BONUS |"))
 	assert(int(game_scene.get("_indicator_player_index")) == 0)
-	assert(turn_indicator.get_global_rect().get_center().y < hand_title.get_global_rect().position.y)
-	assert(turn_indicator.get_global_rect().get_center().x < hand_title.get_global_rect().get_center().x)
+	var indicator_layout_center: Vector2 = (
+		game_scene.get_global_rect().position
+		+ turn_indicator.position
+		+ turn_indicator.size * 0.5
+	)
+	assert(
+		indicator_layout_center.y < hand_title.get_global_rect().position.y,
+		"South indicator must stay above the hand title: center=%s title=%s"
+		% [indicator_layout_center, hand_title.get_global_rect()],
+	)
+	assert(
+		indicator_layout_center.x < hand_title.get_global_rect().get_center().x,
+		"South indicator must stay left of the hand title center: center=%s title=%s"
+		% [indicator_layout_center, hand_title.get_global_rect()],
+	)
 	assert(north_cards.get_child_count() == 8)
 	assert(north_cards.get_child(7) is Label)
 	assert(AudioServer.get_bus_index(&"SFX") != -1)
 	assert(AudioServer.get_bus_index(&"Music") != -1)
 	var hand_panel := game_scene.get_node("%HandPanel") as PanelContainer
 	var hand_height := hand_panel.size.y
+	var flow_borders := game_scene.get("_flow_borders") as Dictionary
+	var hand_border := flow_borders[hand_panel] as ColorRect
+	assert(hand_border.get_global_rect().position.is_equal_approx(hand_panel.get_global_rect().position))
+	assert(hand_border.get_global_rect().size.is_equal_approx(hand_panel.get_global_rect().size))
+
+	hand_types_button.pressed.emit()
+	await get_tree().process_frame
+	assert(hand_types_overlay.visible)
+	assert((hand_types_dialog.get_node("%Rows") as VBoxContainer).get_child_count() == 6)
+	hand_types_dialog.close_requested.emit()
+	assert(await _wait_until(func() -> bool: return not hand_types_overlay.visible, 1.0))
 
 	await _test_transactional_settings(
 		settings_button,
@@ -101,11 +137,11 @@ func _run_test() -> void:
 	assert(selected_ids.is_empty())
 	assert(not selection_type.visible)
 
-	_test_bonus_controls(game_scene, session, pass_button, roll_panel, played_panel)
+	_test_bonus_controls(game_scene, session, pass_button, table_bonus, hand_bonus)
 	await get_tree().process_frame
 	assert(not pass_button.visible)
-	assert((roll_panel.get_node("FlowBorder") as ColorRect).visible)
-	assert((played_panel.get_node("FlowBorder") as ColorRect).visible)
+	assert(table_bonus.visible)
+	assert(not hand_bonus.visible)
 
 	_test_interpretation_popup(game_scene, session)
 	await get_tree().process_frame
@@ -163,7 +199,11 @@ func _test_transactional_settings(
 	await get_tree().process_frame
 	assert(settings_overlay.visible)
 	assert(not status_label.visible)
-	assert((settings_panel.get_node("%ApplyStatus") as Label).visible)
+	var apply_status := settings_panel.get_node("%ApplyStatus") as Label
+	assert(apply_status.visible)
+	assert(not settings_panel.get_node("Layout").is_ancestor_of(apply_status))
+	assert(apply_status.get_global_rect().position.x >= settings_panel.get_global_rect().end.x)
+	assert(settings_panel.find_child("ExitGameButton", true, false) == null)
 	settings_dismiss.pressed.emit()
 	assert(await _wait_until(func() -> bool: return not settings_overlay.visible, 1.0))
 
@@ -213,8 +253,8 @@ func _test_bonus_controls(
 	game_scene: Control,
 	session: GameSession,
 	pass_button: Button,
-	roll_panel: PanelContainer,
-	played_panel: PanelContainer,
+	table_bonus: ColorRect,
+	hand_bonus: ColorRect,
 ) -> void:
 	session.is_bonus = true
 	session.last_play_pattern = null
@@ -224,8 +264,18 @@ func _test_bonus_controls(
 	assert(not session.pass_turn(0))
 	assert(session.last_error_key == &"ERROR_BONUS_MUST_PLAY")
 	assert(not pass_button.visible)
-	assert((roll_panel.get_node("FlowBorder") as ColorRect).visible)
-	assert((played_panel.get_node("FlowBorder") as ColorRect).visible)
+	assert(table_bonus.visible)
+	assert(hand_bonus.visible)
+
+	session.roller_index = 1
+	session.current_player_index = 1
+	game_scene.call("_refresh")
+	assert(not hand_bonus.visible)
+	var north_panel := game_scene.get_node("%NorthSeat") as PanelContainer
+	var flow_borders := game_scene.get("_flow_borders") as Dictionary
+	var north_border := flow_borders[north_panel] as ColorRect
+	assert(north_border.visible)
+	assert(bool((north_border.material as ShaderMaterial).get_shader_parameter("bonus_mode")))
 
 
 func _test_interpretation_popup(game_scene: Control, session: GameSession) -> void:
@@ -285,6 +335,8 @@ func _test_global_double_clicks(game_scene: Control) -> void:
 	assert(SettingsService.apply_settings(snapshot))
 	game_scene.call("_start_new_game")
 	await get_tree().process_frame
+	game_scene.call("skip_initial_deal")
+	await get_tree().process_frame
 	var session := game_scene.get("_session") as GameSession
 	var card := CardData.new(9200, CardData.Rank.THREE, CardData.Suit.CLUBS)
 	session.players[0].hand = [card]
@@ -309,6 +361,8 @@ func _test_global_double_clicks(game_scene: Control) -> void:
 	assert(session.winner_index == 0)
 
 	game_scene.call("_start_new_game")
+	await get_tree().process_frame
+	game_scene.call("skip_initial_deal")
 	await get_tree().process_frame
 	session = game_scene.get("_session") as GameSession
 	session.phase = GameSession.Phase.AWAITING_ACTION

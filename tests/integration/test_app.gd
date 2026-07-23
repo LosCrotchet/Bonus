@@ -13,7 +13,7 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	assert((app.get_node("Version") as Label).text == "v0.5.3")
+	assert((app.get_node("Version") as Label).text == "v0.5.4")
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
 	assert(menu != null)
@@ -28,8 +28,25 @@ func _run_test() -> void:
 	assert((menu.get_node("%PlayerCountOption") as OptionButton).get_selected_id() == 3)
 	assert((menu.get_node("%IncludeJokersToggle") as CheckButton).button_pressed)
 	assert((menu.get_node("%JokersWildToggle") as CheckButton).button_pressed)
+	assert((menu.get_node("%WildcardFinishToggle") as CheckButton).button_pressed)
+	assert((menu.get_node("%JokersWildRow") as HBoxContainer).visible)
+	assert((menu.get_node("%WildcardFinishRow") as HBoxContainer).visible)
 	assert(not (menu.get_node("%SequencesIncludeTwoToggle") as CheckButton).button_pressed)
 	assert(not (menu.get_node("%VariableDrawToggle") as CheckButton).button_pressed)
+	var include_jokers := menu.get_node("%IncludeJokersToggle") as CheckButton
+	var jokers_wild := menu.get_node("%JokersWildToggle") as CheckButton
+	var wildcard_finish := menu.get_node("%WildcardFinishToggle") as CheckButton
+	include_jokers.button_pressed = false
+	assert(not jokers_wild.button_pressed)
+	assert(not wildcard_finish.button_pressed)
+	assert(not (menu.get_node("%JokersWildRow") as HBoxContainer).visible)
+	assert(not (menu.get_node("%WildcardFinishRow") as HBoxContainer).visible)
+	include_jokers.button_pressed = true
+	assert((menu.get_node("%JokersWildRow") as HBoxContainer).visible)
+	assert(not (menu.get_node("%WildcardFinishRow") as HBoxContainer).visible)
+	jokers_wild.button_pressed = true
+	wildcard_finish.button_pressed = true
+	assert((menu.get_node("%WildcardFinishRow") as HBoxContainer).visible)
 	await get_tree().create_timer(0.35).timeout
 	var secondary_position := single_panel.position
 	var secondary_size := single_panel.size
@@ -70,10 +87,13 @@ func _run_test() -> void:
 		2.5,
 	))
 	var game := content.get_child(0) as Control
+	game.call("skip_initial_deal")
+	await get_tree().process_frame
 	var session := game.get("_session") as GameSession
 	assert(session.players.size() == 3)
 	assert(session.rules.include_jokers)
 	assert(session.rules.jokers_are_wild)
+	assert(session.rules.draw_two_on_wildcard_finish)
 	assert(not session.rules.allow_two_in_sequences)
 	assert(not session.rules.draw_count_uses_dice)
 

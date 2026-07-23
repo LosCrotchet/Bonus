@@ -207,32 +207,6 @@ custom_minimum_size = Vector2(74, 40)
 layout_mode = 2
 text = "UI_NO"
 
-[node name="ExitGameButton" type="Button" parent="Layout/NavigationActions"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-text = "UI_EXIT_GAME"
-
-[node name="ExitGameConfirmation" type="HBoxContainer" parent="Layout/NavigationActions"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_override_constants/separation = 8
-[node name="Prompt" type="Label" parent="Layout/NavigationActions/ExitGameConfirmation"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "UI_CONFIRM_EXIT_GAME"
-[node name="ExitGameYes" type="Button" parent="Layout/NavigationActions/ExitGameConfirmation"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(74, 40)
-layout_mode = 2
-text = "UI_YES"
-[node name="ExitGameNo" type="Button" parent="Layout/NavigationActions/ExitGameConfirmation"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(74, 40)
-layout_mode = 2
-text = "UI_NO"
-
 [node name="BottomButtons" type="HBoxContainer" parent="Layout"]
 layout_mode = 2
 theme_override_constants/separation = 10
@@ -252,13 +226,20 @@ theme_override_styles/hover = SubResource("Style_primary")
 theme_override_styles/pressed = SubResource("Style_primary")
 text = "UI_APPLY"
 
-[node name="ApplyStatus" type="Label" parent="Layout/BottomButtons"]
+[node name="ApplyFeedbackLayer" type="Control" parent="."]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ApplyStatus" type="Label" parent="ApplyFeedbackLayer"]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(108, 42)
-layout_mode = 2
+custom_minimum_size = Vector2(126, 38)
+layout_mode = 0
+offset_right = 126.0
+offset_bottom = 38.0
+mouse_filter = 2
 theme_override_colors/font_color = Color(0.42, 0.95, 0.66, 1)
 theme_override_font_sizes/font_size = 16
 text = "UI_APPLY_SUCCESS"
-horizontal_alignment = 1
+horizontal_alignment = 0
 vertical_alignment = 1

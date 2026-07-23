@@ -4,7 +4,7 @@
 
 - 扑克牌与骰子：项目外部参考目录 `Card_Game_GFX`。
 - UI 图标：项目外部参考目录 `Controls_and_Icons_GFX`，使用白色图标集。
-- 按钮与开关：项目外部参考目录 `cartoon_ui_pack/sci fi`。
-- 音效：项目外部参考目录 `400 Sounds Pack`，使用 `Card and Board` 与 `UI/sci_fi_*` 中的部分文件。
+
+当前版本未接入音效。待选声音及触发位置见 `docs/sound_cue_catalog.md`。
 
 素材包由项目所有者提供。发布前应根据素材包原始购买或下载页面再次核对授权范围，并补充作者、商店链接和许可证文本。

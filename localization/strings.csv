@@ -1,5 +1,11 @@
 keys,zh_CN,en
 UI_SETTINGS,设置,Settings
+UI_HAND_TYPES,牌型,Hand Types
+UI_CLOSE,关闭,Close
+UI_HAND_TYPES_POINT,点数,Count
+UI_HAND_TYPES_NAME,牌型名称,Hand Type
+UI_HAND_TYPES_DESCRIPTION,简易描述,Description
+UI_HAND_TYPES_EXAMPLE,牌型示例,Example
 UI_GAME_SETTINGS,牌局设置,Game Settings
 UI_PLAYER_COUNT,玩家数量,Players
 UI_PLAYER_COUNT_OPTION,{count} 人,{count} players
@@ -38,8 +44,10 @@ UI_BACK,返回,Back
 UI_BACK_TO_MENU,回到主菜单,Back to Main Menu
 RULE_INCLUDE_JOKERS,牌堆包括大小王,Include Jokers
 RULE_JOKERS_WILD,大小王可作万能牌,Jokers Are Wild
+RULE_WILDCARD_FINISH_DRAW,最后一次出牌带有万能牌时摸两张,Draw Two After a Final Wildcard Play
 RULE_SEQUENCE_WITH_TWO,顺子可以带 2,Straights Include 2
 RULE_VARIABLE_DRAW,未出牌时摸 7-x 张,Draw 7-x After All Pass
+RULE_VARIABLE_DRAW_HINT,其中 x 是骰子点数；如果不启用则默认摸 3 张,x is the die value; when disabled the default draw is 3 cards
 UI_RECOMMEND,推荐,Hint
 UI_PASS,不出,Pass
 UI_PLAY,出牌,Play
@@ -66,6 +74,7 @@ UI_INTERPRETATION_OPTION,{hand_type} · 主体 {rank},{hand_type} · Main rank {
 UI_PASS_FEEDBACK,PASS,PASS
 UI_BONUS_FEEDBACK,BONUS!,BONUS!
 STATUS_CLICK_DICE,轮到南家，点击画面开始回合,South's turn. Click the screen to start.
+STATUS_DEALING,正在发牌，双击画面可跳过,Dealing cards. Double-click to skip.
 STATUS_PREPARING_ROLL,{player}准备掷骰,{player} is preparing to roll
 STATUS_ROLLING,{player}正在掷骰…,{player} is rolling...
 STATUS_WINNER,{player}获胜,{player} wins
@@ -115,6 +124,20 @@ HAND_FIVE_WITH_ONE,五带一,Five with One
 HAND_FOUR_WITH_TWO,四带二,Four with Two
 HAND_TRIPLE_WITH_TRIPLE,三带三,Triple with Triple
 HAND_PAIR_STRAIGHT_3,三连对,Three Consecutive Pairs
+HAND_DESC_SINGLE,任意一张牌。,Any single card.
+HAND_DESC_PAIR,两张同点数牌；纯大小王可混合作为最高对子。,Two cards of one rank; natural jokers may be mixed as the highest pair.
+HAND_DESC_TRIPLE,三张同点数牌；可盖过任意三张牌型；纯大小王可混合。,Three cards of one rank; beats any 3-card type; natural jokers may be mixed.
+HAND_DESC_STRAIGHT,所有牌点数连续；是否可带 2 由本局规则决定。,All ranks are consecutive; the current rules decide whether 2 is allowed.
+HAND_DESC_FOUR_KIND,四张同点数牌；可盖过任意四张牌型。,Four cards of one rank; beats any 4-card type.
+HAND_DESC_TRIPLE_WITH_ONE,三条外加一张不同点数的牌。,A triple with one card of another rank.
+HAND_DESC_PAIR_STRAIGHT,连续点数的对子组成连对。,Pairs of consecutive ranks.
+HAND_DESC_FIVE_KIND,五张同点数牌；可盖过任意五张牌型。,Five cards of one rank; beats any 5-card type.
+HAND_DESC_TRIPLE_WITH_PAIR,三条外加另一点数的对子。,A triple with a pair of another rank.
+HAND_DESC_FOUR_WITH_ONE,四条外加一张不同点数的牌。,Four of a kind with one card of another rank.
+HAND_DESC_SIX_KIND,六张同点数牌；可盖过任意六张牌型。,Six cards of one rank; beats any 6-card type.
+HAND_DESC_FIVE_WITH_ONE,五条外加一张不同点数的牌。,Five of a kind with one card of another rank.
+HAND_DESC_FOUR_WITH_TWO,四条外加两张非主体牌；附带牌可同点数或不同点数。,Four of a kind with two kickers; the kickers may match each other.
+HAND_DESC_TRIPLE_WITH_TRIPLE,两个不同点数的三条。,Two triples of different ranks.
 HAND_UNKNOWN,未知牌型,Unknown Hand
 SEAT_SOUTH,南家,South
 SEAT_NORTH,北家,North

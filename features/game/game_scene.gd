@@ -9,7 +9,11 @@ const INACTIVE_BORDER_COLOR := Color(0.25, 0.4, 0.36, 0.75)
 const FLOW_BORDER_SHADER := preload("res://assets/shaders/flow_border.gdshader")
 
 @onready var settings_button: Button = %SettingsButton
+@onready var hand_types_button: Button = %HandTypesButton
 @onready var header_title: Label = %HeaderTitle
+@onready var hand_types_overlay: Control = %HandTypesOverlay
+@onready var hand_types_dialog: HandTypesDialog = %HandTypesDialog
+@onready var hand_types_dismiss_button: Button = %HandTypesDismissButton
 @onready var settings_overlay: Control = %SettingsOverlay
 @onready var settings_panel: AppSettingsPanel = %SettingsPanel
 @onready var settings_dismiss_button: Button = %SettingsDismissButton
@@ -20,6 +24,8 @@ const FLOW_BORDER_SHADER := preload("res://assets/shaders/flow_border.gdshader")
 @onready var dice_value_label: Label = %DiceValue
 @onready var roll_panel: PanelContainer = %RollPanel
 @onready var played_panel: PanelContainer = %PlayedPanel
+@onready var table_band: PanelContainer = %TableBand
+@onready var table_bonus_effect: ColorRect = %TableBonusEffect
 @onready var played_cards: HBoxContainer = %PlayedCards
 @onready var played_caption: Label = %PlayedCaption
 @onready var action_bar: HBoxContainer = %ActionBar
@@ -58,8 +64,11 @@ var _actions_should_show := false
 var _dice_hovered := false
 var _dice_rest_position := Vector2.ZERO
 var _dice_prompt_tween: Tween
+var _draw_pile_rest_position := Vector2.ZERO
+var _draw_pile_tween: Tween
 var _action_bar_tween: Tween
 var _settings_tween: Tween
+var _hand_types_tween: Tween
 var _status_tween: Tween
 var _button_tweens: Dictionary = {}
 var _flow_borders: Dictionary = {}
@@ -71,6 +80,10 @@ var _indicator_player_index := -1
 var _presentation_busy := false
 var _last_play_signature := ""
 var _last_human_hand_count := -1
+var _dealing := false
+var _deal_animation_running := false
+var _deal_visible_counts := PackedInt32Array()
+var _deal_flying_cards: Array[TextureRect] = []
 
 
 func configure(
@@ -84,16 +97,19 @@ func configure(
 
 
 func _ready() -> void:
-	settings_dismiss_button.set_meta(&"ui_sound", &"ui_cancel")
 	settings_button.pressed.connect(_on_settings_pressed)
+	hand_types_button.pressed.connect(_open_hand_types)
+	hand_types_dialog.close_requested.connect(_close_hand_types)
+	hand_types_dismiss_button.pressed.connect(_close_hand_types)
 	settings_dismiss_button.pressed.connect(settings_panel.cancel_edit)
 	settings_panel.applied.connect(_on_settings_applied)
 	settings_panel.canceled.connect(_close_settings)
 	settings_panel.return_to_menu_requested.connect(_on_return_to_menu_requested)
-	settings_panel.quit_requested.connect(get_tree().quit)
 	dice_button.pressed.connect(_on_dice_pressed)
 	dice_button.mouse_entered.connect(_on_dice_mouse_entered)
 	dice_button.mouse_exited.connect(_on_dice_mouse_exited)
+	draw_pile_view.mouse_entered.connect(_on_draw_pile_mouse_entered)
+	draw_pile_view.mouse_exited.connect(_on_draw_pile_mouse_exited)
 	hint_button.pressed.connect(_on_hint_pressed)
 	pass_button.pressed.connect(_on_pass_pressed)
 	play_button.pressed.connect(_on_play_pressed)
@@ -127,18 +143,22 @@ func _ready() -> void:
 	action_bar.visible = false
 	action_bar.modulate.a = 0.0
 	settings_overlay.visible = false
+	hand_types_overlay.visible = false
 	_setup_flow_borders()
 	if _embedded_in_app:
 		%Background.visible = false
-	_start_new_game()
+	_start_new_game(not _embedded_in_app)
 	await get_tree().process_frame
 	_dice_rest_position = dice_button.position
 	dice_button.pivot_offset = dice_button.size * 0.5
+	_draw_pile_rest_position = draw_pile_view.position
+	draw_pile_view.pivot_offset = draw_pile_view.size * 0.5
 	_setup_button_motion()
 	_refresh_dice_prompt()
 
 
 func _process(delta: float) -> void:
+	_sync_flow_borders()
 	if _session == null or not _session.is_bonus or _rolling:
 		_bonus_dice_elapsed = 0.0
 		return
@@ -151,7 +171,7 @@ func _process(delta: float) -> void:
 	dice_button.modulate = Color.WHITE
 
 
-func _start_new_game() -> void:
+func _start_new_game(start_deal_animation: bool = true) -> void:
 	_game_serial += 1
 	_ai_task_running = false
 	_rolling = false
@@ -163,6 +183,9 @@ func _start_new_game() -> void:
 	_indicator_player_index = -1
 	_last_play_signature = ""
 	_last_human_hand_count = -1
+	_dealing = true
+	_deal_animation_running = false
+	_deal_visible_counts = PackedInt32Array()
 	_clear_transient()
 	_stop_dice_prompt()
 	interpretation_popup.hide()
@@ -177,8 +200,12 @@ func _start_new_game() -> void:
 		_game_rules,
 	)
 	_initialize_strategies()
+	_deal_visible_counts.resize(_session.players.size())
+	_deal_visible_counts.fill(0)
 	result_overlay.visible = false
 	_refresh()
+	if start_deal_animation:
+		_run_initial_deal.call_deferred(_game_serial)
 
 
 func _player_names_for_count(count: int) -> Array[String]:
@@ -201,20 +228,136 @@ func _initialize_strategies() -> void:
 		_strategies[player_index] = strategy
 
 
+func skip_initial_deal() -> void:
+	if not _dealing:
+		return
+	_finish_initial_deal()
+
+
+func _run_initial_deal(serial: int) -> void:
+	if _deal_animation_running or not _dealing or serial != _game_serial:
+		return
+	_deal_animation_running = true
+	_presentation_busy = true
+	await get_tree().process_frame
+	for _round_index in range(GameSession.STARTING_HAND_SIZE):
+		for player_index in range(_session.players.size()):
+			if serial != _game_serial or not _dealing:
+				_deal_animation_running = false
+				return
+			await _animate_initial_deal_card(player_index)
+			if serial != _game_serial or not _dealing:
+				_deal_animation_running = false
+				return
+			_deal_visible_counts[player_index] += 1
+			_refresh()
+	_finish_initial_deal()
+
+
+func _animate_initial_deal_card(player_index: int) -> void:
+	var target_panel := _get_player_panel(player_index)
+	if target_panel == null:
+		return
+	var card := TextureRect.new()
+	card.texture = CardTextureCatalog.get_card_back()
+	card.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	card.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.z_index = 48
+	card.size = Vector2(44.0, 62.0)
+	card.pivot_offset = card.size * 0.5
+	var source := draw_pile_view.get_global_rect().get_center() - global_position
+	var target := target_panel.get_global_rect().get_center() - global_position
+	if player_index == HUMAN_PLAYER_INDEX:
+		target = hand_view.get_global_rect().get_center() - global_position
+	card.position = source - card.size * 0.5
+	card.scale = Vector2(0.82, 0.82)
+	card.rotation = -0.08
+	add_child(card)
+	_deal_flying_cards.append(card)
+	var duration := SettingsService.get_deal_card_duration()
+	var destination_size := (
+		Vector2(52.0, 74.0)
+		if player_index == HUMAN_PLAYER_INDEX
+		else Vector2(36.0, 50.0)
+	)
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(
+		card,
+		"position",
+		target - destination_size * 0.5,
+		duration,
+	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(card, "size", destination_size, duration)
+	tween.tween_property(card, "rotation", 0.04, duration)
+	tween.tween_property(card, "scale", Vector2.ONE, duration)
+	await tween.finished
+	if is_instance_valid(card):
+		_deal_flying_cards.erase(card)
+		card.queue_free()
+
+
+func _finish_initial_deal() -> void:
+	if not _dealing:
+		return
+	_dealing = false
+	_deal_animation_running = false
+	_presentation_busy = false
+	for player_index in range(_session.players.size()):
+		_deal_visible_counts[player_index] = _session.players[player_index].hand.size()
+	for card in _deal_flying_cards:
+		if is_instance_valid(card):
+			card.queue_free()
+	_deal_flying_cards.clear()
+	_refresh()
+
+
+func _get_visible_hand_count(player_index: int) -> int:
+	if not _dealing or player_index >= _deal_visible_counts.size():
+		return _session.players[player_index].hand.size()
+	return mini(
+		_deal_visible_counts[player_index],
+		_session.players[player_index].hand.size(),
+	)
+
+
+func _get_visible_human_hand() -> Array[CardData]:
+	var result: Array[CardData] = []
+	var hand := _session.players[HUMAN_PLAYER_INDEX].hand
+	var visible_count := _get_visible_hand_count(HUMAN_PLAYER_INDEX)
+	for index in range(visible_count):
+		result.append(hand[index])
+	return result
+
+
+func _get_visible_draw_pile_count() -> int:
+	if not _dealing:
+		return _session.draw_pile.size()
+	var hidden_dealt_cards := 0
+	for player_index in range(_session.players.size()):
+		hidden_dealt_cards += (
+			_session.players[player_index].hand.size()
+			- _get_visible_hand_count(player_index)
+		)
+	return _session.draw_pile.size() + hidden_dealt_cards
+
+
 func _refresh() -> void:
 	if _session == null or _session.players.is_empty():
 		return
 	_prune_selection()
 	_refresh_seats()
 	_refresh_center_table()
-	_schedule_auto_pass_if_needed()
+	if not _dealing:
+		_schedule_auto_pass_if_needed()
 	_refresh_hand()
 	_refresh_actions()
 	_refresh_status()
 	_refresh_bonus_effect()
 	_refresh_turn_indicator()
 	_refresh_dice_prompt()
-	_schedule_ai_if_needed()
+	if not _dealing:
+		_schedule_ai_if_needed()
 
 
 func _refresh_seats() -> void:
@@ -232,19 +375,23 @@ func _refresh_seats() -> void:
 
 		var player := _session.players[player_index]
 		(view["name"] as Label).text = tr(player.display_name)
-		(view["count"] as Label).text = str(player.hand.size())
+		var visible_count := _get_visible_hand_count(player_index)
+		(view["count"] as Label).text = str(visible_count)
 		_set_active_border(panel, player_index == _session.roller_index)
-		_fill_card_backs(view["cards"] as HBoxContainer, player.hand.size())
+		_fill_card_backs(view["cards"] as HBoxContainer, visible_count)
 
 	hand_title.text = _translated(
 		&"UI_HAND_TITLE",
-		{"count": _session.players[HUMAN_PLAYER_INDEX].hand.size()},
+		{"count": _get_visible_hand_count(HUMAN_PLAYER_INDEX)},
 	)
 	_set_active_border(hand_panel, _session.roller_index == HUMAN_PLAYER_INDEX)
 
 
 func _refresh_center_table() -> void:
-	deck_count_label.text = _translated(&"UI_DRAW_REMAINING", {"count": _session.draw_pile.size()})
+	deck_count_label.text = _translated(
+		&"UI_DRAW_REMAINING",
+		{"count": _get_visible_draw_pile_count()},
+	)
 	if not _rolling:
 		if _session.is_bonus:
 			dice_button.texture_normal = _dice_texture(_bonus_dice_frame + 1)
@@ -289,12 +436,11 @@ func _refresh_center_table() -> void:
 
 func _refresh_hand() -> void:
 	var hand_count := _session.players[HUMAN_PLAYER_INDEX].hand.size()
-	if _last_human_hand_count >= 0 and hand_count > _last_human_hand_count:
-		AudioService.play(&"card_draw", -5.0)
 	_last_human_hand_count = hand_count
-	var can_select := _can_human_act() and not _auto_pass_pending
+	var visible_hand := _get_visible_human_hand()
+	var can_select := _can_human_act() and not _auto_pass_pending and not _dealing
 	hand_view.set_hand(
-		_session.players[HUMAN_PLAYER_INDEX].hand,
+		visible_hand,
 		_selected_card_ids,
 		can_select,
 	)
@@ -302,17 +448,21 @@ func _refresh_hand() -> void:
 
 
 func _refresh_actions() -> void:
-	var awaiting_action := _can_human_act() and not _rolling and not _auto_pass_pending
+	var awaiting_action := (
+		_can_human_act()
+		and not _rolling
+		and not _auto_pass_pending
+		and not _dealing
+	)
 	var must_play_bonus := (
-		awaiting_action
-		and _session.is_bonus
+		_session.is_bonus
 		and _session.last_play_pattern == null
 	)
 	pass_button.visible = not must_play_bonus
 	hint_button.disabled = not awaiting_action
 	pass_button.disabled = not awaiting_action
 	play_button.disabled = not awaiting_action
-	dice_button.disabled = not _can_human_roll() or _rolling
+	dice_button.disabled = not _can_human_roll() or _rolling or _dealing
 	dice_button.mouse_default_cursor_shape = (
 		Control.CURSOR_POINTING_HAND if not dice_button.disabled else Control.CURSOR_ARROW
 	)
@@ -329,6 +479,8 @@ func _refresh_status() -> void:
 	var message := ""
 	if not _transient_key.is_empty():
 		message = _translated(_transient_key, _transient_args)
+	elif _dealing:
+		message = tr(&"STATUS_DEALING")
 	elif _rolling:
 		message = _translated(
 			&"STATUS_ROLLING",
@@ -432,10 +584,19 @@ func _refresh_selection_labels() -> void:
 
 
 func _refresh_bonus_effect() -> void:
-	bonus_effect.visible = _session.is_bonus
-	_set_bonus_border(roll_panel, _session.is_bonus)
-	_set_bonus_border(played_panel, _session.is_bonus)
-	_set_bonus_border(hand_panel, _session.is_bonus)
+	var bonus_owner := _session.roller_index
+	bonus_effect.visible = _session.is_bonus and bonus_owner == HUMAN_PLAYER_INDEX
+	table_bonus_effect.visible = _session.is_bonus
+	_set_bonus_border(hand_panel, false)
+	for seat_key in _seat_views:
+		var player_index := _find_player_index(seat_key)
+		if player_index == -1:
+			continue
+		var panel := (_seat_views[seat_key] as Dictionary)["panel"] as PanelContainer
+		_set_bonus_border(
+			panel,
+			_session.is_bonus and player_index == bonus_owner,
+		)
 	if _session.is_bonus and not _last_bonus_state:
 		_show_center_feedback(&"UI_BONUS_FEEDBACK", Color(1.0, 0.76, 0.25))
 	_last_bonus_state = _session.is_bonus
@@ -452,9 +613,22 @@ func _input(event: InputEvent) -> void:
 			settings_panel.cancel_edit()
 			get_viewport().set_input_as_handled()
 		return
+	if hand_types_overlay.visible:
+		if (
+			event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]
+			and not hand_types_dialog.get_global_rect().has_point(event.position)
+		):
+			_close_hand_types()
+			get_viewport().set_input_as_handled()
+		return
 	if result_overlay.visible or interpretation_popup.visible:
 		return
 	if %Header.get_global_rect().has_point(event.position):
+		return
+	if _dealing:
+		if event.double_click and event.button_index == MOUSE_BUTTON_LEFT:
+			skip_initial_deal()
+			get_viewport().set_input_as_handled()
 		return
 	if event.button_index == MOUSE_BUTTON_LEFT and _can_human_roll():
 		_on_dice_pressed()
@@ -495,7 +669,6 @@ func _on_dice_pressed() -> void:
 
 func _animate_roll_and_commit(player_index: int, serial: int) -> void:
 	_rolling = true
-	AudioService.play(&"dice_roll", -3.5)
 	_clear_transient()
 	_selected_card_ids.clear()
 	_stop_dice_prompt()
@@ -610,8 +783,6 @@ func _commit_play(interpretation_key: String) -> void:
 
 func _on_hand_selection_changed(selected_ids: Array[int]) -> void:
 	_clear_transient()
-	if selected_ids != _selected_card_ids:
-		AudioService.play_ui_select()
 	_selected_card_ids.assign(selected_ids)
 	_refresh_selection_labels()
 	_refresh_status()
@@ -784,7 +955,6 @@ func _animate_played_cards_reveal(expected_signature: String) -> void:
 	await get_tree().process_frame
 	if expected_signature != _last_play_signature or played_cards.get_child_count() == 0:
 		return
-	AudioService.play(&"card_fan", -4.5)
 	var tween := create_tween().set_parallel(true)
 	for index in range(played_cards.get_child_count()):
 		var card := played_cards.get_child(index) as Control
@@ -814,7 +984,6 @@ func _animate_ai_draw(player_index: int, drawn_count: int) -> void:
 	var target_panel := _get_player_panel(player_index)
 	if target_panel == null or drawn_count <= 0:
 		return
-	AudioService.play(&"card_draw", -5.5, 0.96 + randf() * 0.08)
 	var source := draw_pile_view.get_global_rect().get_center() - global_position
 	var target := target_panel.get_global_rect().get_center() - global_position
 	var flying_cards: Array[TextureRect] = []
@@ -869,10 +1038,10 @@ func _show_pass_feedback(player_index: int) -> void:
 	label.add_theme_font_size_override("font_size", 32)
 	var rect := panel.get_global_rect()
 	if player_index == HUMAN_PLAYER_INDEX:
-		var title_rect := hand_title.get_global_rect()
-		label.position = Vector2(title_rect.end.x + 6.0, title_rect.position.y - 16.0) - global_position
+		#var title_rect := hand_title.get_global_rect()
+		label.position = Vector2(rect.position.x + rect.size.x / 2 + 15.0, rect.position.y - 40.0) - global_position
 	else:
-		label.position = Vector2(rect.end.x - 150.0, rect.end.y + 4.0) - global_position
+		label.position = Vector2(rect.end.x - 100.0, rect.end.y + 5.0) - global_position
 	_animate_pass_label(label)
 
 
@@ -928,6 +1097,46 @@ func _on_settings_pressed() -> void:
 	_settings_tween = create_tween().set_parallel(true)
 	_settings_tween.tween_property(settings_overlay, "modulate:a", 1.0, SettingsService.get_ui_animation_duration())
 	_settings_tween.tween_property(settings_panel, "scale", Vector2.ONE, SettingsService.get_ui_animation_duration()).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func _open_hand_types() -> void:
+	if hand_types_overlay.visible:
+		return
+	if _hand_types_tween != null:
+		_hand_types_tween.kill()
+	hand_types_overlay.visible = true
+	hand_types_overlay.modulate.a = 0.0
+	hand_types_dialog.scale = Vector2(0.97, 0.97)
+	hand_types_dialog.pivot_offset = hand_types_dialog.size * 0.5
+	_hand_types_tween = create_tween().set_parallel(true)
+	_hand_types_tween.tween_property(hand_types_overlay, "modulate:a", 1.0, 0.18)
+	_hand_types_tween.tween_property(
+		hand_types_dialog,
+		"scale",
+		Vector2.ONE,
+		0.22,
+	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+func _close_hand_types() -> void:
+	if not hand_types_overlay.visible:
+		return
+	if _hand_types_tween != null:
+		_hand_types_tween.kill()
+	_hand_types_tween = create_tween().set_parallel(true)
+	_hand_types_tween.tween_property(hand_types_overlay, "modulate:a", 0.0, 0.16)
+	_hand_types_tween.tween_property(
+		hand_types_dialog,
+		"scale",
+		Vector2(0.98, 0.98),
+		0.16,
+	)
+	_hand_types_tween.chain().tween_callback(
+		func() -> void:
+			hand_types_overlay.visible = false
+			hand_types_overlay.modulate.a = 1.0
+			hand_types_dialog.scale = Vector2.ONE
+	)
 
 
 func _close_settings() -> void:
@@ -1015,6 +1224,7 @@ func _set_action_bar_visible(should_show: bool) -> void:
 func _setup_button_motion() -> void:
 	for button in [
 		settings_button,
+		hand_types_button,
 		hint_button,
 		pass_button,
 		play_button,
@@ -1054,6 +1264,30 @@ func _on_dice_mouse_entered() -> void:
 func _on_dice_mouse_exited() -> void:
 	_dice_hovered = false
 	_refresh_dice_prompt()
+
+
+func _on_draw_pile_mouse_entered() -> void:
+	if _draw_pile_tween != null:
+		_draw_pile_tween.kill()
+	draw_pile_view.pivot_offset = draw_pile_view.size * 0.5
+	_draw_pile_tween = create_tween().set_parallel(true)
+	_draw_pile_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_draw_pile_tween.tween_property(
+		draw_pile_view,
+		"position",
+		_draw_pile_rest_position + Vector2(0.0, -6.0),
+		0.16,
+	)
+	_draw_pile_tween.tween_property(draw_pile_view, "scale", Vector2(1.045, 1.045), 0.16)
+
+
+func _on_draw_pile_mouse_exited() -> void:
+	if _draw_pile_tween != null:
+		_draw_pile_tween.kill()
+	_draw_pile_tween = create_tween().set_parallel(true)
+	_draw_pile_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_draw_pile_tween.tween_property(draw_pile_view, "position", _draw_pile_rest_position, 0.15)
+	_draw_pile_tween.tween_property(draw_pile_view, "scale", Vector2.ONE, 0.15)
 
 
 func _refresh_dice_prompt() -> void:
@@ -1115,7 +1349,7 @@ func _fill_card_backs(container: HBoxContainer, card_count: int) -> void:
 		var ellipsis := Label.new()
 		ellipsis.text = "..."
 		ellipsis.custom_minimum_size = Vector2(70.0, 52.0)
-		ellipsis.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		ellipsis.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		ellipsis.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		ellipsis.add_theme_font_size_override("font_size", 32)
 		ellipsis.add_theme_color_override("font_color", Color(0.98, 0.77, 0.28, 1.0))
@@ -1139,12 +1373,12 @@ func _set_active_border(panel: PanelContainer, active: bool) -> void:
 	panel.add_theme_stylebox_override("panel", style)
 	if _flow_borders.has(panel):
 		var border := _flow_borders[panel] as ColorRect
-		if not _session.is_bonus or panel not in [hand_panel, roll_panel, played_panel]:
-			border.visible = active
+		(border.material as ShaderMaterial).set_shader_parameter("bonus_mode", false)
+		border.visible = active and panel.visible
 
 
 func _refresh_turn_indicator() -> void:
-	if _session.phase == GameSession.Phase.FINISHED:
+	if _dealing or _session.phase == GameSession.Phase.FINISHED:
 		turn_indicator.visible = false
 		return
 	var player_index := _session.current_player_index
@@ -1158,7 +1392,7 @@ func _refresh_turn_indicator() -> void:
 	var facing_rotation: float
 	if player_index == HUMAN_PLAYER_INDEX:
 		var title_rect := hand_title.get_global_rect()
-		target_center = Vector2(title_rect.position.x + 22.0, title_rect.position.y - 24.0) - global_position
+		target_center = Vector2(title_rect.position.x + 60.0, title_rect.position.y - 38.0) - global_position
 		facing_rotation = PI
 	else:
 		target_center = Vector2(panel_rect.get_center().x, panel_rect.end.y + 28.0) - global_position
@@ -1168,10 +1402,9 @@ func _refresh_turn_indicator() -> void:
 
 
 func _setup_flow_borders() -> void:
-	for panel in [%NorthSeat, %WestSeat, %EastSeat, hand_panel, roll_panel, played_panel]:
+	for panel in [%NorthSeat, %WestSeat, %EastSeat, hand_panel]:
 		var border := ColorRect.new()
 		border.name = "FlowBorder"
-		border.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		border.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		border.z_index = 20
 		border.visible = false
@@ -1181,16 +1414,31 @@ func _setup_flow_borders() -> void:
 		border_material.set_shader_parameter("rect_size", panel.size)
 		border_material.set_shader_parameter("corner_radius", 6.0)
 		border.material = border_material
-		panel.add_child(border)
+		add_child(border)
 		_flow_borders[panel] = border
 		panel.resized.connect(_update_flow_border_size.bind(panel))
+	_update_all_flow_borders.call_deferred()
 
 
 func _update_flow_border_size(panel: PanelContainer) -> void:
 	if not _flow_borders.has(panel):
 		return
 	var border := _flow_borders[panel] as ColorRect
-	(border.material as ShaderMaterial).set_shader_parameter("rect_size", panel.size)
+	var panel_rect := panel.get_global_rect()
+	border.position = panel_rect.position - global_position
+	border.size = panel_rect.size
+	(border.material as ShaderMaterial).set_shader_parameter("rect_size", panel_rect.size)
+
+
+func _update_all_flow_borders() -> void:
+	for panel in _flow_borders:
+		_update_flow_border_size(panel as PanelContainer)
+
+
+func _sync_flow_borders() -> void:
+	if not is_inside_tree():
+		return
+	_update_all_flow_borders()
 
 
 func _set_bonus_border(panel: PanelContainer, active: bool) -> void:
@@ -1199,9 +1447,7 @@ func _set_bonus_border(panel: PanelContainer, active: bool) -> void:
 	var border := _flow_borders[panel] as ColorRect
 	(border.material as ShaderMaterial).set_shader_parameter("bonus_mode", active)
 	if active:
-		border.visible = true
-	elif panel in [hand_panel, roll_panel, played_panel]:
-		border.visible = panel == hand_panel and _session.roller_index == HUMAN_PLAYER_INDEX
+		border.visible = panel.visible
 
 
 func play_enter_transition() -> void:
@@ -1214,6 +1460,7 @@ func play_enter_transition() -> void:
 		[%NorthSeat, Vector2(0.0, -120.0)],
 		[%EastSeat, Vector2(170.0, 0.0)],
 		[status_label, Vector2(0.0, -42.0)],
+		[table_band, Vector2(0.0, -100.0)],
 		[%TableRow, Vector2(0.0, -100.0)],
 		[turn_indicator, Vector2.ZERO],
 		[%ActionSlot, Vector2(0.0, 70.0)],
@@ -1231,6 +1478,8 @@ func play_enter_transition() -> void:
 		tween.tween_property(node, "position", originals[node], 0.42).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		tween.tween_property(node, "modulate:a", 1.0, 0.3)
 	await tween.finished
+	if _dealing and not _deal_animation_running:
+		_run_initial_deal.call_deferred(_game_serial)
 
 
 func play_exit_transition() -> void:
@@ -1283,6 +1532,7 @@ func _get_selected_cards() -> Array[CardData]:
 func _can_human_roll() -> bool:
 	return (
 		_session != null
+		and not _dealing
 		and _session.current_player_index == HUMAN_PLAYER_INDEX
 		and _session.phase == GameSession.Phase.AWAITING_ROLL
 	)
@@ -1291,6 +1541,7 @@ func _can_human_roll() -> bool:
 func _can_human_act() -> bool:
 	return (
 		_session != null
+		and not _dealing
 		and _session.current_player_index == HUMAN_PLAYER_INDEX
 		and _session.phase == GameSession.Phase.AWAITING_ACTION
 		and not _rolling
@@ -1325,7 +1576,6 @@ func _clear_transient() -> void:
 
 
 func _show_session_error() -> void:
-	AudioService.play_ui_disallow()
 	_set_transient(_session.last_error_key, _session.last_error_args)
 
 

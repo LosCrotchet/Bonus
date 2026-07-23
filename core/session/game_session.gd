@@ -174,7 +174,7 @@ func play_cards(
 
 	# Victory is resolved only after a confirmed play changes the hand.
 	if players[player_index].hand.is_empty():
-		if selected_pattern.uses_wildcard:
+		if selected_pattern.uses_wildcard and rules.draw_two_on_wildcard_finish:
 			var drawn_count := draw_cards(player_index, JOKER_FINISH_DRAW_COUNT)
 			_set_event(
 				&"EVENT_JOKER_PENALTY",

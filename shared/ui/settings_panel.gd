@@ -4,7 +4,6 @@ extends PanelContainer
 signal applied
 signal canceled
 signal return_to_menu_requested
-signal quit_requested
 
 @export var show_navigation_actions := true
 @export var title_key: StringName = &"UI_GAME_SETTINGS"
@@ -23,35 +22,30 @@ signal quit_requested
 @onready var master_volume_value: Label = %MasterVolumeValue
 @onready var sfx_volume_value: Label = %SfxVolumeValue
 @onready var music_volume_value: Label = %MusicVolumeValue
+@onready var apply_button: Button = %ApplyButton
 @onready var apply_status: Label = %ApplyStatus
 @onready var navigation_actions: VBoxContainer = %NavigationActions
 @onready var exit_menu_button: Button = %ExitMenuButton
 @onready var exit_menu_confirmation: HBoxContainer = %ExitMenuConfirmation
-@onready var exit_game_button: Button = %ExitGameButton
-@onready var exit_game_confirmation: HBoxContainer = %ExitGameConfirmation
 
 var _apply_feedback_tween: Tween
+var _apply_status_rest_position := Vector2.ZERO
 
 
 func _ready() -> void:
-	%CancelButton.set_meta(&"ui_sound", &"ui_cancel")
-	%ExitMenuNo.set_meta(&"ui_sound", &"ui_cancel")
-	%ExitGameNo.set_meta(&"ui_sound", &"ui_cancel")
 	title_label.text = tr(title_key)
-	%ApplyButton.pressed.connect(_on_apply_pressed)
+	apply_button.pressed.connect(_on_apply_pressed)
 	%CancelButton.pressed.connect(cancel_edit)
 	exit_menu_button.pressed.connect(_show_exit_menu_confirmation)
 	%ExitMenuYes.pressed.connect(func() -> void: return_to_menu_requested.emit())
 	%ExitMenuNo.pressed.connect(_hide_confirmations)
-	exit_game_button.pressed.connect(_show_exit_game_confirmation)
-	%ExitGameYes.pressed.connect(func() -> void: quit_requested.emit())
-	%ExitGameNo.pressed.connect(_hide_confirmations)
 	master_volume_slider.value_changed.connect(SettingsService.set_master_volume)
 	sfx_volume_slider.value_changed.connect(SettingsService.set_sfx_volume)
 	music_volume_slider.value_changed.connect(SettingsService.set_music_volume)
 	SettingsService.audio_changed.connect(_on_audio_changed)
 	SettingsService.language_changed.connect(_on_language_changed)
 	navigation_actions.visible = show_navigation_actions
+	$Layout.move_child(navigation_actions, $Layout.get_child_count() - 1)
 	_populate_options()
 	begin_edit()
 
@@ -153,17 +147,9 @@ func _show_exit_menu_confirmation() -> void:
 	exit_menu_confirmation.visible = true
 
 
-func _show_exit_game_confirmation() -> void:
-	_hide_confirmations()
-	exit_game_button.visible = false
-	exit_game_confirmation.visible = true
-
-
 func _hide_confirmations() -> void:
 	exit_menu_button.visible = true
 	exit_menu_confirmation.visible = false
-	exit_game_button.visible = true
-	exit_game_confirmation.visible = false
 
 
 func _on_audio_changed(master: float, sfx: float, music: float) -> void:
@@ -183,12 +169,18 @@ func _show_apply_success() -> void:
 	if _apply_feedback_tween != null:
 		_apply_feedback_tween.kill()
 	apply_status.text = tr(&"UI_APPLY_SUCCESS")
+	_position_apply_status()
 	apply_status.visible = true
 	apply_status.modulate.a = 0.0
-	apply_status.position = Vector2.ZERO
+	apply_status.position = _apply_status_rest_position
 	_apply_feedback_tween = create_tween().set_parallel(true)
 	_apply_feedback_tween.tween_property(apply_status, "modulate:a", 1.0, 0.14)
-	_apply_feedback_tween.tween_property(apply_status, "position:y", -10.0, 0.28).set_delay(0.85)
+	_apply_feedback_tween.tween_property(
+		apply_status,
+		"position:y",
+		_apply_status_rest_position.y - 10.0,
+		0.28,
+	).set_delay(0.85)
 	_apply_feedback_tween.tween_property(apply_status, "modulate:a", 0.0, 0.28).set_delay(0.85)
 	_apply_feedback_tween.chain().tween_callback(_finish_apply_status)
 
@@ -203,8 +195,18 @@ func _hide_apply_status() -> void:
 func _finish_apply_status() -> void:
 	apply_status.visible = false
 	apply_status.modulate.a = 1.0
-	apply_status.position = Vector2.ZERO
+	apply_status.position = _apply_status_rest_position
 	_apply_feedback_tween = null
+
+
+func _position_apply_status() -> void:
+	var button_rect := apply_button.get_global_rect()
+	var panel_rect := get_global_rect()
+	apply_status.global_position = Vector2(
+		panel_rect.end.x + 12.0,
+		button_rect.get_center().y - apply_status.size.y * 0.5,
+	)
+	_apply_status_rest_position = apply_status.position
 
 
 func _on_language_changed(_locale: String) -> void:
