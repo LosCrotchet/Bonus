@@ -29,6 +29,7 @@ signal quit_requested
 @onready var seed_input_row: HBoxContainer = %SeedInputRow
 @onready var seed_input: LineEdit = %SeedInput
 @onready var resume_prompt: VBoxContainer = %ResumePrompt
+@onready var resume_details: Label = %ResumeDetails
 @onready var start_game_button: Button = %StartGameButton
 @onready var exit_game_button: Button = %ExitGameButton
 @onready var exit_confirmation: HBoxContainer = %ExitConfirmation
@@ -116,6 +117,10 @@ func _setup_player_count_buttons() -> void:
 
 func _on_language_changed(_locale: String) -> void:
 	_setup_player_count_buttons()
+	if resume_prompt.visible:
+		var payload := SaveGameService.load_game()
+		if not payload.is_empty():
+			_populate_resume_details(payload)
 
 
 func _reset_single_player_options() -> void:
@@ -173,7 +178,16 @@ func _open_single_player() -> void:
 		_close_secondary()
 		return
 	_show_secondary(single_player_panel)
-	_set_resume_prompt_visible(SaveGameService.has_unfinished_game())
+	var payload := SaveGameService.load_game()
+	var session_snapshot := payload.get("session", {}) as Dictionary
+	var has_unfinished_game := (
+		not payload.is_empty()
+		and int(session_snapshot.get("phase", GameSession.Phase.FINISHED))
+		!= GameSession.Phase.FINISHED
+	)
+	_set_resume_prompt_visible(has_unfinished_game)
+	if has_unfinished_game:
+		_populate_resume_details(payload)
 
 
 func _open_settings() -> void:
@@ -278,6 +292,8 @@ func _discard_saved_game() -> void:
 
 func _set_resume_prompt_visible(should_show: bool) -> void:
 	resume_prompt.visible = should_show
+	if not should_show:
+		resume_details.text = ""
 	for node in [
 		%PlayerCountRow,
 		%IncludeJokersRow,
@@ -294,6 +310,50 @@ func _set_resume_prompt_visible(should_show: bool) -> void:
 	if not should_show:
 		_refresh_rule_dependencies()
 		_refresh_seed_controls()
+
+
+func _populate_resume_details(payload: Dictionary) -> void:
+	var session_snapshot := payload.get("session", {}) as Dictionary
+	var rules := session_snapshot.get("rules", {}) as Dictionary
+	var player_count := (session_snapshot.get("players", []) as Array).size()
+	var rule_names := PackedStringArray()
+	if bool(rules.get("include_jokers", true)):
+		rule_names.append(tr(&"RULE_INCLUDE_JOKERS"))
+		if bool(rules.get("jokers_are_wild", true)):
+			rule_names.append(tr(&"RULE_JOKERS_WILD"))
+			if bool(rules.get("draw_two_on_wildcard_finish", true)):
+				rule_names.append(tr(&"RULE_WILDCARD_FINISH_DRAW"))
+			else:
+				rule_names.append(tr(&"RULE_WILDCARD_FINISH_NO_DRAW"))
+		else:
+			rule_names.append(tr(&"RULE_JOKERS_NATURAL"))
+	else:
+		rule_names.append(tr(&"RULE_EXCLUDE_JOKERS"))
+	rule_names.append(
+		tr(&"RULE_SEQUENCE_WITH_TWO")
+		if bool(rules.get("allow_two_in_sequences", false))
+		else tr(&"RULE_SEQUENCE_WITHOUT_TWO")
+	)
+	rule_names.append(
+		tr(&"RULE_VARIABLE_DRAW")
+		if bool(rules.get("draw_count_uses_dice", false))
+		else tr(&"RULE_FIXED_DRAW")
+	)
+	var seed_key := (
+		&"UI_SEED_SUMMARY_CUSTOM"
+		if bool(payload.get("custom_seed", false))
+		else &"UI_SEED_SUMMARY_RANDOM"
+	)
+	var seed_summary := tr(seed_key).format({
+		"seed": str(session_snapshot.get("game_seed", "0")),
+	})
+	resume_details.text = "%s\n%s" % [
+		tr(&"UI_SAVED_GAME_META").format({
+			"count": player_count,
+			"seed": seed_summary,
+		}),
+		tr(&"UI_SAVED_GAME_RULES").format({"rules": " · ".join(rule_names)}),
+	]
 
 
 func _get_selected_player_count() -> int:

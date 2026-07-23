@@ -313,8 +313,17 @@ theme_override_colors/font_color = Color(0.78, 0.84, 0.82, 1)
 text = "UI_SAVED_GAME_PROMPT"
 autowrap_mode = 2
 
+[node name="ResumeDetails" type="Label" parent="SinglePlayerPanel/Layout/ResumePrompt"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 84)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.9, 0.88, 1)
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 2
+vertical_alignment = 1
+
 [node name="PromptSpacer" type="Control" parent="SinglePlayerPanel/Layout/ResumePrompt"]
-custom_minimum_size = Vector2(0, 18)
+custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
 size_flags_vertical = 3
 

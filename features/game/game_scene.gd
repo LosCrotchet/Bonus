@@ -7,6 +7,10 @@ const DEFAULT_PLAYER_COUNT := 3
 const DICE_ROOT := "res://assets/art/dice/"
 const INACTIVE_BORDER_COLOR := Color(0.25, 0.4, 0.36, 0.75)
 const FLOW_BORDER_SHADER := preload("res://assets/shaders/flow_border.gdshader")
+const PLAYED_CARD_REVEAL_DURATION := 0.22
+const FLYING_CARD_FADE_DURATION := 0.06
+const SCENE_TRANSITION_DURATION := 0.38
+const BONUS_DICE_FRAME_INTERVAL := 0.14
 
 @onready var settings_button: Button = %SettingsButton
 @onready var hand_types_button: Button = %HandTypesButton
@@ -71,6 +75,8 @@ var _draw_pile_rest_position := Vector2.ZERO
 var _draw_pile_tween: Tween
 var _draw_pile_activity_tween: Tween
 var _action_bar_tween: Tween
+var _action_bar_rest_position := Vector2.ZERO
+var _action_bar_layout_ready := false
 var _settings_tween: Tween
 var _hand_types_tween: Tween
 var _status_tween: Tween
@@ -176,6 +182,8 @@ func _ready() -> void:
 	if _resume_payload.is_empty() or not _restore_saved_game():
 		_start_new_game(not _embedded_in_app)
 	await get_tree().process_frame
+	_action_bar_rest_position = action_bar.position
+	_action_bar_layout_ready = true
 	_dice_rest_position = dice_button.position
 	dice_button.pivot_offset = dice_button.size * 0.5
 	_draw_pile_rest_position = draw_pile_view.position
@@ -194,7 +202,7 @@ func _process(delta: float) -> void:
 		_bonus_dice_elapsed = 0.0
 		return
 	_bonus_dice_elapsed += delta
-	if _bonus_dice_elapsed < SettingsService.get_dice_step_duration() * 1.75:
+	if _bonus_dice_elapsed < BONUS_DICE_FRAME_INTERVAL:
 		return
 	_bonus_dice_elapsed = 0.0
 	var next_frame := _presentation_random.randi_range(0, 4)
@@ -1028,11 +1036,6 @@ func _commit_play(interpretation_key: String) -> void:
 	await _animate_human_card_play(snapshots)
 	if serial != _game_serial:
 		return
-	await get_tree().create_timer(SettingsService.get_gameplay_duration(
-		SettingsService.GameplayTiming.ACTION_PAUSE,
-	)).timeout
-	if serial != _game_serial:
-		return
 	if not _session.play_cards(
 		HUMAN_PLAYER_INDEX,
 		selected_ids,
@@ -1042,6 +1045,11 @@ func _commit_play(interpretation_key: String) -> void:
 		_show_session_error()
 	else:
 		_selected_card_ids.clear()
+		await get_tree().create_timer(SettingsService.get_gameplay_duration(
+			SettingsService.GameplayTiming.ACTION_PAUSE,
+		)).timeout
+		if serial != _game_serial:
+			return
 	_presentation_busy = false
 	_refresh()
 
@@ -1136,17 +1144,17 @@ func _run_ai_until_human(serial: int) -> void:
 				await _animate_ai_card_play(player_index, decision.card_ids.size())
 				if serial != _game_serial:
 					return
-				await get_tree().create_timer(SettingsService.get_gameplay_duration(
-					SettingsService.GameplayTiming.ACTION_PAUSE,
-				)).timeout
-				if serial != _game_serial:
-					return
 				if not _session.play_cards(
 					player_index,
 					decision.card_ids,
 					decision.interpretation_key,
 				):
 					_apply_ai_fallback(player_index)
+				await get_tree().create_timer(SettingsService.get_gameplay_duration(
+					SettingsService.GameplayTiming.ACTION_PAUSE,
+				)).timeout
+				if serial != _game_serial:
+					return
 				await _animate_non_human_draws(play_hand_counts)
 			PlayerDecision.Action.PASS:
 				_show_pass_feedback(player_index)
@@ -1263,9 +1271,7 @@ func _fade_out_flying_cards(cards: Array[TextureRect]) -> void:
 				card,
 				"modulate:a",
 				0.0,
-				SettingsService.get_gameplay_duration(
-					SettingsService.GameplayTiming.CARD_REVEAL,
-				) * 0.18,
+				FLYING_CARD_FADE_DURATION,
 			)
 	cleanup.chain().tween_callback(
 		func() -> void:
@@ -1280,9 +1286,7 @@ func _animate_played_cards_reveal(expected_signature: String) -> void:
 		return
 	AudioService.play(&"card_reveal")
 	var tween := create_tween().set_parallel(true)
-	var total_duration := SettingsService.get_gameplay_duration(
-		SettingsService.GameplayTiming.CARD_REVEAL,
-	)
+	var total_duration := PLAYED_CARD_REVEAL_DURATION
 	var reveal_duration := total_duration * 0.72
 	var stagger_span := total_duration - reveal_duration
 	for index in range(played_cards.get_child_count()):
@@ -1571,19 +1575,26 @@ func _set_action_bar_visible(should_show: bool) -> void:
 	_actions_should_show = should_show
 	if _action_bar_tween != null:
 		_action_bar_tween.kill()
+	if not _action_bar_layout_ready:
+		action_bar.visible = should_show
+		action_bar.mouse_filter = (
+			Control.MOUSE_FILTER_PASS if should_show else Control.MOUSE_FILTER_IGNORE
+		)
+		action_bar.modulate.a = 1.0 if should_show else 0.0
+		return
 	var duration := SettingsService.get_ui_animation_duration()
 	if should_show:
 		action_bar.visible = true
 		action_bar.mouse_filter = Control.MOUSE_FILTER_PASS
-		action_bar.position = Vector2(0.0, action_bar.size.y)
+		action_bar.position = _action_bar_rest_position + Vector2(0.0, action_bar.size.y)
 		action_bar.modulate.a = 0.0
 		_action_bar_tween = create_tween().set_parallel(true)
-		_action_bar_tween.tween_property(action_bar, "position", Vector2.ZERO, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		_action_bar_tween.tween_property(action_bar, "position", _action_bar_rest_position, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		_action_bar_tween.tween_property(action_bar, "modulate:a", 1.0, duration)
 	else:
 		action_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_action_bar_tween = create_tween().set_parallel(true)
-		_action_bar_tween.tween_property(action_bar, "position", Vector2(0.0, action_bar.size.y), duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		_action_bar_tween.tween_property(action_bar, "position", _action_bar_rest_position + Vector2(0.0, action_bar.size.y), duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 		_action_bar_tween.tween_property(action_bar, "modulate:a", 0.0, duration)
 		_action_bar_tween.chain().tween_callback(
 			func() -> void:
@@ -1842,7 +1853,7 @@ func play_enter_transition() -> void:
 		originals[node] = node.position
 		node.position += entry[1] as Vector2
 		node.modulate.a = 0.0
-	var duration := SettingsService.get_ui_animation_duration()
+	var duration := SCENE_TRANSITION_DURATION
 	var tween := create_tween().set_parallel(true)
 	for entry in entries:
 		var node := entry[0] as Control
@@ -1868,7 +1879,7 @@ func play_exit_transition() -> void:
 		[%ActionSlot, Vector2(0.0, 70.0)],
 		[hand_panel, Vector2(0.0, 220.0)],
 	]
-	var duration := SettingsService.get_ui_animation_duration() * 0.84
+	var duration := SCENE_TRANSITION_DURATION * 0.84
 	var tween := create_tween().set_parallel(true)
 	for entry in exits:
 		var node := entry[0] as Control

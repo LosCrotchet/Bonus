@@ -14,7 +14,7 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	assert((app.get_node("Version") as Label).text == "v0.5.7")
+	assert((app.get_node("Version") as Label).text == "v0.5.8")
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
 	assert(menu != null)
@@ -122,6 +122,11 @@ func _run_test() -> void:
 	var saved_hand_ids := PackedInt32Array()
 	for card in session.players[0].hand:
 		saved_hand_ids.append(card.card_id)
+	assert(session.accept_dice_result(0, 1))
+	var action_bar := game.get_node("%ActionBar") as HBoxContainer
+	assert(await _wait_until(func() -> bool: return action_bar.visible, 1.0))
+	await get_tree().create_timer(0.3).timeout
+	var expected_action_bar_position := action_bar.position
 
 	(game.get_node("%SettingsButton") as Button).pressed.emit()
 	await get_tree().process_frame
@@ -145,6 +150,10 @@ func _run_test() -> void:
 		1.0,
 	))
 	assert(not (menu.get_node("%StartGameButton") as Button).visible)
+	var resume_details := (menu.get_node("%ResumeDetails") as Label).text
+	assert(resume_details.contains("3"))
+	assert(resume_details.contains("20260723"))
+	assert(resume_details.contains(menu.tr(&"RULE_JOKERS_WILD")))
 	(menu.get_node("%ContinueGameButton") as Button).pressed.emit()
 	assert(await _wait_until(
 		func() -> bool:
@@ -162,6 +171,13 @@ func _run_test() -> void:
 	for card in session.players[0].hand:
 		resumed_hand_ids.append(card.card_id)
 	assert(resumed_hand_ids == saved_hand_ids)
+	action_bar = game.get_node("%ActionBar") as HBoxContainer
+	assert(action_bar.visible)
+	assert(
+		action_bar.position.is_equal_approx(expected_action_bar_position),
+		"Resumed action bar shifted from %s to %s"
+		% [expected_action_bar_position, action_bar.position],
+	)
 	SaveGameService.clear_save()
 	print("BONUS_TEST_APP_OK")
 	app.queue_free()

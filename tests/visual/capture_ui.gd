@@ -17,6 +17,14 @@ func _capture() -> void:
 			if parts.size() == 2:
 				requested_size = Vector2i(int(parts[0]), int(parts[1]))
 	get_tree().root.size = requested_size
+	if state == "resume":
+		var saved_session := GameSession.new()
+		assert(saved_session.start_game(
+			["SEAT_SOUTH", "SEAT_NORTH", "SEAT_WEST"],
+			20260723,
+		))
+		assert(saved_session.accept_dice_result(0, 1))
+		assert(SaveGameService.save_session(saved_session, true))
 
 	var app := (load("res://app/app.tscn") as PackedScene).instantiate() as Control
 	get_tree().root.add_child(app)
@@ -42,7 +50,7 @@ func _capture() -> void:
 		"ai_bonus",
 		"hand_types",
 	]
-	if state == "single" or state in game_states:
+	if state in ["single", "resume"] or state in game_states:
 		(menu.get_node("%SinglePlayerButton") as Button).pressed.emit()
 		await get_tree().create_timer(0.35).timeout
 	if state in game_states:

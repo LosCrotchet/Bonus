@@ -47,15 +47,24 @@ UI_CUSTOM_SEED,自定义种子,Custom Seed
 UI_SEED_PLACEHOLDER,输入整数或任意文本,Enter an integer or any text
 UI_SAVED_GAME_FOUND,发现未完成的牌局,Unfinished Game Found
 UI_SAVED_GAME_PROMPT,是否继续上次的单人牌局？选择新开将覆盖旧存档。,Continue your previous single-player game? Starting new will replace the old save.
+UI_SAVED_GAME_META,{count} 人 · {seed},{count} players · {seed}
+UI_SAVED_GAME_RULES,规则：{rules},Rules: {rules}
+UI_SEED_SUMMARY_CUSTOM,自定义种子：{seed},Custom seed: {seed}
+UI_SEED_SUMMARY_RANDOM,随机种子：{seed},Random seed: {seed}
 UI_CONTINUE_GAME,继续上次牌局,Continue Game
 UI_START_NEW_GAME,开始新牌局,Start New Game
 UI_BACK,返回,Back
 UI_BACK_TO_MENU,回到主菜单,Back to Main Menu
 RULE_INCLUDE_JOKERS,牌堆包括大小王,Include Jokers
+RULE_EXCLUDE_JOKERS,牌堆不含大小王,Exclude Jokers
 RULE_JOKERS_WILD,大小王可作万能牌,Jokers Are Wild
+RULE_JOKERS_NATURAL,大小王不作万能牌,Jokers Are Natural Cards
 RULE_WILDCARD_FINISH_DRAW,最后一次出牌带有万能牌时摸两张,Draw Two After a Final Wildcard Play
+RULE_WILDCARD_FINISH_NO_DRAW,万能牌收尾时不摸牌,No Draw After a Final Wildcard Play
 RULE_SEQUENCE_WITH_TWO,顺子可以带 2,Straights Include 2
+RULE_SEQUENCE_WITHOUT_TWO,顺子不带 2,Straights Exclude 2
 RULE_VARIABLE_DRAW,未出牌时摸 7-x 张,Draw 7-x After All Pass
+RULE_FIXED_DRAW,未出牌时摸 3 张,Draw 3 After All Pass
 RULE_VARIABLE_DRAW_HINT,其中 x 是骰子点数；如果不启用则默认摸 3 张,x is the die value; when disabled the default draw is 3 cards
 UI_RECOMMEND,提示,Hint
 UI_PASS,不出,Pass

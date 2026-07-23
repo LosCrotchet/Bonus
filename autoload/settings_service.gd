@@ -21,31 +21,28 @@ enum GameplayTiming {
 	DEAL_CARD,
 	CARD_ENTRY,
 	CARD_TRAVEL,
-	CARD_REVEAL,
 	AI_THINK,
 	ACTION_PAUSE,
 	BONUS_TRANSITION,
 	FEEDBACK,
 	DICE_ROLL,
 	INDICATOR_MOVE,
-	UI_TRANSITION,
 }
 
 const SETTINGS_PATH := "user://bonus_settings.cfg"
 const DEFAULT_GAME_SPEED := GameSpeed.SLOW
-const SPEED_MULTIPLIERS: Array[float] = [1.0, 0.45, 0.2]
+const SPEED_MULTIPLIERS: Array[float] = [1.45, 0.9, 0.5]
+const UI_ANIMATION_DURATION := 0.22
 const BASE_TIMINGS := {
 	GameplayTiming.DEAL_CARD: 0.31,
 	GameplayTiming.CARD_ENTRY: 0.38,
 	GameplayTiming.CARD_TRAVEL: 0.52,
-	GameplayTiming.CARD_REVEAL: 0.43,
 	GameplayTiming.AI_THINK: 0.66,
 	GameplayTiming.ACTION_PAUSE: 0.58,
 	GameplayTiming.BONUS_TRANSITION: 0.56,
 	GameplayTiming.FEEDBACK: 0.62,
 	GameplayTiming.DICE_ROLL: 0.64,
 	GameplayTiming.INDICATOR_MOVE: 0.48,
-	GameplayTiming.UI_TRANSITION: 0.38,
 }
 const RESOLUTIONS: Array[Vector2i] = [
 	Vector2i(1280, 720),
@@ -188,7 +185,7 @@ func get_dice_step_duration() -> float:
 
 
 func get_ui_animation_duration() -> float:
-	return get_gameplay_duration(GameplayTiming.UI_TRANSITION)
+	return UI_ANIMATION_DURATION
 
 
 func get_card_travel_duration() -> float:
@@ -204,7 +201,7 @@ func get_feedback_duration() -> float:
 
 
 func get_gameplay_duration(timing: GameplayTiming) -> float:
-	var base_duration := float(BASE_TIMINGS.get(timing, BASE_TIMINGS[GameplayTiming.UI_TRANSITION]))
+	var base_duration := float(BASE_TIMINGS.get(timing, BASE_TIMINGS[GameplayTiming.ACTION_PAUSE]))
 	return base_duration * SPEED_MULTIPLIERS[game_speed]
 
 

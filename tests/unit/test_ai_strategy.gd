@@ -5,7 +5,7 @@ const SettingsServiceScript := preload("res://autoload/settings_service.gd")
 
 func _init() -> void:
 	_test_default_speed()
-	_test_speed_profiles_do_not_overlap()
+	_test_speed_profiles_are_ordered_and_ui_is_fixed()
 	_test_strategy_context_is_public_and_detached()
 	_test_default_strategy_completes_a_legal_game()
 	print("BONUS_TEST_AI_STRATEGY_OK")
@@ -19,26 +19,25 @@ func _test_default_speed() -> void:
 	)
 
 
-func _test_speed_profiles_do_not_overlap() -> void:
+func _test_speed_profiles_are_ordered_and_ui_is_fixed() -> void:
 	var settings := SettingsServiceScript.new()
-	var ranges: Array[Vector2] = []
-	for speed in SettingsServiceScript.GameSpeed.values():
-		settings.game_speed = speed
-		var minimum := INF
-		var maximum := 0.0
-		for timing in SettingsServiceScript.GameplayTiming.values():
-			var duration := settings.get_gameplay_duration(timing)
-			minimum = minf(minimum, duration)
-			maximum = maxf(maximum, duration)
-		ranges.append(Vector2(minimum, maximum))
-	assert(
-		ranges[SettingsServiceScript.GameSpeed.SLOW].x
-		> ranges[SettingsServiceScript.GameSpeed.MEDIUM].y
-	)
-	assert(
-		ranges[SettingsServiceScript.GameSpeed.MEDIUM].x
-		> ranges[SettingsServiceScript.GameSpeed.FAST].y
-	)
+	var durations := {}
+	for timing in SettingsServiceScript.GameplayTiming.values():
+		durations[timing] = []
+		for speed in SettingsServiceScript.GameSpeed.values():
+			settings.game_speed = speed
+			(durations[timing] as Array).append(settings.get_gameplay_duration(timing))
+		var values := durations[timing] as Array
+		assert(values[SettingsServiceScript.GameSpeed.SLOW] > values[SettingsServiceScript.GameSpeed.MEDIUM])
+		assert(values[SettingsServiceScript.GameSpeed.MEDIUM] > values[SettingsServiceScript.GameSpeed.FAST])
+	assert(is_equal_approx(
+		SettingsServiceScript.SPEED_MULTIPLIERS[SettingsServiceScript.GameSpeed.FAST],
+		0.5,
+	))
+	settings.game_speed = SettingsServiceScript.GameSpeed.SLOW
+	var slow_ui_duration := settings.get_ui_animation_duration()
+	settings.game_speed = SettingsServiceScript.GameSpeed.FAST
+	assert(is_equal_approx(settings.get_ui_animation_duration(), slow_ui_duration))
 	settings.free()
 
 

@@ -7,6 +7,7 @@ signal pointer_exited(card_id: int)
 
 const HOVER_OFFSET_Y := -9.0
 const SELECTED_OFFSET_Y := -22.0
+const INTERACTION_DURATION := 0.14
 var card_id := -1
 var selected := false
 var interaction_enabled := true
@@ -135,9 +136,8 @@ func _animate_transform(instant: bool = false) -> void:
 		return
 	_move_tween = create_tween().set_parallel(true)
 	_move_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	var duration := SettingsService.get_ui_animation_duration() * 0.4
-	_move_tween.tween_property(self, "position", target, duration)
-	_move_tween.tween_property(self, "rotation", _base_rotation, duration)
+	_move_tween.tween_property(self, "position", target, INTERACTION_DURATION)
+	_move_tween.tween_property(self, "rotation", _base_rotation, INTERACTION_DURATION)
 
 
 func _target_position() -> Vector2:
