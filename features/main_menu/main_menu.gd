@@ -38,7 +38,6 @@ signal quit_requested
 @onready var exit_confirmation: HBoxContainer = %ExitConfirmation
 
 var _active_secondary: Control
-var _button_tweens: Dictionary = {}
 var _transitioning := false
 var _secondary_tween: Tween
 var _secondary_targets: Dictionary = {}
@@ -422,37 +421,4 @@ func _confirm_exit_game() -> void:
 
 
 func _setup_button_motion() -> void:
-	for button in [
-		%SinglePlayerButton,
-		%MultiplayerButton,
-		%SettingsButton,
-		exit_game_button,
-		%StartGameButton,
-		%ContinueGameButton,
-		%StartNewGameButton,
-		%SinglePlayerBackButton,
-		%ExitYesButton,
-		%ExitNoButton,
-	]:
-		var typed_button := button as Button
-		typed_button.mouse_entered.connect(
-			func() -> void: _tween_button(typed_button, Vector2(1.025, 1.025))
-		)
-		typed_button.mouse_exited.connect(
-			func() -> void: _tween_button(typed_button, Vector2.ONE)
-		)
-		typed_button.button_down.connect(
-			func() -> void: _tween_button(typed_button, Vector2(0.98, 0.98))
-		)
-		typed_button.button_up.connect(
-			func() -> void: _tween_button(typed_button, Vector2(1.025, 1.025))
-		)
-
-
-func _tween_button(button: Button, target_scale: Vector2) -> void:
-	if _button_tweens.has(button):
-		(_button_tweens[button] as Tween).kill()
-	button.pivot_offset = button.size * 0.5
-	var tween := create_tween()
-	tween.tween_property(button, "scale", target_scale, 0.11).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_button_tweens[button] = tween
+	ControlMotion.bind_buttons(self)

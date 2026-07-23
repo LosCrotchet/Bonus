@@ -14,7 +14,7 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	assert((app.get_node("Version") as Label).text == "v0.5.15")
+	assert((app.get_node("Version") as Label).text == "v0.5.16")
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
 	assert(menu != null)
@@ -44,6 +44,18 @@ func _run_test() -> void:
 	) as Button
 	assert(info_button.theme_type_variation == &"SquareButton")
 	assert(not info_button.has_theme_stylebox_override(&"normal"))
+	var button_texture := load(
+		"res://assets/themes/cartoon_ui/black/button wider idle.png",
+	) as Texture2D
+	assert(button_texture.get_size() == Vector2(213.0, 40.0))
+	var hover_button := menu.get_node("%SinglePlayerButton") as Button
+	var hover_rest_position := hover_button.position
+	hover_button.mouse_entered.emit()
+	await get_tree().create_timer(0.15).timeout
+	assert(hover_button.position.y <= hover_rest_position.y - 3.5)
+	hover_button.mouse_exited.emit()
+	await get_tree().create_timer(0.15).timeout
+	assert(hover_button.position.is_equal_approx(hover_rest_position))
 	assert(AudioService.get("_music_track") == &"menu")
 	assert((menu.get_node("%SinglePlayerButton") as Button).icon != null)
 	assert((menu.get_node("%MenuPanel") as PanelContainer).size.y >= 700.0)
