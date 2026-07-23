@@ -57,6 +57,7 @@ var _game_rules := GameRules.new()
 var _embedded_in_app := false
 var _configured_seed := 0
 var _use_custom_seed := false
+var _configured_seed_text := ""
 var _resume_payload: Dictionary = {}
 var _transient_key: StringName = &""
 var _transient_args: Dictionary = {}
@@ -110,12 +111,14 @@ func configure(
 	embedded_in_app: bool = false,
 	seed_value: int = 0,
 	use_custom_seed: bool = false,
+	seed_text: String = "",
 ) -> void:
 	_player_count = clampi(player_count, 2, 4)
 	_game_rules = game_rules.clone() if game_rules != null else GameRules.new()
 	_embedded_in_app = embedded_in_app
 	_configured_seed = seed_value
 	_use_custom_seed = use_custom_seed
+	_configured_seed_text = SeedCodec.sanitize(seed_text)
 	_resume_payload.clear()
 
 
@@ -247,8 +250,9 @@ func _start_new_game(start_deal_animation: bool = true) -> void:
 	_session.action_resolved.connect(_on_public_action_resolved)
 	_session.start_game(
 		_player_names_for_count(_player_count),
-		_configured_seed if _use_custom_seed else 0,
+		_configured_seed,
 		_game_rules,
+		_configured_seed_text,
 	)
 	_initialize_strategies()
 	_deal_visible_counts.resize(_session.players.size())
@@ -298,6 +302,7 @@ func _restore_saved_game() -> bool:
 	_player_count = _session.players.size()
 	_game_rules = _session.rules.clone()
 	_configured_seed = _session.game_seed
+	_configured_seed_text = _session.game_seed_text
 	_use_custom_seed = bool(_resume_payload.get("custom_seed", false))
 	_deal_visible_counts.resize(_player_count)
 	for player_index in range(_player_count):
@@ -1390,16 +1395,39 @@ func _show_pass_feedback(player_index: int) -> void:
 
 func _show_center_feedback(key: StringName, color: Color) -> void:
 	var label := _create_feedback_label(tr(key), color)
-	label.size = Vector2(300.0, 88.0)
-	label.add_theme_font_size_override("font_size", 52)
+	label.size = Vector2(620.0, 150.0)
+	label.add_theme_font_size_override("font_size", 92)
 	label.position = get_global_rect().get_center() - global_position - label.size * 0.5
+	label.pivot_offset = label.size * 0.5
 	played_panel.modulate.a = 0.0
-	_animate_feedback_label(
-		label,
-		Vector2(0.0, -22.0),
+	status_label.visible = false
+	label.modulate.a = 0.0
+	label.scale = Vector2(0.62, 0.62)
+	label.rotation = deg_to_rad(-3.0)
+	var total_duration := SettingsService.get_feedback_duration()
+	var enter_duration := total_duration * 0.2
+	var hold_duration := total_duration * 0.48
+	var exit_duration := total_duration - enter_duration - hold_duration
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(label, "modulate:a", 1.0, enter_duration)
+	tween.tween_property(label, "scale", Vector2(1.08, 1.08), enter_duration).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "rotation", 0.0, enter_duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.set_parallel(false)
+	tween.tween_property(label, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_interval(hold_duration)
+	tween.set_parallel(true)
+	tween.tween_property(label, "position", label.position + Vector2(0.0, -34.0), exit_duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(label, "modulate:a", 0.0, exit_duration)
+	tween.set_parallel(false)
+	tween.tween_callback(label.queue_free)
+	tween.tween_callback(
 		func() -> void:
 			if is_instance_valid(played_panel):
 				played_panel.modulate.a = 1.0
+			if is_instance_valid(status_label):
+				status_label.visible = SettingsService.show_status_text
+				_refresh_status()
 	)
 
 

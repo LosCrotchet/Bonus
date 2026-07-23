@@ -10,10 +10,16 @@ func _run_test() -> void:
 	var names: Array[String] = ["SEAT_SOUTH", "SEAT_NORTH", "SEAT_WEST"]
 	var first := GameSession.new()
 	var second := GameSession.new()
-	assert(first.start_game(names, 20260723))
-	assert(second.start_game(names, 20260723))
+	var seed_text := "bonus123"
+	var seed_value := SeedCodec.to_int(seed_text)
+	assert(first.start_game(names, seed_value, null, seed_text))
+	assert(second.start_game(names, seed_value, null, seed_text))
 	assert(_session_card_signature(first) == _session_card_signature(second))
 	assert(first.initial_deal_card_ids == second.initial_deal_card_ids)
+	assert(first.game_seed_text == seed_text)
+	var random_session := GameSession.new()
+	assert(random_session.start_game(names))
+	assert(SeedCodec.is_valid(random_session.game_seed_text))
 
 	assert(SaveGameService.save_session(first, true))
 	assert(SaveGameService.save_session(first, true))
@@ -27,6 +33,7 @@ func _run_test() -> void:
 	assert(_session_card_signature(restored) == _session_card_signature(first))
 	assert(restored.get_total_card_count() == first.get_total_card_count())
 	assert(restored.game_seed == first.game_seed)
+	assert(restored.game_seed_text == seed_text)
 	assert(restored.to_snapshot()["rng_state"] == first.to_snapshot()["rng_state"])
 
 	assert(first.roll_dice(0))

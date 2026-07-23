@@ -29,12 +29,14 @@ func _on_single_player_requested(
 	rules: GameRules,
 	seed_value: int,
 	use_custom_seed: bool,
+	seed_text: String,
 ) -> void:
 	await _open_game({
 		"player_count": player_count,
 		"rules": rules,
 		"seed_value": seed_value,
 		"use_custom_seed": use_custom_seed,
+		"seed_text": seed_text,
 	})
 
 
@@ -64,6 +66,7 @@ func _open_game(configuration: Dictionary) -> void:
 			true,
 			int(configuration["seed_value"]),
 			bool(configuration["use_custom_seed"]),
+			str(configuration["seed_text"]),
 		)
 	content.add_child(game)
 	_current_screen = game

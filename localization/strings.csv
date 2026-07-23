@@ -44,7 +44,7 @@ UI_GAME_HEADER,BONUS | {mode}（{count}）,BONUS | {mode} ({count})
 UI_MULTIPLAYER,多人游戏,Multiplayer
 UI_START_GAME,开始游戏,Start Game
 UI_CUSTOM_SEED,自定义种子,Custom Seed
-UI_SEED_PLACEHOLDER,输入整数或任意文本,Enter an integer or any text
+UI_SEED_PLACEHOLDER,8位小写字母或数字,8 lowercase letters or digits
 UI_SAVED_GAME_FOUND,发现未完成的牌局,Unfinished Game Found
 UI_SAVED_GAME_PROMPT,是否继续上次的单人牌局？选择新开将覆盖旧存档。,Continue your previous single-player game? Starting new will replace the old save.
 UI_SAVED_GAME_META,{count} 人 · {seed},{count} players · {seed}

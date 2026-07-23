@@ -31,6 +31,7 @@ var winner_index := -1
 var phase := Phase.READY
 var is_bonus := false
 var game_seed := 0
+var game_seed_text := ""
 var initial_deal_card_ids: Array[PackedInt32Array] = []
 var last_error_key: StringName = &""
 var last_error_args: Dictionary = {}
@@ -47,6 +48,7 @@ func start_game(
 	player_names: Array[String],
 	seed_value: int = 0,
 	game_rules: GameRules = null,
+	seed_text: String = "",
 ) -> bool:
 	if player_names.size() < 2 or player_names.size() > 4:
 		return _fail(&"ERROR_PLAYER_COUNT")
@@ -73,6 +75,11 @@ func start_game(
 	else:
 		_random_source.seed = seed_value
 	game_seed = _random_source.seed
+	game_seed_text = (
+		SeedCodec.sanitize(seed_text)
+		if SeedCodec.is_valid(seed_text)
+		else SeedCodec.from_int(game_seed)
+	)
 	DeckFactory.shuffle_cards(draw_pile, _random_source)
 
 	for index in range(player_names.size()):
@@ -377,6 +384,7 @@ func to_snapshot() -> Dictionary:
 		"phase": phase,
 		"is_bonus": is_bonus,
 		"game_seed": str(game_seed),
+		"seed_text": game_seed_text,
 		"rng_seed": str(_random_source.seed),
 		"rng_state": str(_random_source.state),
 		"passes_since_play": _passes_since_play,
@@ -456,6 +464,12 @@ func restore_from_snapshot(snapshot: Dictionary) -> bool:
 	phase = loaded_phase as Phase
 	is_bonus = bool(snapshot.get("is_bonus", false))
 	game_seed = int(str(snapshot.get("game_seed", "0")))
+	var loaded_seed_text := str(snapshot.get("seed_text", ""))
+	game_seed_text = (
+		SeedCodec.sanitize(loaded_seed_text)
+		if SeedCodec.is_valid(loaded_seed_text)
+		else SeedCodec.from_int(game_seed)
+	)
 	_random_source.seed = int(str(snapshot.get("rng_seed", str(game_seed))))
 	_random_source.state = int(str(snapshot.get("rng_state", str(_random_source.state))))
 	_passes_since_play = int(snapshot.get("passes_since_play", 0))

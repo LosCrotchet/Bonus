@@ -14,7 +14,7 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	assert((app.get_node("Version") as Label).text == "v0.5.8")
+	assert((app.get_node("Version") as Label).text == "v0.5.9")
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
 	assert(menu != null)
@@ -95,7 +95,7 @@ func _run_test() -> void:
 	var custom_seed := menu.get_node("%CustomSeedToggle") as CheckBox
 	custom_seed.button_pressed = true
 	var seed_input := menu.get_node("%SeedInput") as LineEdit
-	seed_input.text = "20260723"
+	seed_input.text = "bonus123"
 	assert((menu.get_node("%SeedInputRow") as HBoxContainer).visible)
 
 	(menu.get_node("%StartGameButton") as Button).pressed.emit()
@@ -118,7 +118,8 @@ func _run_test() -> void:
 	assert(session.rules.draw_two_on_wildcard_finish)
 	assert(not session.rules.allow_two_in_sequences)
 	assert(not session.rules.draw_count_uses_dice)
-	assert(session.game_seed == 20260723)
+	assert(session.game_seed == SeedCodec.to_int("bonus123"))
+	assert(session.game_seed_text == "bonus123")
 	var saved_hand_ids := PackedInt32Array()
 	for card in session.players[0].hand:
 		saved_hand_ids.append(card.card_id)
@@ -152,7 +153,7 @@ func _run_test() -> void:
 	assert(not (menu.get_node("%StartGameButton") as Button).visible)
 	var resume_details := (menu.get_node("%ResumeDetails") as Label).text
 	assert(resume_details.contains("3"))
-	assert(resume_details.contains("20260723"))
+	assert(resume_details.contains("bonus123"))
 	assert(resume_details.contains(menu.tr(&"RULE_JOKERS_WILD")))
 	(menu.get_node("%ContinueGameButton") as Button).pressed.emit()
 	assert(await _wait_until(
@@ -166,7 +167,8 @@ func _run_test() -> void:
 	))
 	game = content.get_child(0) as Control
 	session = game.get("_session") as GameSession
-	assert(session.game_seed == 20260723)
+	assert(session.game_seed == SeedCodec.to_int("bonus123"))
+	assert(session.game_seed_text == "bonus123")
 	var resumed_hand_ids := PackedInt32Array()
 	for card in session.players[0].hand:
 		resumed_hand_ids.append(card.card_id)

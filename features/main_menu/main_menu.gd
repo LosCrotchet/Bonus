@@ -6,6 +6,7 @@ signal single_player_requested(
 	rules: GameRules,
 	seed_value: int,
 	use_custom_seed: bool,
+	seed_text: String,
 )
 signal resume_game_requested
 signal quit_requested
@@ -169,7 +170,7 @@ func _on_seed_text_changed(_value: String) -> void:
 func _refresh_seed_controls() -> void:
 	seed_input_row.visible = custom_seed_toggle.button_pressed and not resume_prompt.visible
 	start_game_button.disabled = (
-		custom_seed_toggle.button_pressed and seed_input.text.strip_edges().is_empty()
+		custom_seed_toggle.button_pressed and not SeedCodec.is_valid(seed_input.text)
 	)
 
 
@@ -269,13 +270,19 @@ func _start_single_player() -> void:
 	rules.allow_two_in_sequences = sequences_include_two_toggle.button_pressed
 	rules.draw_count_uses_dice = variable_draw_toggle.button_pressed
 	var use_custom_seed := custom_seed_toggle.button_pressed
-	var seed_value := _seed_from_text(seed_input.text) if use_custom_seed else 0
+	var seed_text := (
+		SeedCodec.sanitize(seed_input.text)
+		if use_custom_seed
+		else SeedCodec.generate_random_text()
+	)
+	var seed_value := SeedCodec.to_int(seed_text)
 	SaveGameService.clear_save()
 	single_player_requested.emit(
 		_get_selected_player_count(),
 		rules,
 		seed_value,
 		use_custom_seed,
+		seed_text,
 	)
 
 
@@ -345,7 +352,10 @@ func _populate_resume_details(payload: Dictionary) -> void:
 		else &"UI_SEED_SUMMARY_RANDOM"
 	)
 	var seed_summary := tr(seed_key).format({
-		"seed": str(session_snapshot.get("game_seed", "0")),
+		"seed": str(session_snapshot.get(
+			"seed_text",
+			SeedCodec.from_int(int(str(session_snapshot.get("game_seed", "0")))),
+		)),
 	})
 	resume_details.text = "%s\n%s" % [
 		tr(&"UI_SAVED_GAME_META").format({
@@ -361,13 +371,6 @@ func _get_selected_player_count() -> int:
 		if button.button_pressed:
 			return int(button.get_meta(&"player_count", 3))
 	return 3
-
-
-func _seed_from_text(value: String) -> int:
-	var normalized := value.strip_edges()
-	var seed_value := normalized.to_int() if normalized.is_valid_int() else int(normalized.hash())
-	return seed_value if seed_value != 0 else 1
-
 
 func _show_exit_confirmation() -> void:
 	exit_game_button.visible = false

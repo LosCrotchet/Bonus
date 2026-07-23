@@ -10,31 +10,30 @@ Instrumental seamless-loop background music for the main menu of an original str
 
 ## 游戏界面 BGM
 
-目标是维持思考与回合推进的节奏。音乐需要有轻微的前进感，但不能让慢速对局显得焦躁；BONUS 的色彩感可以通过短促的闪光音色暗示，而不是让整首曲子持续高亢。
+目标是陪伴思考，而不是推动玩家加速。音乐应当简单、柔和、慢速、低密度，为牌声、骰子声和提示音留出大量空间；BONUS 的色彩感交给游戏内视觉与音效，不要让 BGM 持续高亢。
 
 ```text
-Instrumental seamless-loop gameplay music for an original tactical card-and-dice game called BONUS. Focused, playful, and quietly suspenseful, supporting turn-based decision making without distracting from card and dice sound effects. 94-102 BPM, controlled 4/4 groove, tight muted percussion, warm bass, crisp marimba or wooden plucks, soft electric piano chords, subtle analog synth pulses, and sparse prismatic arpeggio flashes that hint at the sudden BONUS state. Build gentle tension through small harmonic shifts and rhythmic variation, but keep the energy stable and readable for long matches. Leave clear sonic space in the mid and high frequencies for gameplay feedback. Create a clean loop with no long intro, no huge drop, and no conclusive ending. No vocals, no frantic tempo, no bombastic orchestra, no casino cliches, no aggressive EDM, and no recognizable copyrighted melody.
+Instrumental seamless-loop background music for an original minimalist card-and-dice game called BONUS. Soft, calm, slow, and unobtrusive, designed to accompany quiet turn-based thinking rather than create urgency. 68-76 BPM, very sparse arrangement, gentle felt piano or soft electric piano as the main voice, a low warm sustained pad, occasional muted wooden marimba notes, and only a few delicate brushed-percussion taps. Use a small, memorable two- or three-note motif with long pauses and subtle harmonic movement. Keep the dynamics even, the stereo field uncluttered, and the mid/high frequencies open for card, dice, and UI sound effects. No busy drum groove, no layered arpeggios, no dense orchestration, no frequent fills, no dramatic build, no drop, no vocals, no casino clichés, no aggressive EDM, and no recognizable copyrighted melody. Seamless loop with no obvious ending.
 ```
 
 ## 封面核心概念：不可能的掷骰
 
-封面不应尝试解释全部规则，而应把最独特的瞬间压缩成一个视觉事件：骰子决定出牌数量，而 BONUS 突然解除点数限制，大小王开始改变牌型。
+封面不应解释全部规则，而应把最独特的瞬间压缩成一个清晰的平面视觉符号：骰子决定出牌数量，BONUS 突然解除点数限制。整体沿用项目的极简、卡通、低多边形、扁平化和现代化风格，不使用写实材质或复杂场景。
 
-主画面采用略带透视的绿色牌桌。中央是一枚刚落桌、带有金色运动轨迹的骰子；骰子周围爆发一圈从金色过渡到彩色的 BONUS 波纹。六张牌沿波纹飞向中央，其中两张大小王正在以半透明重影变成需要的点数。三名玩家的牌背从画面边缘指向中心，形成明确的三角构图。标题 `BONUS` 占据左上或正上方，使用项目现有的暖金色。
+主画面只保留三枚核心元素：中央骰子、两三张简洁的扑克牌、醒目的 `BONUS` 标题。骰子下方用一圈低多边形的彩色几何波纹表示规则突然改变，牌面只保留少量清晰数字与花色，大小王可以用一张小面积的彩色重影暗示万能牌。背景使用深青绿与炭黑色块，标题采用暖金色，留出干净负空间。
 
 这个构图同时表达四件事：
 
 - 骰子参与决定行动。
-- 玩家需要打出指定数量的牌。
-- 大小王能够改变组合。
+- 牌与骰子共同构成玩法核心。
 - BONUS 是一场突然改变规则的高光事件。
 
-缩略图优先保留“骰子、飞出的牌、彩色波纹、BONUS 标题”四个元素。牌型的具体数字只作为近看细节，避免封面在小尺寸下变成规则说明图。
+缩略图优先保留“骰子、两三张牌、彩色几何波纹、BONUS 标题”四个元素。不要加入玩家头像、筹码、复杂桌面、完整 UI 或大量文字。
 
 ## 封面生成提示词
 
 ```text
-Key art for an original strategic tabletop card-and-dice video game titled BONUS, cinematic three-quarter top-down view of a deep emerald felt table, one large six-sided die landing at the center with a warm golden motion trail, a controlled prismatic shockwave spreading across the table to represent the BONUS event, six clearly readable playing cards flying into a clean arc around the die, two joker cards transforming through translucent holographic rank overlays, three opposing hands of card backs entering from the edges to imply a three-player match, elegant charcoal and warm-gold interface-inspired color language with restrained rainbow accents, sharp focal hierarchy, energetic but sophisticated, premium indie game cover, readable at thumbnail size, generous negative space for the BONUS title, actual playing cards and dice as the main subject, no people, no casino chips, no roulette wheel, no neon casino signage, no cluttered text, no logos, no watermark, 16:9 composition.
+Minimalist flat low-poly cartoon key art for an original card-and-dice game titled BONUS. Use the same visual language as a modern 2D game UI: clean geometric shapes, simple vector-like surfaces, gentle cel shading, soft rounded edges, deep teal and charcoal background blocks, warm golden title accents, and a restrained small burst of cyan, yellow, and magenta around the BONUS event. Composition is simple and bold: one large white six-sided die in the center, two or three oversized playing cards beside it, a compact prismatic geometric ring behind them, and the word BONUS large and clearly readable in the upper left or upper center. Strong flat silhouette, generous negative space, limited props, high contrast, memorable thumbnail design, playful but polished, no photorealism, no realistic felt texture, no cinematic 3D render, no complex perspective, no people, no hands, no casino chips, no roulette wheel, no neon signage, no clutter, no small paragraphs of text, no logos, no watermark, 16:9 composition.
 ```
 
 ## 宣传素材组合
