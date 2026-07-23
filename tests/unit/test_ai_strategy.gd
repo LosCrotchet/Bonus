@@ -32,8 +32,13 @@ func _test_speed_profiles_are_ordered_and_ui_is_fixed() -> void:
 		assert(values[SettingsServiceScript.GameSpeed.MEDIUM] > values[SettingsServiceScript.GameSpeed.FAST])
 	assert(is_equal_approx(
 		SettingsServiceScript.SPEED_MULTIPLIERS[SettingsServiceScript.GameSpeed.FAST],
-		0.5,
+		0.75,
 	))
+	settings.game_speed = SettingsServiceScript.GameSpeed.FAST
+	assert(
+		settings.get_gameplay_duration(SettingsServiceScript.GameplayTiming.ACTION_PAUSE)
+		>= 0.5
+	)
 	settings.game_speed = SettingsServiceScript.GameSpeed.SLOW
 	var slow_ui_duration := settings.get_ui_animation_duration()
 	settings.game_speed = SettingsServiceScript.GameSpeed.FAST

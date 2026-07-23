@@ -14,6 +14,19 @@ func _ready() -> void:
 	await get_tree().create_timer(0.35).timeout
 	assert(panel.visible)
 	var detail_panel := panel.get_node("%DetailPanel") as PanelContainer
+	var menu_panel := panel.get_node("MenuPanel") as PanelContainer
+	assert(menu_panel.size.x <= 260.0)
+	assert(detail_panel.size.x <= 380.0)
+	assert(panel.get_global_rect().end.x <= menu.get_global_rect().end.x - 250.0)
+	var disabled_button := panel.get_node(
+		"MenuPanel/Layout/SteamLobbyButton",
+	) as Button
+	var disabled_rest_position := disabled_button.position
+	disabled_button.mouse_entered.emit()
+	disabled_button.mouse_exited.emit()
+	await get_tree().create_timer(0.15).timeout
+	assert(disabled_button.position.is_equal_approx(disabled_rest_position))
+	assert(disabled_button.scale.is_equal_approx(Vector2.ONE))
 	assert(not detail_panel.visible)
 	(panel.get_node("%CreateRoomButton") as Button).pressed.emit()
 	await get_tree().create_timer(0.3).timeout
@@ -53,6 +66,12 @@ func _ready() -> void:
 	LanMultiplayerService.last_lobby_snapshot = lobby_snapshot
 	panel.call("_on_lobby_updated", lobby_snapshot)
 	await get_tree().process_frame
+	assert(detail_panel.size.x <= 380.0)
+	assert(not (panel.get_node("%SetupScroll") as ScrollContainer).visible)
+	var lobby_view := panel.get_node("%LobbyView") as VBoxContainer
+	assert(lobby_view.visible)
+	assert(lobby_view.get_global_rect().end.y <= detail_panel.get_global_rect().end.y)
+	assert((panel.get_node("%LobbyBackButton") as Button).get_global_rect().end.y <= detail_panel.get_global_rect().end.y)
 	var north := panel.get_node("%NorthSlot") as PanelContainer
 	var south := panel.get_node("%SouthSlot") as PanelContainer
 	var west := panel.get_node("%WestSlot") as PanelContainer
@@ -61,6 +80,15 @@ func _ready() -> void:
 	assert(north.global_position.y < west.global_position.y)
 	assert(south.global_position.y > west.global_position.y)
 	assert(west.global_position.x < east.global_position.x)
+	var seat_rects: Array[Rect2] = [
+		north.get_global_rect(),
+		south.get_global_rect(),
+		west.get_global_rect(),
+		east.get_global_rect(),
+	]
+	for first_index in range(seat_rects.size()):
+		for second_index in range(first_index + 1, seat_rects.size()):
+			assert(not seat_rects[first_index].intersects(seat_rects[second_index]))
 	assert(not (panel.get_node("%RoomEndpoint") as Label).text.contains(","))
 	assert((panel.get_node("%HostActionRow") as HBoxContainer).visible)
 	(panel.get_node("%LobbyBackButton") as Button).pressed.emit()

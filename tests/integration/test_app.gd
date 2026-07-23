@@ -14,7 +14,7 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	assert((app.get_node("Version") as Label).text == "v0.5.16")
+	assert((app.get_node("Version") as Label).text == "v0.5.17")
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
 	assert(menu != null)
@@ -42,8 +42,18 @@ func _run_test() -> void:
 	var info_button := single_player_panel.get_node(
 		"Layout/VariableDrawRow/VariableDrawInfo",
 	) as Button
-	assert(info_button.theme_type_variation == &"SquareButton")
-	assert(not info_button.has_theme_stylebox_override(&"normal"))
+	assert(info_button.theme_type_variation.is_empty())
+	assert(info_button.has_theme_stylebox_override(&"normal"))
+	assert(bool(info_button.get_meta(&"control_motion_disabled", false)))
+	var info_rest_position := info_button.position
+	info_button.mouse_entered.emit()
+	await get_tree().create_timer(0.15).timeout
+	assert(info_button.position.is_equal_approx(info_rest_position))
+	var settings_side_panel := menu.get_node("%SettingsSidePanel") as Control
+	var lan_panel := menu.get_node("%LanPanel") as Control
+	assert(is_equal_approx(single_player_panel.position.x, 330.0))
+	assert(is_equal_approx(settings_side_panel.position.x, 330.0))
+	assert(is_equal_approx(lan_panel.position.x, 330.0))
 	var button_texture := load(
 		"res://assets/themes/cartoon_ui/black/button wider idle.png",
 	) as Texture2D

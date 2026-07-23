@@ -31,14 +31,14 @@ enum GameplayTiming {
 
 const SETTINGS_PATH := "user://bonus_settings.cfg"
 const DEFAULT_GAME_SPEED := GameSpeed.SLOW
-const SPEED_MULTIPLIERS: Array[float] = [1.45, 0.9, 0.5]
+const SPEED_MULTIPLIERS: Array[float] = [1.7, 1.15, 0.75]
 const UI_ANIMATION_DURATION := 0.22
 const BASE_TIMINGS := {
 	GameplayTiming.DEAL_CARD: 0.31,
 	GameplayTiming.CARD_ENTRY: 0.38,
 	GameplayTiming.CARD_TRAVEL: 0.52,
-	GameplayTiming.AI_THINK: 0.66,
-	GameplayTiming.ACTION_PAUSE: 0.58,
+	GameplayTiming.AI_THINK: 0.78,
+	GameplayTiming.ACTION_PAUSE: 0.72,
 	GameplayTiming.BONUS_TRANSITION: 0.56,
 	GameplayTiming.FEEDBACK: 0.62,
 	GameplayTiming.DICE_ROLL: 0.64,

@@ -283,6 +283,13 @@ func get_turn_seconds_remaining() -> int:
 	return maxi(0, ceili(float(deadline - estimated_server_now) / 1000.0))
 
 
+func is_turn_clock_active() -> bool:
+	return (
+		connection_state == ConnectionState.IN_GAME
+		and int(last_game_snapshot.get("turn_deadline_ms", 0)) > 0
+	)
+
+
 @rpc("any_peer", "call_remote", "reliable")
 func _server_join_request(
 	player_id: String,

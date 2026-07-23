@@ -1955,16 +1955,15 @@ func _set_active_border(panel: PanelContainer, active: bool) -> void:
 func _refresh_turn_indicator() -> void:
 	if _dealing or _session.phase == GameSession.Phase.FINISHED:
 		turn_indicator.visible = false
-		turn_timer.visible = false
+		_hide_turn_timer()
 		return
 	var player_index := _session.current_player_index
 	var panel := _get_player_panel(player_index)
 	if panel == null or not panel.visible:
 		turn_indicator.visible = false
-		turn_timer.visible = false
+		_hide_turn_timer()
 		return
 	turn_indicator.visible = true
-	turn_timer.visible = _network_mode
 	var panel_rect := panel.get_global_rect()
 	var target_center: Vector2
 	var facing_rotation: float
@@ -1985,25 +1984,43 @@ func _refresh_turn_indicator() -> void:
 
 
 func _move_turn_timer(target_center: Vector2, instant: bool) -> void:
-	if not _network_mode:
-		turn_timer.visible = false
+	if not _network_mode or not LanMultiplayerService.is_turn_clock_active():
+		_hide_turn_timer()
 		return
-	var target := target_center + Vector2(34.0, -17.0)
+	var target := target_center + Vector2(46.0, -17.0)
 	turn_seconds_label.text = str(LanMultiplayerService.get_turn_seconds_remaining())
 	if _turn_timer_tween != null:
 		_turn_timer_tween.kill()
+	var was_hidden := not turn_timer.visible
+	turn_timer.visible = true
+	if was_hidden:
+		turn_timer.modulate.a = 0.0
 	if instant:
 		turn_timer.position = target
-		return
-	_turn_timer_tween = create_tween()
-	_turn_timer_tween.tween_property(
-		turn_timer,
-		"position",
-		target,
-		SettingsService.get_gameplay_duration(
-			SettingsService.GameplayTiming.INDICATOR_MOVE,
-		),
-	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	_turn_timer_tween = create_tween().set_parallel(true)
+	if not instant:
+		_turn_timer_tween.tween_property(
+			turn_timer,
+			"position",
+			target,
+			SettingsService.get_gameplay_duration(
+				SettingsService.GameplayTiming.INDICATOR_MOVE,
+			),
+		).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	if was_hidden:
+		_turn_timer_tween.tween_property(
+			turn_timer,
+			"modulate:a",
+			1.0,
+			SettingsService.get_ui_animation_duration(),
+		).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+func _hide_turn_timer() -> void:
+	if _turn_timer_tween != null:
+		_turn_timer_tween.kill()
+	turn_timer.visible = false
+	turn_timer.modulate.a = 0.0
 
 
 func _setup_flow_borders() -> void:

@@ -61,6 +61,21 @@ func _run_test() -> void:
 	assert(session.players.size() == 3)
 	assert(session.draw_pile.size() == 57)
 	assert(hand_view.get_child_count() == 17)
+	for card_node in hand_view.get_children():
+		var card_view := card_node as CardView
+		assert(card_view != null)
+		assert(bool(card_view.get_meta(&"control_motion_disabled", false)))
+		assert(not bool(card_view.get_meta(&"motion_bound", false)))
+	var hover_card := hand_view.get_child(0) as CardView
+	hand_view.set_interaction_enabled(true)
+	hover_card.call("_animate_transform", true)
+	var hover_rest_position := hover_card.position
+	hover_card.call("_on_mouse_entered")
+	await get_tree().create_timer(CardView.INTERACTION_DURATION + 0.03).timeout
+	assert(hover_card.position.y < hover_rest_position.y)
+	hand_view.set_interaction_enabled(false)
+	await get_tree().create_timer(CardView.INTERACTION_DURATION + 0.03).timeout
+	assert(hover_card.position.is_equal_approx(hover_rest_position))
 	assert(not dice_button.disabled)
 	assert(not action_bar.visible)
 	assert(west_seat.visible)
@@ -111,6 +126,32 @@ func _run_test() -> void:
 	var turn_timer := game_scene.get_node("%TurnTimer") as PanelContainer
 	assert(not turn_timer.visible)
 	assert((turn_timer.get_node("Layout/ClockIcon") as TextureRect).texture != null)
+	assert(
+		turn_timer.get_theme_stylebox(&"panel").get_content_margin(SIDE_LEFT) >= 8.0
+	)
+	var clock_now := Time.get_ticks_msec()
+	LanMultiplayerService.connection_state = (
+		LanMultiplayerService.ConnectionState.IN_GAME
+	)
+	LanMultiplayerService.last_game_snapshot = {
+		"turn_deadline_ms": clock_now + 30_000,
+		"server_time_ms": clock_now,
+		"received_at_ms": clock_now,
+	}
+	game_scene.set("_network_mode", true)
+	game_scene.call("_refresh_turn_indicator")
+	assert(turn_timer.visible)
+	assert(turn_timer.modulate.a < 1.0)
+	await get_tree().create_timer(0.3).timeout
+	assert(is_equal_approx(turn_timer.modulate.a, 1.0))
+	LanMultiplayerService.last_game_snapshot["turn_deadline_ms"] = 0
+	game_scene.call("_refresh_turn_indicator")
+	assert(not turn_timer.visible)
+	game_scene.set("_network_mode", false)
+	LanMultiplayerService.last_game_snapshot.clear()
+	LanMultiplayerService.connection_state = (
+		LanMultiplayerService.ConnectionState.OFFLINE
+	)
 	game_scene.call("_set_panel_disconnected", west_seat, true)
 	game_scene.call("_show_disconnect_icon", west_seat)
 	assert(west_seat.material is ShaderMaterial)
@@ -387,7 +428,10 @@ func _test_conservative_auto_pass(game_scene: Control, session: GameSession) -> 
 	session.phase = GameSession.Phase.AWAITING_ACTION
 	session.current_player_index = 0
 	game_scene.call("_refresh")
-	await get_tree().create_timer(1.1).timeout
+	var auto_pass_wait := SettingsService.get_gameplay_duration(
+		SettingsService.GameplayTiming.ACTION_PAUSE,
+	) + 0.35
+	await get_tree().create_timer(auto_pass_wait).timeout
 	assert(session.current_player_index == 0)
 
 	session.is_bonus = false
@@ -399,7 +443,7 @@ func _test_conservative_auto_pass(game_scene: Control, session: GameSession) -> 
 	var action_bar := game_scene.get_node("%ActionBar") as HBoxContainer
 	var play_button := game_scene.get_node("%PlayButton") as Button
 	assert(not action_bar.visible or play_button.disabled)
-	await get_tree().create_timer(1.1).timeout
+	await get_tree().create_timer(auto_pass_wait).timeout
 	assert(session.current_player_index == 1)
 
 

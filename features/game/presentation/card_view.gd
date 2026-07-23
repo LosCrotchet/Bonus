@@ -22,6 +22,7 @@ var _shadow_far: TextureRect
 
 
 func _ready() -> void:
+	set_meta(&"control_motion_disabled", true)
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	ignore_texture_size = true
 	stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
@@ -67,12 +68,15 @@ func set_neighbor_offset(value: Vector2) -> void:
 
 
 func set_interaction_enabled(value: bool) -> void:
+	var was_hovered := _hovered
 	interaction_enabled = value
 	disabled = not value
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if value else Control.CURSOR_ARROW
 	if not value:
 		_hovered = false
 	_update_tint()
+	if was_hovered and not value:
+		_animate_transform()
 
 
 func play_entry_animation(delay: float = 0.0) -> void:

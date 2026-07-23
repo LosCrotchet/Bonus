@@ -11,7 +11,12 @@ const MOTION_DURATION := 0.11
 static func bind_buttons(root: Node) -> void:
 	for child in root.find_children("*", "BaseButton", true, false):
 		var button := child as BaseButton
-		if button == null or button.get_meta(&"motion_bound", false):
+		if (
+			button == null
+			or button is TextureButton
+			or button.get_meta(&"control_motion_disabled", false)
+			or button.get_meta(&"motion_bound", false)
+		):
 			continue
 		button.set_meta(&"motion_bound", true)
 		button.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
@@ -31,7 +36,9 @@ static func _refresh_pivot(button: BaseButton) -> void:
 
 static func _on_mouse_entered(button: BaseButton) -> void:
 	if button.disabled:
+		button.set_meta(&"motion_hover_active", false)
 		return
+	button.set_meta(&"motion_hover_active", true)
 	var previous := _get_tween(button)
 	if previous == null or not previous.is_running():
 		button.set_meta(&"motion_rest_position", button.position)
@@ -39,11 +46,14 @@ static func _on_mouse_entered(button: BaseButton) -> void:
 
 
 static func _on_mouse_exited(button: BaseButton) -> void:
+	if not button.get_meta(&"motion_hover_active", false):
+		return
+	button.set_meta(&"motion_hover_active", false)
 	_animate(button, Vector2.ONE, Vector2.ZERO)
 
 
 static func _on_button_down(button: BaseButton) -> void:
-	if button.disabled:
+	if button.disabled or not button.get_meta(&"motion_hover_active", false):
 		return
 	_animate(button, PRESSED_SCALE, PRESSED_LIFT)
 
@@ -82,6 +92,8 @@ static func _animate(
 
 
 static func _on_button_up(button: BaseButton) -> void:
+	if not button.get_meta(&"motion_hover_active", false):
+		return
 	var hovered := Rect2(Vector2.ZERO, button.size).has_point(
 		button.get_local_mouse_position(),
 	)

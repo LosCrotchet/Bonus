@@ -67,6 +67,32 @@ border_color = Color(0.34, 0.42, 0.4, 1)
 shadow_color = Color(0, 0, 0, 0.3)
 shadow_size = 12
 
+[sub_resource type="StyleBoxFlat" id="Style_info_button"]
+bg_color = Color(0.1, 0.13, 0.13, 0.35)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.62, 0.7, 0.68, 0.9)
+corner_radius_top_left = 11
+corner_radius_top_right = 11
+corner_radius_bottom_right = 11
+corner_radius_bottom_left = 11
+
+[sub_resource type="StyleBoxFlat" id="Style_info_hover"]
+bg_color = Color(0.24, 0.3, 0.29, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.8, 0.34, 1)
+corner_radius_top_left = 11
+corner_radius_top_right = 11
+corner_radius_bottom_right = 11
+corner_radius_bottom_left = 11
+
+[sub_resource type="StyleBoxEmpty" id="Style_info_focus"]
+
 [sub_resource type="FontVariation" id="Font_info_bold"]
 base_font = ExtResource("10_font")
 variation_opentype = {
@@ -207,8 +233,8 @@ visible = false
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_left = 350.0
-offset_right = 850.0
+offset_left = 330.0
+offset_right = 830.0
 grow_vertical = 2
 theme = ExtResource("11_controls")
 theme_override_styles/panel = SubResource("Style_secondary")
@@ -381,8 +407,14 @@ tooltip_text = "RULE_VARIABLE_DRAW_HINT"
 focus_mode = 0
 theme_override_font_sizes/font_size = 14
 theme_override_fonts/font = SubResource("Font_info_bold")
-theme_type_variation = &"SquareButton"
+theme_override_styles/normal = SubResource("Style_info_button")
+theme_override_styles/hover = SubResource("Style_info_hover")
+theme_override_styles/pressed = SubResource("Style_info_hover")
+theme_override_styles/hover_pressed = SubResource("Style_info_hover")
+theme_override_styles/disabled = SubResource("Style_info_button")
+theme_override_styles/focus = SubResource("Style_info_focus")
 text = "?"
+metadata/control_motion_disabled = true
 
 [node name="VariableDrawToggle" type="CheckBox" parent="SinglePlayerPanel/Layout/VariableDrawRow" unique_id=556665278]
 unique_name_in_owner = true
@@ -445,8 +477,8 @@ visible = false
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_left = 350.0
-offset_right = 850.0
+offset_left = 330.0
+offset_right = 830.0
 grow_vertical = 2
 theme_override_styles/panel = SubResource("Style_secondary")
 show_navigation_actions = false
@@ -458,6 +490,6 @@ visible = false
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_left = 350.0
-offset_right = 1340.0
+offset_left = 330.0
+offset_right = 980.0
 grow_vertical = 2

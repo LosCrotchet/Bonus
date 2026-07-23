@@ -84,6 +84,8 @@ func set_interaction_enabled(value: bool) -> void:
 	_interaction_enabled = value
 	if not value:
 		_reset_pointer_state()
+		_hovered_card_id = -1
+		_update_neighbor_avoidance()
 	for card_view in _card_views:
 		card_view.set_interaction_enabled(value)
 

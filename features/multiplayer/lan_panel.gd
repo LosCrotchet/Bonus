@@ -14,8 +14,9 @@ enum DetailMode {
 }
 
 @onready var detail_panel: PanelContainer = %DetailPanel
+@onready var setup_scroll: ScrollContainer = %SetupScroll
 @onready var setup_content: VBoxContainer = %SetupContent
-@onready var lobby_content: VBoxContainer = %LobbyContent
+@onready var lobby_content: VBoxContainer = %LobbyView
 @onready var host_settings: VBoxContainer = %HostSettings
 @onready var join_settings: VBoxContainer = %JoinSettings
 @onready var player_id_input: LineEdit = %PlayerIdInput
@@ -126,6 +127,7 @@ func _open_join_setup() -> void:
 
 func _show_setup(hosting: bool) -> void:
 	_detail_mode = DetailMode.HOST if hosting else DetailMode.JOIN
+	setup_scroll.visible = true
 	setup_content.visible = true
 	lobby_content.visible = false
 	host_settings.visible = hosting
@@ -139,6 +141,7 @@ func _show_setup(hosting: bool) -> void:
 func _show_lobby() -> void:
 	var already_visible := _detail_mode == DetailMode.LOBBY and detail_panel.visible
 	_detail_mode = DetailMode.LOBBY
+	setup_scroll.visible = false
 	setup_content.visible = false
 	lobby_content.visible = true
 	%DetailTitle.text = tr(&"LAN_ROOM_TITLE")
@@ -280,7 +283,10 @@ func _on_lobby_updated(snapshot: Dictionary) -> void:
 func _clear_seat_slots() -> void:
 	for seat_key in _seat_slots:
 		var slot := _seat_slots[seat_key] as PanelContainer
-		slot.visible = false
+		# Keep every grid cell in layout so the compass positions never collapse.
+		slot.visible = true
+		slot.modulate.a = 0.0
+		slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		(slot.get_node("Layout/Player") as Label).text = ""
 		(slot.get_node("Layout/StateRow/State") as Label).text = ""
 		(slot.get_node("Layout/StateRow/Kick") as Button).visible = false
@@ -292,6 +298,8 @@ func _update_seat_slot(member: Dictionary) -> void:
 		return
 	var slot := _seat_slots[seat_key] as PanelContainer
 	slot.visible = true
+	slot.modulate.a = 1.0
+	slot.mouse_filter = Control.MOUSE_FILTER_PASS
 	(slot.get_node("Layout/Seat") as Label).text = tr(StringName(seat_key))
 	(slot.get_node("Layout/Player") as Label).text = str(member.get("player_id", ""))
 	var state_key := &"LAN_MEMBER_READY" if bool(member.get("ready", false)) else &"LAN_MEMBER_NOT_READY"

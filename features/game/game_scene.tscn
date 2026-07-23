@@ -213,6 +213,9 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
+[sub_resource type="StyleBoxEmpty" id="Style_turn_timer"]
+content_margin_left = 8.0
+
 [node name="GameScene" type="Control" unique_id=1803065421]
 layout_mode = 3
 anchors_preset = 15
@@ -733,9 +736,10 @@ script = ExtResource("6_indicator")
 unique_name_in_owner = true
 visible = false
 z_index = 31
-offset_right = 82.0
+offset_right = 90.0
 offset_bottom = 34.0
 mouse_filter = 2
+theme_override_styles/panel = SubResource("Style_turn_timer")
 
 [node name="Layout" type="HBoxContainer" parent="TurnTimer"]
 layout_mode = 2
