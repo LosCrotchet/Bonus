@@ -16,6 +16,7 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var session := game_scene.get("_session") as GameSession
+	assert(AudioService.get("_music_track") == &"game")
 	assert(bool(game_scene.get("_dealing")))
 	var deal_counts := game_scene.get("_deal_visible_counts") as PackedInt32Array
 	deal_counts[0] = 5

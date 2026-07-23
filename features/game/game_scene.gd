@@ -128,6 +128,7 @@ func configure_resume(payload: Dictionary, embedded_in_app: bool = false) -> voi
 
 
 func _ready() -> void:
+	AudioService.play_music(&"game")
 	_presentation_random.randomize()
 	CardTextureCatalog.warm_up()
 	_finish_card_texture_warmup.call_deferred()

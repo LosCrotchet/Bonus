@@ -1,13 +1,20 @@
 extends Node
 
 const SFX_ROOT := "res://assets/audio/sfx/"
+const MUSIC_ROOT := "res://assets/audio/music/"
 const PLAYER_POOL_SIZE := 20
+const MUSIC_FADE_DURATION := 0.45
 
 var _cue_streams: Dictionary = {}
 var _cue_volume_db: Dictionary = {}
 var _cue_cooldowns_ms: Dictionary = {}
 var _bonus_streams: Array[AudioStream] = []
 var _players: Array[AudioStreamPlayer] = []
+var _music_streams: Dictionary = {}
+var _music_players: Array[AudioStreamPlayer] = []
+var _music_active_index := 0
+var _music_track: StringName = &""
+var _music_tween: Tween
 var _pool_cursor := 0
 var _last_played_at_ms: Dictionary = {}
 
@@ -15,15 +22,20 @@ var _last_played_at_ms: Dictionary = {}
 func _ready() -> void:
 	_build_stream_catalog()
 	_build_player_pool()
+	_build_music_catalog()
+	_build_music_players()
 	get_tree().node_added.connect(_on_node_added)
 	_bind_existing_button_hovers.call_deferred()
 
 
 func _exit_tree() -> void:
 	stop_all()
+	stop_music()
 	_players.clear()
+	_music_players.clear()
 	_cue_streams.clear()
 	_bonus_streams.clear()
+	_music_streams.clear()
 
 
 func play(cue: StringName, volume_offset_db: float = 0.0) -> void:
@@ -61,8 +73,54 @@ func stop_all() -> void:
 
 func shutdown() -> void:
 	stop_all()
+	stop_music()
 	await get_tree().process_frame
 	await get_tree().create_timer(0.08).timeout
+
+
+func play_music(track: StringName, fade_duration: float = MUSIC_FADE_DURATION) -> void:
+	var stream := _music_streams.get(track) as AudioStream
+	if stream == null or _music_players.is_empty():
+		return
+	if _music_track == track and _music_players[_music_active_index].playing:
+		return
+	if _music_tween != null:
+		_music_tween.kill()
+
+	var current_player := _music_players[_music_active_index]
+	var next_index := _music_active_index
+	if current_player.playing:
+		next_index = 1 - _music_active_index
+	var next_player := _music_players[next_index]
+	next_player.stop()
+	next_player.stream = stream
+	next_player.volume_db = -80.0 if current_player.playing else 0.0
+	next_player.play()
+	_music_active_index = next_index
+	_music_track = track
+
+	if not current_player.playing:
+		return
+	var duration := maxf(0.05, fade_duration)
+	_music_tween = create_tween().set_parallel(true)
+	_music_tween.tween_property(next_player, "volume_db", 0.0, duration)
+	_music_tween.tween_property(current_player, "volume_db", -80.0, duration)
+	_music_tween.chain().tween_callback(current_player.stop)
+
+
+func stop_music() -> void:
+	if _music_tween != null:
+		_music_tween.kill()
+		_music_tween = null
+	for player in _music_players:
+		player.stop()
+		player.stream = null
+		player.volume_db = 0.0
+	_music_track = &""
+
+
+func has_music(track: StringName) -> bool:
+	return _music_streams.has(track)
 
 
 func _build_stream_catalog() -> void:
@@ -146,6 +204,21 @@ func _build_stream_catalog() -> void:
 		_bonus_streams.append(_randomizer([file_name], 0.1))
 
 
+func _build_music_catalog() -> void:
+	var tracks := {
+		&"menu": "menu_music.mp3",
+		&"game": "game_music.mp3",
+	}
+	for track in tracks:
+		var file_name := str(tracks[track])
+		var stream := load(MUSIC_ROOT + file_name) as AudioStreamMP3
+		if stream == null:
+			push_warning("Unable to load music track: %s" % file_name)
+			continue
+		stream.loop = true
+		_music_streams[track] = stream
+
+
 func _randomizer(
 	file_names: Array,
 	random_pitch_semitones: float = 0.0,
@@ -170,6 +243,14 @@ func _build_player_pool() -> void:
 		player.finished.connect(_release_player.bind(player))
 		add_child(player)
 		_players.append(player)
+
+
+func _build_music_players() -> void:
+	for _index in range(2):
+		var player := AudioStreamPlayer.new()
+		player.bus = &"Music"
+		add_child(player)
+		_music_players.append(player)
 
 
 func _play_stream(stream: AudioStream, volume_db: float) -> void:

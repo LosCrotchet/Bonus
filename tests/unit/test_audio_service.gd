@@ -28,6 +28,13 @@ func _run_test() -> void:
 		assert(AudioService.has_cue(cue), "Missing audio cue: %s" % cue)
 	assert(not AudioService.has_cue(&"bonus_loop"))
 	assert(AudioService.get_bonus_step_count() == 10)
+	assert(AudioService.has_music(&"menu"))
+	assert(AudioService.has_music(&"game"))
+	var music_catalog := AudioService.get("_music_streams") as Dictionary
+	assert((music_catalog[&"menu"] as AudioStream).resource_path.ends_with("menu_music.mp3"))
+	assert((music_catalog[&"game"] as AudioStream).resource_path.ends_with("game_music.mp3"))
+	assert((music_catalog[&"menu"] as AudioStreamMP3).loop)
+	assert((music_catalog[&"game"] as AudioStreamMP3).loop)
 
 	var catalog := AudioService.get("_cue_streams") as Dictionary
 	var hover := catalog[&"ui_hover"] as AudioStreamRandomizer
@@ -68,6 +75,8 @@ func _run_test() -> void:
 	AudioService.play(&"ui_hover")
 	AudioService.play_bonus_step(0)
 	AudioService.play_bonus_step(10)
+	AudioService.play_music(&"menu")
+	AudioService.play_music(&"game")
 	await AudioService.shutdown()
 	print("BONUS_TEST_AUDIO_SERVICE_OK")
 	get_tree().quit()

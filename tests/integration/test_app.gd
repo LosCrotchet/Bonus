@@ -14,10 +14,11 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	assert((app.get_node("Version") as Label).text == "v0.5.9")
+	assert((app.get_node("Version") as Label).text == "v0.5.10")
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
 	assert(menu != null)
+	assert(AudioService.get("_music_track") == &"menu")
 	assert((menu.get_node("%SinglePlayerButton") as Button).icon != null)
 	assert((menu.get_node("%MenuPanel") as PanelContainer).size.y >= 700.0)
 	assert(not (menu.get_node("%SinglePlayerPanel") as PanelContainer).visible)
@@ -109,6 +110,7 @@ func _run_test() -> void:
 		2.5,
 	))
 	var game := content.get_child(0) as Control
+	assert(AudioService.get("_music_track") == &"game")
 	game.call("skip_initial_deal")
 	await get_tree().process_frame
 	var session := game.get("_session") as GameSession
