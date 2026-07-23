@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://c6m6wcaed7ns6" path="res://assets/icons/arrow_right.png" id="8_forward"]
 [ext_resource type="Texture2D" uid="uid://b7w7tougd7x4l" path="res://assets/icons/arrow_left.png" id="9_back"]
 [ext_resource type="FontFile" uid="uid://bobda3iv4j3mt" path="res://assets/fonts/SourceHanSans-VF.otf.ttc" id="10_font"]
+[ext_resource type="Theme" path="res://assets/themes/cartoon_ui/controls.tres" id="11_controls"]
 
 [sub_resource type="FontVariation" id="Font_default"]
 base_font = ExtResource("10_font")
@@ -66,32 +67,6 @@ border_color = Color(0.34, 0.42, 0.4, 1)
 shadow_color = Color(0, 0, 0, 0.3)
 shadow_size = 12
 
-[sub_resource type="StyleBoxFlat" id="Style_info_button"]
-bg_color = Color(0.16, 0.2, 0.2, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.55, 0.65, 0.62, 0.9)
-corner_radius_top_left = 11
-corner_radius_top_right = 11
-corner_radius_bottom_right = 11
-corner_radius_bottom_left = 11
-
-[sub_resource type="StyleBoxFlat" id="Style_info_hover"]
-bg_color = Color(0.26, 0.34, 0.32, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.82, 0.72, 0.34, 1)
-corner_radius_top_left = 11
-corner_radius_top_right = 11
-corner_radius_bottom_right = 11
-corner_radius_bottom_left = 11
-
-[sub_resource type="StyleBoxEmpty" id="Style_info_focus"]
-
 [sub_resource type="FontVariation" id="Font_info_bold"]
 base_font = ExtResource("10_font")
 variation_opentype = {
@@ -99,54 +74,6 @@ variation_opentype = {
 }
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_player_count"]
-
-[sub_resource type="StyleBoxFlat" id="Style_segment"]
-content_margin_left = 12.0
-content_margin_top = 7.0
-content_margin_right = 12.0
-content_margin_bottom = 7.0
-bg_color = Color(0.12, 0.15, 0.15, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.32, 0.4, 0.38, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-
-[sub_resource type="StyleBoxFlat" id="Style_segment_hover"]
-content_margin_left = 12.0
-content_margin_top = 7.0
-content_margin_right = 12.0
-content_margin_bottom = 7.0
-bg_color = Color(0.21, 0.27, 0.26, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.5, 0.61, 0.58, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-
-[sub_resource type="StyleBoxFlat" id="Style_segment_pressed"]
-content_margin_left = 12.0
-content_margin_top = 7.0
-content_margin_right = 12.0
-content_margin_bottom = 7.0
-bg_color = Color(0.66, 0.42, 0.11, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(1, 0.75, 0.27, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
 
 [node name="MainMenu" type="Control" unique_id=1297981667]
 layout_mode = 3
@@ -248,6 +175,7 @@ unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
+theme = ExtResource("11_controls")
 theme_override_constants/separation = 8
 
 [node name="Prompt" type="Label" parent="MenuPanel/Layout/MenuButtons/ExitConfirmation" unique_id=1574777286]
@@ -259,12 +187,14 @@ text = "UI_CONFIRM_EXIT_GAME"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 42)
 layout_mode = 2
+theme_type_variation = &"RedButton"
 text = "UI_YES"
 
 [node name="ExitNoButton" type="Button" parent="MenuPanel/Layout/MenuButtons/ExitConfirmation" unique_id=1829434244]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 42)
 layout_mode = 2
+theme_type_variation = &"SquareButton"
 text = "UI_NO"
 
 [node name="BottomSpace" type="Control" parent="MenuPanel/Layout" unique_id=2023396231]
@@ -280,6 +210,7 @@ anchor_bottom = 1.0
 offset_left = 350.0
 offset_right = 850.0
 grow_vertical = 2
+theme = ExtResource("11_controls")
 theme_override_styles/panel = SubResource("Style_secondary")
 
 [node name="Layout" type="VBoxContainer" parent="SinglePlayerPanel" unique_id=1008027507]
@@ -332,6 +263,7 @@ size_flags_vertical = 3
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
+theme_type_variation = &"GreenButton"
 text = "UI_CONTINUE_GAME"
 
 [node name="StartNewGameButton" type="Button" parent="SinglePlayerPanel/Layout/ResumePrompt"]
@@ -359,9 +291,7 @@ custom_minimum_size = Vector2(72, 38)
 layout_mode = 2
 toggle_mode = true
 button_group = SubResource("ButtonGroup_player_count")
-theme_override_styles/normal = SubResource("Style_segment")
-theme_override_styles/hover = SubResource("Style_segment_hover")
-theme_override_styles/pressed = SubResource("Style_segment_pressed")
+theme_type_variation = &"SquareButton"
 text = "2 人"
 
 [node name="PlayerCount3" type="Button" parent="SinglePlayerPanel/Layout/PlayerCountRow/PlayerCountButtons"]
@@ -371,9 +301,7 @@ layout_mode = 2
 toggle_mode = true
 button_pressed = true
 button_group = SubResource("ButtonGroup_player_count")
-theme_override_styles/normal = SubResource("Style_segment")
-theme_override_styles/hover = SubResource("Style_segment_hover")
-theme_override_styles/pressed = SubResource("Style_segment_pressed")
+theme_type_variation = &"SquareButton"
 text = "3 人"
 
 [node name="PlayerCount4" type="Button" parent="SinglePlayerPanel/Layout/PlayerCountRow/PlayerCountButtons"]
@@ -382,9 +310,7 @@ custom_minimum_size = Vector2(72, 38)
 layout_mode = 2
 toggle_mode = true
 button_group = SubResource("ButtonGroup_player_count")
-theme_override_styles/normal = SubResource("Style_segment")
-theme_override_styles/hover = SubResource("Style_segment_hover")
-theme_override_styles/pressed = SubResource("Style_segment_pressed")
+theme_type_variation = &"SquareButton"
 text = "4 人"
 
 [node name="IncludeJokersRow" type="HBoxContainer" parent="SinglePlayerPanel/Layout" unique_id=177720139]
@@ -455,10 +381,7 @@ tooltip_text = "RULE_VARIABLE_DRAW_HINT"
 focus_mode = 0
 theme_override_font_sizes/font_size = 14
 theme_override_fonts/font = SubResource("Font_info_bold")
-theme_override_styles/normal = SubResource("Style_info_button")
-theme_override_styles/pressed = SubResource("Style_info_hover")
-theme_override_styles/hover = SubResource("Style_info_hover")
-theme_override_styles/focus = SubResource("Style_info_focus")
+theme_type_variation = &"SquareButton"
 text = "?"
 
 [node name="VariableDrawToggle" type="CheckBox" parent="SinglePlayerPanel/Layout/VariableDrawRow" unique_id=556665278]
@@ -501,6 +424,7 @@ unique_name_in_owner = true
 texture_filter = 4
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
+theme_type_variation = &"GreenButton"
 text = "UI_START_GAME"
 icon = ExtResource("8_forward")
 expand_icon = true
@@ -510,6 +434,7 @@ unique_name_in_owner = true
 texture_filter = 4
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
+theme_type_variation = &"RedButton"
 text = "UI_BACK"
 icon = ExtResource("9_back")
 expand_icon = true

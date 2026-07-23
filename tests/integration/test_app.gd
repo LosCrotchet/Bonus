@@ -14,10 +14,36 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	assert((app.get_node("Version") as Label).text == "v0.5.14")
+	assert((app.get_node("Version") as Label).text == "v0.5.15")
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
 	assert(menu != null)
+	var single_player_panel := menu.get_node("%SinglePlayerPanel") as PanelContainer
+	var cartoon_theme := load("res://assets/themes/cartoon_ui/controls.tres") as Theme
+	assert(single_player_panel.theme == cartoon_theme)
+	for variation: StringName in [
+		&"Button",
+		&"WideButton",
+		&"SquareButton",
+		&"BlueButton",
+		&"RedButton",
+		&"GreenButton",
+	]:
+		assert(cartoon_theme.has_stylebox(&"hover_pressed", variation))
+		assert(cartoon_theme.get_stylebox(&"focus", variation) is StyleBoxEmpty)
+	for button_path: NodePath in [
+		^"%PlayerCount2",
+		^"%PlayerCount3",
+		^"%PlayerCount4",
+	]:
+		var button := menu.get_node(button_path) as Button
+		assert(button.theme_type_variation == &"SquareButton")
+		assert(not button.has_theme_stylebox_override(&"normal"))
+	var info_button := single_player_panel.get_node(
+		"Layout/VariableDrawRow/VariableDrawInfo",
+	) as Button
+	assert(info_button.theme_type_variation == &"SquareButton")
+	assert(not info_button.has_theme_stylebox_override(&"normal"))
 	assert(AudioService.get("_music_track") == &"menu")
 	assert((menu.get_node("%SinglePlayerButton") as Button).icon != null)
 	assert((menu.get_node("%MenuPanel") as PanelContainer).size.y >= 700.0)
