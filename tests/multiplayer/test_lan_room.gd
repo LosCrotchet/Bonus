@@ -16,13 +16,13 @@ func _test_lobby_lifecycle() -> void:
 	var room = LAN_ROOM_STATE.new()
 	assert(room.create_room(1, "Host", _config(4), "host-token"))
 	assert(not room.can_start())
-	var first: Dictionary = room.join_peer(10, "Alice", "alice-token")
-	var second: Dictionary = room.join_peer(11, "Bob", "bob-token")
+	var first: Dictionary = room.join_peer(10, "Alice", "", "", "alice-instance")
+	var second: Dictionary = room.join_peer(11, "Bob", "", "", "bob-instance")
 	assert(bool(first.get("ok", false)))
 	assert(bool(second.get("ok", false)))
 	assert(int(first.get("seat_index", -1)) != int(second.get("seat_index", -1)))
 	assert(int(first.get("seat_index", -1)) != 0)
-	assert(not bool(room.join_peer(12, "Alice", "other-token").get("ok", true)))
+	assert(not bool(room.join_peer(12, "Alice", "", "", "other-instance").get("ok", true)))
 	assert(room.add_ai())
 	assert(room.get_free_seat_indices().is_empty())
 	assert(room.set_ready(1, true))
@@ -42,23 +42,47 @@ func _test_lobby_lifecycle() -> void:
 func _test_reconnection() -> void:
 	var room = LAN_ROOM_STATE.new()
 	assert(room.create_room(1, "Host", _config(2), "host-token"))
-	var joined: Dictionary = room.join_peer(20, "Alice", "alice-token")
+	var joined: Dictionary = room.join_peer(20, "Alice", "", "", "alice-instance")
 	assert(bool(joined.get("ok", false)))
 	room.game_started = true
 	var disconnected: Dictionary = room.mark_disconnected(20)
 	assert(not disconnected.is_empty())
 	assert(bool(disconnected.get("ai_takeover", false)))
-	var rejoined: Dictionary = room.join_peer(21, "Alice", "alice-token")
+	var rejoined: Dictionary = room.join_peer(
+		21,
+		"Alice",
+		str(joined.get("reconnect_token", "")),
+		room.room_id,
+		"alice-instance",
+	)
 	assert(bool(rejoined.get("ok", false)))
 	assert(bool(rejoined.get("reconnected", false)))
 	assert(int(rejoined.get("seat_index", -1)) == int(joined.get("seat_index", -2)))
 	assert(bool(room.get_member_by_peer(21).get("connected", false)))
+	var replaced_peer: Dictionary = room.join_peer(
+		23,
+		"Alice",
+		str(joined.get("reconnect_token", "")),
+		room.room_id,
+		"alice-instance",
+	)
+	assert(bool(replaced_peer.get("reconnected", false)))
+	assert(int(replaced_peer.get("previous_peer_id", 0)) == 21)
+	assert(not room.get_member_by_peer(23).is_empty())
+	var rejected_instance: Dictionary = room.join_peer(
+		22,
+		"Alice",
+		str(joined.get("reconnect_token", "")),
+		room.room_id,
+		"different-instance",
+	)
+	assert(not bool(rejected_instance.get("ok", true)))
 
 
 func _test_snapshot_privacy() -> void:
 	var room = LAN_ROOM_STATE.new()
 	assert(room.create_room(1, "Host", _config(3), "host-token"))
-	assert(bool(room.join_peer(30, "Alice", "alice-token").get("ok", false)))
+	assert(bool(room.join_peer(30, "Alice", "", "", "alice-instance").get("ok", false)))
 	assert(room.add_ai())
 	var session := GameSession.new()
 	assert(session.start_game(room.get_seat_keys(), 24680, GameRules.new(), "test2468"))

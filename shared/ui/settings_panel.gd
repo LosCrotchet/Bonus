@@ -40,6 +40,7 @@ var _apply_status_rest_position := Vector2.ZERO
 
 
 func _ready() -> void:
+	theme = preload("res://assets/themes/cartoon_ui/controls.tres")
 	title_label.text = tr(title_key)
 	apply_button.pressed.connect(_on_apply_pressed)
 	%CancelButton.pressed.connect(cancel_edit)
@@ -55,6 +56,7 @@ func _ready() -> void:
 	$Layout.move_child(navigation_actions, $Layout.get_child_count() - 1)
 	_populate_options()
 	begin_edit()
+	ControlMotion.bind_buttons(self)
 
 
 func begin_edit() -> void:

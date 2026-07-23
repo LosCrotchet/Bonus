@@ -232,6 +232,9 @@ func _show_secondary(panel: Control) -> void:
 	_active_secondary = panel
 	var target_position := _get_secondary_target(panel)
 	panel.visible = true
+	# Hidden stretched controls can retain the previous window height after a
+	# resolution change. Normalize every secondary panel when it is opened.
+	panel.size.y = size.y
 	panel.position = target_position + Vector2(-44.0, 0.0)
 	panel.modulate.a = 0.0
 	_secondary_tween = create_tween().set_parallel(true)
@@ -272,6 +275,9 @@ func _input(event: InputEvent) -> void:
 		return
 	var hovered := get_viewport().gui_get_hovered_control()
 	if hovered is BaseButton or hovered is LineEdit or hovered is SpinBox:
+		return
+	if _active_secondary == lan_panel and lan_panel.handle_back():
+		get_viewport().set_input_as_handled()
 		return
 	_close_secondary()
 	get_viewport().set_input_as_handled()

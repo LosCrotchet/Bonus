@@ -214,3 +214,12 @@ LAN_HAND_TITLE,{player}（你） · {count} 张,{player} (You) · {count} cards
 LAN_EDIT_ROOM,房间设置,Room Settings
 LAN_APPLY_ROOM,应用房间设置,Apply Room Settings
 LAN_HOST_ENDPOINT,局域网地址：{address}:{port},LAN address: {address}:{port}
+LAN_ROOM_TITLE,局域网房间,LAN Room
+LAN_ROOM_INFO,房间信息,Room Information
+LAN_ENDPOINT_LABEL,局域网地址,LAN Address
+LAN_RULES,房间规则,Room Rules
+LAN_SECONDS,{seconds} 秒,{seconds}s
+STEAM_MULTIPLAYER,Steam 联机,Steam Multiplayer
+STEAM_LOBBY_COMING,大厅（即将推出）,Lobby (Coming Soon)
+STEAM_ONLINE_COMING,在线游戏（即将推出）,Online Play (Coming Soon)
+UI_SEED,种子,Seed

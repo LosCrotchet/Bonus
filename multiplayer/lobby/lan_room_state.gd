@@ -8,6 +8,7 @@ const HOST_PEER_ID := 1
 var room_config: Dictionary = {}
 var members: Array[Dictionary] = []
 var host_peer_id := HOST_PEER_ID
+var room_id := ""
 var room_open := false
 var game_started := false
 var last_error: StringName = &""
@@ -25,11 +26,13 @@ func create_room(
 	player_id: String,
 	config: Dictionary,
 	reconnect_token: String,
+	client_instance_id: String = "host",
 ) -> bool:
 	var clean_id: String = LAN_PROTOCOL.sanitize_player_id(player_id)
 	if not LAN_PROTOCOL.is_valid_player_id(clean_id):
 		return _fail(&"LAN_ERROR_PLAYER_ID_REQUIRED")
 	room_config = LAN_PROTOCOL.normalize_room_config(config)
+	room_id = _generate_room_id()
 	host_peer_id = peer_id
 	members.clear()
 	_next_ai_number = 1
@@ -41,6 +44,7 @@ func create_room(
 		0,
 		reconnect_token,
 		true,
+		client_instance_id,
 	))
 	last_error = &""
 	return true
@@ -50,6 +54,8 @@ func join_peer(
 	peer_id: int,
 	player_id: String,
 	reconnect_token: String,
+	requested_room_id: String = "",
+	client_instance_id: String = "",
 ) -> Dictionary:
 	if not room_open:
 		return _result_error(&"LAN_ERROR_ROOM_NOT_JOINABLE")
@@ -57,19 +63,20 @@ func join_peer(
 	if not LAN_PROTOCOL.is_valid_player_id(clean_id):
 		return _result_error(&"LAN_ERROR_PLAYER_ID_REQUIRED")
 
-	if not reconnect_token.is_empty():
+	if not reconnect_token.is_empty() and requested_room_id == room_id:
 		for member in members:
 			if (
 				not bool(member.get("is_ai", false))
 				and str(member.get("reconnect_token", "")) == reconnect_token
 				and str(member.get("player_id", "")) == clean_id
-				and not bool(member.get("connected", true))
+				and str(member.get("client_instance_id", "")) == client_instance_id
 			):
+				var previous_peer_id := int(member.get("peer_id", 0))
 				member["peer_id"] = peer_id
 				member["connected"] = true
 				member["ai_takeover"] = false
 				last_error = &""
-				return _result_ok(member, true)
+				return _result_ok(member, true, previous_peer_id)
 	if game_started:
 		return _result_error(&"LAN_ERROR_ROOM_NOT_JOINABLE")
 
@@ -81,10 +88,15 @@ func join_peer(
 	if free_seats.is_empty():
 		return _result_error(&"LAN_ERROR_ROOM_FULL")
 	var seat_index: int = free_seats[_random.randi_range(0, free_seats.size() - 1)]
-	var token := reconnect_token
-	if token.is_empty():
-		token = _generate_reconnect_token()
-	var new_member := _make_human_member(peer_id, clean_id, seat_index, token, false)
+	var token := _generate_reconnect_token()
+	var new_member := _make_human_member(
+		peer_id,
+		clean_id,
+		seat_index,
+		token,
+		false,
+		client_instance_id,
+	)
 	members.append(new_member)
 	_sort_members()
 	last_error = &""
@@ -121,6 +133,7 @@ func add_ai(seat_index: int = -1) -> bool:
 		"connected": true,
 		"ai_takeover": false,
 		"is_host": false,
+		"client_instance_id": "",
 	}
 	_next_ai_number += 1
 	members.append(member)
@@ -226,6 +239,7 @@ func to_public_snapshot() -> Dictionary:
 		})
 	return {
 		"protocol_version": LAN_PROTOCOL.PROTOCOL_VERSION,
+		"room_id": room_id,
 		"config": room_config.duplicate(true),
 		"members": public_members,
 		"host_peer_id": host_peer_id,
@@ -250,6 +264,7 @@ func _make_human_member(
 	seat_index: int,
 	reconnect_token: String,
 	is_host: bool,
+	client_instance_id: String,
 ) -> Dictionary:
 	return {
 		"peer_id": peer_id,
@@ -262,6 +277,7 @@ func _make_human_member(
 		"connected": true,
 		"ai_takeover": false,
 		"is_host": is_host,
+		"client_instance_id": client_instance_id,
 	}
 
 
@@ -277,13 +293,23 @@ func _sort_members() -> void:
 	)
 
 
-func _result_ok(member: Dictionary, reconnected: bool) -> Dictionary:
+func _result_ok(
+	member: Dictionary,
+	reconnected: bool,
+	previous_peer_id: int = 0,
+) -> Dictionary:
 	return {
 		"ok": true,
 		"seat_index": int(member.get("seat_index", -1)),
 		"reconnect_token": str(member.get("reconnect_token", "")),
 		"reconnected": reconnected,
+		"previous_peer_id": previous_peer_id,
+		"room_id": room_id,
 	}
+
+
+func _generate_room_id() -> String:
+	return Crypto.new().generate_random_bytes(8).hex_encode()
 
 
 func _result_error(error_key: StringName) -> Dictionary:

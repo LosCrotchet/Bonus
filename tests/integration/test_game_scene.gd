@@ -108,6 +108,30 @@ func _run_test() -> void:
 	var hand_border := flow_borders[hand_panel] as ColorRect
 	assert(hand_border.get_global_rect().position.is_equal_approx(hand_panel.get_global_rect().position))
 	assert(hand_border.get_global_rect().size.is_equal_approx(hand_panel.get_global_rect().size))
+	var turn_timer := game_scene.get_node("%TurnTimer") as PanelContainer
+	assert(not turn_timer.visible)
+	assert((turn_timer.get_node("Layout/ClockIcon") as TextureRect).texture != null)
+	game_scene.call("_set_panel_disconnected", west_seat, true)
+	game_scene.call("_show_disconnect_icon", west_seat)
+	assert(west_seat.material is ShaderMaterial)
+	assert((west_seat.get_node("Layout") as CanvasItem).use_parent_material)
+	var disconnect_badge := (
+		game_scene.get("_disconnect_icons") as Dictionary
+	)[west_seat] as PanelContainer
+	assert(disconnect_badge.visible)
+	assert(disconnect_badge.size == Vector2(76.0, 76.0))
+	assert(
+		disconnect_badge.get_global_rect().get_center().is_equal_approx(
+			west_seat.get_global_rect().get_center(),
+		),
+	)
+	var disconnect_icon := disconnect_badge.get_child(0) as TextureRect
+	assert(disconnect_icon.custom_minimum_size == Vector2(56.0, 56.0))
+	assert(disconnect_icon.texture_filter == CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS)
+	game_scene.call("_hide_disconnect_icon", west_seat)
+	game_scene.call("_set_panel_disconnected", west_seat, false)
+	assert(west_seat.material == null)
+	assert(not (west_seat.get_node("Layout") as CanvasItem).use_parent_material)
 
 	hand_types_button.pressed.emit()
 	await get_tree().process_frame

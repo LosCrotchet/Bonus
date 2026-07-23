@@ -29,6 +29,7 @@ var reconnect_token := ""
 var last_lobby_snapshot: Dictionary = {}
 var last_game_snapshot: Dictionary = {}
 var last_error_key: StringName = &""
+var client_instance_id := ""
 
 var _transport = LAN_TRANSPORT.new()
 var _room
@@ -43,9 +44,12 @@ var _timed_out_seat := -1
 var _last_host_address := ""
 var _last_port := LAN_PROTOCOL.DEFAULT_PORT
 var _local_player_id := ""
+var _pending_room_id := ""
+var _reconnect_records: Dictionary = {}
 
 
 func _ready() -> void:
+	client_instance_id = _generate_token()
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	multiplayer.connected_to_server.connect(_on_connected_to_server)
@@ -84,7 +88,13 @@ func host_room(player_id: String, port: int, config: Dictionary) -> bool:
 	_last_port = port
 	reconnect_token = _generate_token()
 	_room = LAN_ROOM_STATE.new()
-	if not _room.create_room(SERVER_PEER_ID, clean_id, config, reconnect_token):
+	if not _room.create_room(
+		SERVER_PEER_ID,
+		clean_id,
+		config,
+		reconnect_token,
+		client_instance_id,
+	):
 		close_connection()
 		return _fail(_room.last_error)
 	local_player_index = 0
@@ -110,6 +120,13 @@ func join_room(player_id: String, address: String, port: int) -> bool:
 	_local_player_id = clean_id
 	_last_host_address = address.strip_edges()
 	_last_port = port
+	var reconnect_record := _reconnect_records.get(_host_key(_last_host_address, port), {}) as Dictionary
+	if str(reconnect_record.get("player_id", "")) == clean_id:
+		reconnect_token = str(reconnect_record.get("token", ""))
+		_pending_room_id = str(reconnect_record.get("room_id", ""))
+	else:
+		reconnect_token = ""
+		_pending_room_id = ""
 	_set_connection_state(ConnectionState.CONNECTING)
 	return true
 
@@ -121,6 +138,8 @@ func reconnect_last() -> bool:
 
 
 func close_connection(clear_reconnect_token: bool = true) -> void:
+	if clear_reconnect_token and not _last_host_address.is_empty():
+		_reconnect_records.erase(_host_key(_last_host_address, _last_port))
 	if multiplayer.multiplayer_peer != null:
 		multiplayer.multiplayer_peer = null
 	_transport.close()
@@ -138,6 +157,7 @@ func close_connection(clear_reconnect_token: bool = true) -> void:
 	is_host = false
 	if clear_reconnect_token:
 		reconnect_token = ""
+		_pending_room_id = ""
 	_set_connection_state(ConnectionState.OFFLINE)
 
 
@@ -267,6 +287,8 @@ func get_turn_seconds_remaining() -> int:
 func _server_join_request(
 	player_id: String,
 	token: String,
+	requested_room_id: String,
+	instance_id: String,
 	protocol_version: int,
 ) -> void:
 	if not is_host or _room == null:
@@ -275,7 +297,13 @@ func _server_join_request(
 	if protocol_version != LAN_PROTOCOL.PROTOCOL_VERSION:
 		_join_rejected.rpc_id(sender, &"LAN_ERROR_PROTOCOL_MISMATCH")
 		return
-	var result: Dictionary = _room.join_peer(sender, player_id, token)
+	var result: Dictionary = _room.join_peer(
+		sender,
+		player_id,
+		token,
+		requested_room_id,
+		instance_id,
+	)
 	if not bool(result.get("ok", false)):
 		_join_rejected.rpc_id(sender, StringName(str(result.get("error", ""))))
 		return
@@ -283,8 +311,12 @@ func _server_join_request(
 		sender,
 		int(result.get("seat_index", -1)),
 		str(result.get("reconnect_token", "")),
+		str(result.get("room_id", "")),
 		_room.to_public_snapshot(),
 	)
+	var previous_peer_id := int(result.get("previous_peer_id", 0))
+	if previous_peer_id > SERVER_PEER_ID and previous_peer_id != sender and _transport.peer != null:
+		_transport.peer.disconnect_peer(previous_peer_id)
 	_broadcast_lobby()
 	if _room.game_started and _server_session != null:
 		_broadcast_game_snapshot_to(sender, int(result.get("seat_index", -1)), true)
@@ -294,10 +326,17 @@ func _server_join_request(
 func _join_accepted(
 	seat_index: int,
 	token: String,
+	room_id: String,
 	lobby_snapshot: Dictionary,
 ) -> void:
 	local_player_index = seat_index
 	reconnect_token = token
+	_pending_room_id = room_id
+	_reconnect_records[_host_key(_last_host_address, _last_port)] = {
+		"room_id": room_id,
+		"token": token,
+		"player_id": _local_player_id,
+	}
 	_apply_lobby_snapshot(lobby_snapshot)
 	_set_connection_state(
 		ConnectionState.IN_GAME
@@ -560,6 +599,8 @@ func _on_connected_to_server() -> void:
 		SERVER_PEER_ID,
 		_local_player_id,
 		reconnect_token,
+		_pending_room_id,
+		client_instance_id,
 		LAN_PROTOCOL.PROTOCOL_VERSION,
 	)
 
@@ -621,6 +662,10 @@ func _set_connection_state(value: ConnectionState) -> void:
 
 func _generate_token() -> String:
 	return Crypto.new().generate_random_bytes(16).hex_encode()
+
+
+func _host_key(address: String, port: int) -> String:
+	return "%s:%d" % [address.strip_edges().to_lower(), port]
 
 
 func _fail(error_key: StringName) -> bool:

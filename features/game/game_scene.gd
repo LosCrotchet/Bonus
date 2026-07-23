@@ -6,7 +6,9 @@ const DEFAULT_PLAYER_COUNT := 3
 const DICE_ROOT := "res://assets/art/dice/"
 const INACTIVE_BORDER_COLOR := Color(0.25, 0.4, 0.36, 0.75)
 const FLOW_BORDER_SHADER := preload("res://assets/shaders/flow_border.gdshader")
+const DISCONNECTED_SHADER := preload("res://assets/shaders/disconnected_grayscale.gdshader")
 const DISCONNECT_ICON := preload("res://assets/icons/disconnect_icon.png")
+const CARTOON_CONTROLS := preload("res://assets/themes/cartoon_ui/controls.tres")
 const NETWORK_GAME_VIEW = preload("res://multiplayer/session/network_game_view.gd")
 const PLAYED_CARD_REVEAL_DURATION := 0.22
 const FLYING_CARD_FADE_DURATION := 0.06
@@ -44,6 +46,8 @@ const BONUS_DICE_FRAME_INTERVAL := 0.14
 @onready var selected_label: Label = %SelectedLabel
 @onready var selection_type_label: Label = %SelectionTypeLabel
 @onready var turn_indicator: Control = %TurnIndicator
+@onready var turn_timer: Control = %TurnTimer
+@onready var turn_seconds_label: Label = %TurnSeconds
 @onready var interpretation_popup: PopupPanel = %InterpretationPopup
 @onready var interpretation_options: VBoxContainer = %InterpretationOptions
 @onready var result_overlay: Control = %ResultOverlay
@@ -87,7 +91,6 @@ var _settings_tween: Tween
 var _hand_types_tween: Tween
 var _status_tween: Tween
 var _table_bonus_tween: Tween
-var _button_tweens: Dictionary = {}
 var _flow_borders: Dictionary = {}
 var _seat_card_counts: Dictionary = {}
 var _panel_active_states: Dictionary = {}
@@ -111,6 +114,8 @@ var _presentation_random := RandomNumberGenerator.new()
 var _last_network_revision := -1
 var _last_network_timer_second := -1
 var _disconnect_icons: Dictionary = {}
+var _turn_timer_tween: Tween
+var _disconnected_material := ShaderMaterial.new()
 
 
 func configure(
@@ -143,6 +148,8 @@ func configure_network(snapshot: Dictionary, embedded_in_app: bool = false) -> v
 
 
 func _ready() -> void:
+	theme = CARTOON_CONTROLS
+	_disconnected_material.shader = DISCONNECTED_SHADER
 	AudioService.play_music(&"game")
 	_presentation_random.randomize()
 	CardTextureCatalog.warm_up()
@@ -228,7 +235,7 @@ func _process(delta: float) -> void:
 		var timer_second := LanMultiplayerService.get_turn_seconds_remaining()
 		if timer_second != _last_network_timer_second:
 			_last_network_timer_second = timer_second
-			_refresh_status()
+			turn_seconds_label.text = str(timer_second)
 	if _session == null or not _session.is_bonus or _rolling:
 		_bonus_dice_elapsed = 0.0
 		return
@@ -882,11 +889,6 @@ func _refresh_status() -> void:
 				&"STATUS_MUST_PLAY",
 				{"player": current_name, "count": _session.dice_value},
 			)
-	if _network_mode and _transient_key.is_empty() and _session.phase != GameSession.Phase.FINISHED:
-		message += " · " + _translated(
-			&"LAN_STATUS_TURN_TIME",
-			{"seconds": LanMultiplayerService.get_turn_seconds_remaining()},
-		)
 	_set_status_message(message)
 
 
@@ -1202,7 +1204,7 @@ func _show_interpretation_popup(interpretations: Array[HandPattern]) -> void:
 		)
 		option.pressed.connect(_commit_play.bind(pattern.get_key()))
 		interpretation_options.add_child(option)
-		_setup_single_button_motion(option)
+		ControlMotion.bind_buttons(interpretation_options)
 	AudioService.play(&"ui_fade_in")
 	interpretation_popup.popup_centered(Vector2i(440, 350))
 
@@ -1824,37 +1826,7 @@ func _set_action_bar_visible(should_show: bool) -> void:
 
 
 func _setup_button_motion() -> void:
-	for button in [
-		settings_button,
-		hand_types_button,
-		hint_button,
-		pass_button,
-		play_button,
-		restart_button,
-		result_menu_button,
-	]:
-		_setup_single_button_motion(button)
-
-
-func _setup_single_button_motion(button: Button) -> void:
-	button.pivot_offset = button.size * 0.5
-	button.mouse_entered.connect(func() -> void: _tween_button(button, Vector2(1.04, 1.04)))
-	button.mouse_exited.connect(func() -> void: _tween_button(button, Vector2.ONE))
-	button.button_down.connect(func() -> void: _tween_button(button, Vector2(0.96, 0.96)))
-	button.button_up.connect(func() -> void: _tween_button(button, Vector2(1.04, 1.04)))
-
-
-func _tween_button(button: Button, target_scale: Vector2) -> void:
-	if _button_tweens.has(button):
-		(_button_tweens[button] as Tween).kill()
-	var tween := create_tween()
-	tween.tween_property(
-		button,
-		"scale",
-		target_scale,
-		SettingsService.get_ui_animation_duration() * 0.55,
-	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_button_tweens[button] = tween
+	ControlMotion.bind_buttons(self)
 
 
 func _on_dice_mouse_entered() -> void:
@@ -1983,13 +1955,16 @@ func _set_active_border(panel: PanelContainer, active: bool) -> void:
 func _refresh_turn_indicator() -> void:
 	if _dealing or _session.phase == GameSession.Phase.FINISHED:
 		turn_indicator.visible = false
+		turn_timer.visible = false
 		return
 	var player_index := _session.current_player_index
 	var panel := _get_player_panel(player_index)
 	if panel == null or not panel.visible:
 		turn_indicator.visible = false
+		turn_timer.visible = false
 		return
 	turn_indicator.visible = true
+	turn_timer.visible = _network_mode
 	var panel_rect := panel.get_global_rect()
 	var target_center: Vector2
 	var facing_rotation: float
@@ -2001,10 +1976,34 @@ func _refresh_turn_indicator() -> void:
 		target_center = Vector2(panel_rect.get_center().x, panel_rect.end.y + 28.0) - global_position
 		facing_rotation = 0.0
 	var moved_from_player := _indicator_player_index != -1 and _indicator_player_index != player_index
-	turn_indicator.move_to(target_center, facing_rotation, _indicator_player_index == -1)
+	var instant := _indicator_player_index == -1
+	turn_indicator.move_to(target_center, facing_rotation, instant)
+	_move_turn_timer(target_center, instant)
 	if moved_from_player:
 		AudioService.play(&"turn_change")
 	_indicator_player_index = player_index
+
+
+func _move_turn_timer(target_center: Vector2, instant: bool) -> void:
+	if not _network_mode:
+		turn_timer.visible = false
+		return
+	var target := target_center + Vector2(34.0, -17.0)
+	turn_seconds_label.text = str(LanMultiplayerService.get_turn_seconds_remaining())
+	if _turn_timer_tween != null:
+		_turn_timer_tween.kill()
+	if instant:
+		turn_timer.position = target
+		return
+	_turn_timer_tween = create_tween()
+	_turn_timer_tween.tween_property(
+		turn_timer,
+		"position",
+		target,
+		SettingsService.get_gameplay_duration(
+			SettingsService.GameplayTiming.INDICATOR_MOVE,
+		),
+	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 
 
 func _setup_flow_borders() -> void:
@@ -2157,7 +2156,7 @@ func _get_player_panel(player_index: int) -> PanelContainer:
 
 func _apply_network_connection_visual(panel: PanelContainer, player_index: int) -> void:
 	if not _network_mode:
-		panel.self_modulate = Color.WHITE
+		_set_panel_disconnected(panel, false)
 		_hide_disconnect_icon(panel)
 		return
 	var meta := _network_player_meta.get(player_index, {}) as Dictionary
@@ -2165,35 +2164,68 @@ func _apply_network_connection_visual(panel: PanelContainer, player_index: int) 
 		not bool(meta.get("is_ai", false))
 		and not bool(meta.get("connected", true))
 	)
-	panel.self_modulate = Color(0.43, 0.43, 0.43, 1.0) if disconnected else Color.WHITE
+	_set_panel_disconnected(panel, disconnected)
 	if disconnected:
 		_show_disconnect_icon(panel)
 	else:
 		_hide_disconnect_icon(panel)
 
 
+func _set_panel_disconnected(panel: PanelContainer, disconnected: bool) -> void:
+	panel.material = _disconnected_material if disconnected else null
+	_set_descendants_use_parent_material(panel, disconnected)
+	if _flow_borders.has(panel):
+		var border := _flow_borders[panel] as ColorRect
+		border.self_modulate = (
+			Color(0.55, 0.55, 0.55, 0.72) if disconnected else Color.WHITE
+		)
+
+
+func _set_descendants_use_parent_material(node: Node, enabled: bool) -> void:
+	for child in node.get_children():
+		if child is CanvasItem:
+			(child as CanvasItem).use_parent_material = enabled
+		_set_descendants_use_parent_material(child, enabled)
+
+
 func _show_disconnect_icon(panel: PanelContainer) -> void:
-	var icon := _disconnect_icons.get(panel) as TextureRect
-	if icon == null:
-		icon = TextureRect.new()
+	var badge := _disconnect_icons.get(panel) as PanelContainer
+	if badge == null:
+		badge = PanelContainer.new()
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		badge.z_index = 60
+		badge.size = Vector2(76.0, 76.0)
+		var badge_style := StyleBoxFlat.new()
+		badge_style.bg_color = Color(0.015, 0.02, 0.02, 0.88)
+		badge_style.border_width_left = 2
+		badge_style.border_width_top = 2
+		badge_style.border_width_right = 2
+		badge_style.border_width_bottom = 2
+		badge_style.border_color = Color(1.0, 1.0, 1.0, 0.82)
+		badge_style.corner_radius_top_left = 38
+		badge_style.corner_radius_top_right = 38
+		badge_style.corner_radius_bottom_right = 38
+		badge_style.corner_radius_bottom_left = 38
+		badge.add_theme_stylebox_override("panel", badge_style)
+		var icon := TextureRect.new()
 		icon.texture = DISCONNECT_ICON
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		icon.z_index = 60
-		icon.size = Vector2(48.0, 48.0)
-		add_child(icon)
-		_disconnect_icons[panel] = icon
-	icon.visible = true
+		icon.custom_minimum_size = Vector2(56.0, 56.0)
+		badge.add_child(icon)
+		add_child(badge)
+		_disconnect_icons[panel] = badge
+	badge.visible = true
 	var rect := panel.get_global_rect()
-	icon.position = rect.get_center() - global_position - icon.size * 0.5
+	badge.position = rect.get_center() - global_position - badge.size * 0.5
 
 
 func _hide_disconnect_icon(panel: PanelContainer) -> void:
-	var icon := _disconnect_icons.get(panel) as TextureRect
-	if icon != null:
-		icon.visible = false
+	var badge := _disconnect_icons.get(panel) as PanelContainer
+	if badge != null:
+		badge.visible = false
 
 
 func _get_selected_cards() -> Array[CardData]:

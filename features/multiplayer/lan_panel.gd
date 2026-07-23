@@ -1,11 +1,19 @@
 class_name LanPanel
-extends PanelContainer
+extends Control
 
 const LAN_PROTOCOL = preload("res://multiplayer/protocol/lan_protocol.gd")
 
 signal game_requested(snapshot: Dictionary)
 signal close_requested
 
+enum DetailMode {
+	NONE,
+	HOST,
+	JOIN,
+	LOBBY,
+}
+
+@onready var detail_panel: PanelContainer = %DetailPanel
 @onready var setup_content: VBoxContainer = %SetupContent
 @onready var lobby_content: VBoxContainer = %LobbyContent
 @onready var host_settings: VBoxContainer = %HostSettings
@@ -15,7 +23,6 @@ signal close_requested
 @onready var host_port: SpinBox = %HostPort
 @onready var join_port: SpinBox = %JoinPort
 @onready var status_label: Label = %StatusLabel
-@onready var members_list: VBoxContainer = %MembersList
 @onready var ready_button: Button = %ReadyButton
 @onready var add_ai_button: Button = %AddAiButton
 @onready var start_button: Button = %StartButton
@@ -29,15 +36,20 @@ signal close_requested
 
 var _player_count := 3
 var _turn_timeout := 30
-var _hosting_mode := true
+var _detail_mode := DetailMode.NONE
 var _local_ready := false
 var _game_signal_consumed := false
 var _editing_room := false
+var _detail_target := Vector2.ZERO
+var _detail_tween: Tween
+var _seat_slots: Dictionary = {}
 
 
 func _ready() -> void:
-	%HostModeButton.pressed.connect(func() -> void: _set_hosting_mode(true))
-	%JoinModeButton.pressed.connect(func() -> void: _set_hosting_mode(false))
+	%CreateRoomButton.pressed.connect(_open_host_setup)
+	%JoinRoomButton.pressed.connect(_open_join_setup)
+	%MenuBackButton.pressed.connect(func() -> void: close_requested.emit())
+	%DetailBackButton.pressed.connect(_back_from_detail)
 	%PlayerCount2.pressed.connect(func() -> void: _player_count = 2)
 	%PlayerCount3.pressed.connect(func() -> void: _player_count = 3)
 	%PlayerCount4.pressed.connect(func() -> void: _player_count = 4)
@@ -46,8 +58,7 @@ func _ready() -> void:
 	%Timeout60.pressed.connect(func() -> void: _turn_timeout = 60)
 	%CreateButton.pressed.connect(_create_room)
 	%JoinButton.pressed.connect(_join_room)
-	%BackButton.pressed.connect(_leave_or_close)
-	%LobbyBackButton.pressed.connect(_leave_or_close)
+	%LobbyBackButton.pressed.connect(_leave_room)
 	%EditRoomButton.pressed.connect(_edit_room)
 	ready_button.pressed.connect(_toggle_ready)
 	add_ai_button.pressed.connect(_add_ai)
@@ -60,6 +71,12 @@ func _ready() -> void:
 	LanMultiplayerService.connection_state_changed.connect(_on_connection_state_changed)
 	LanMultiplayerService.network_error.connect(_show_error)
 	LanMultiplayerService.game_started.connect(_on_game_started)
+	_seat_slots = {
+		"SEAT_NORTH": %NorthSlot,
+		"SEAT_SOUTH": %SouthSlot,
+		"SEAT_WEST": %WestSlot,
+		"SEAT_EAST": %EastSlot,
+	}
 	player_id_input.text = SettingsService.player_id
 	host_port.value = LAN_PROTOCOL.DEFAULT_PORT
 	join_port.value = LAN_PROTOCOL.DEFAULT_PORT
@@ -68,8 +85,10 @@ func _ready() -> void:
 	wildcard_finish.button_pressed = true
 	_refresh_rule_dependencies(true)
 	_refresh_seed_visibility(false)
-	_set_hosting_mode(true)
-	_show_setup()
+	detail_panel.visible = false
+	ControlMotion.bind_buttons(self)
+	await get_tree().process_frame
+	_detail_target = detail_panel.position
 
 
 func begin_open() -> void:
@@ -79,27 +98,94 @@ func begin_open() -> void:
 		_show_lobby()
 		_on_lobby_updated(LanMultiplayerService.last_lobby_snapshot)
 	else:
-		_show_setup()
+		_hide_detail(true)
 
 
-func _set_hosting_mode(hosting: bool) -> void:
-	_hosting_mode = hosting
+func handle_back() -> bool:
+	if detail_panel.visible:
+		_back_from_detail()
+		return true
+	return false
+
+
+func _open_host_setup() -> void:
+	if _detail_mode == DetailMode.HOST and detail_panel.visible and not _editing_room:
+		_hide_detail()
+		return
+	_editing_room = false
+	_show_setup(true)
+
+
+func _open_join_setup() -> void:
+	if _detail_mode == DetailMode.JOIN and detail_panel.visible:
+		_hide_detail()
+		return
+	_editing_room = false
+	_show_setup(false)
+
+
+func _show_setup(hosting: bool) -> void:
+	_detail_mode = DetailMode.HOST if hosting else DetailMode.JOIN
+	setup_content.visible = true
+	lobby_content.visible = false
 	host_settings.visible = hosting
 	join_settings.visible = not hosting
-	%HostModeButton.button_pressed = hosting
-	%JoinModeButton.button_pressed = not hosting
+	%DetailTitle.text = tr(&"LAN_CREATE_ROOM") if hosting else tr(&"LAN_JOIN_ROOM")
+	%CreateButton.text = tr(&"LAN_APPLY_ROOM") if _editing_room else tr(&"LAN_CREATE")
 	status_label.text = ""
+	_show_detail()
+
+
+func _show_lobby() -> void:
+	var already_visible := _detail_mode == DetailMode.LOBBY and detail_panel.visible
+	_detail_mode = DetailMode.LOBBY
+	setup_content.visible = false
+	lobby_content.visible = true
+	%DetailTitle.text = tr(&"LAN_ROOM_TITLE")
+	status_label.text = ""
+	if not already_visible:
+		_show_detail()
+
+
+func _show_detail() -> void:
+	if _detail_tween != null:
+		_detail_tween.kill()
+	detail_panel.position = _detail_target + Vector2(-28.0, 0.0)
+	detail_panel.modulate.a = 0.0
+	detail_panel.visible = true
+	AudioService.play(&"ui_fade_in")
+	_detail_tween = create_tween().set_parallel(true)
+	_detail_tween.tween_property(detail_panel, "position", _detail_target, 0.24).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_detail_tween.tween_property(detail_panel, "modulate:a", 1.0, 0.18)
+
+
+func _hide_detail(immediate: bool = false) -> void:
+	_detail_mode = DetailMode.NONE
+	_editing_room = false
+	if _detail_tween != null:
+		_detail_tween.kill()
+	detail_panel.position = _detail_target
+	detail_panel.modulate.a = 1.0
+	if immediate or not detail_panel.visible:
+		detail_panel.visible = false
+		return
+	AudioService.play(&"ui_fade_out")
+	_detail_tween = create_tween().set_parallel(true)
+	_detail_tween.tween_property(detail_panel, "position", _detail_target + Vector2(-24.0, 0.0), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	_detail_tween.tween_property(detail_panel, "modulate:a", 0.0, 0.15)
+	_detail_tween.chain().tween_callback(
+		func() -> void:
+			detail_panel.visible = false
+			detail_panel.position = _detail_target
+			detail_panel.modulate.a = 1.0
+	)
 
 
 func _create_room() -> void:
 	if not _save_player_id():
 		_show_error(&"LAN_ERROR_PLAYER_ID_REQUIRED")
 		return
-	var seed_text := (
-		SeedCodec.sanitize(seed_input.text)
-		if custom_seed.button_pressed
-		else SeedCodec.generate_random_text()
-	)
+	var seed_text := SeedCodec.sanitize(seed_input.text) if custom_seed.button_pressed else SeedCodec.generate_random_text()
 	if not SeedCodec.is_valid(seed_text):
 		_show_error(&"LAN_ERROR_INVALID_SEED")
 		return
@@ -115,11 +201,7 @@ func _create_room() -> void:
 			_editing_room = false
 			_show_lobby()
 		return
-	if LanMultiplayerService.host_room(
-		SettingsService.player_id,
-		int(host_port.value),
-		config,
-	):
+	if LanMultiplayerService.host_room(SettingsService.player_id, int(host_port.value), config):
 		_show_lobby()
 
 
@@ -128,11 +210,7 @@ func _join_room() -> void:
 		_show_error(&"LAN_ERROR_PLAYER_ID_REQUIRED")
 		return
 	status_label.text = tr(&"LAN_STATUS_CONNECTING")
-	LanMultiplayerService.join_room(
-		SettingsService.player_id,
-		address_input.text,
-		int(join_port.value),
-	)
+	LanMultiplayerService.join_room(SettingsService.player_id, address_input.text, int(join_port.value))
 
 
 func _save_player_id() -> bool:
@@ -143,9 +221,7 @@ func _build_rules() -> GameRules:
 	var rules := GameRules.new()
 	rules.include_jokers = include_jokers.button_pressed
 	rules.jokers_are_wild = rules.include_jokers and jokers_wild.button_pressed
-	rules.draw_two_on_wildcard_finish = (
-		rules.jokers_are_wild and wildcard_finish.button_pressed
-	)
+	rules.draw_two_on_wildcard_finish = rules.jokers_are_wild and wildcard_finish.button_pressed
 	rules.allow_two_in_sequences = allow_two.button_pressed
 	rules.draw_count_uses_dice = variable_draw.button_pressed
 	return rules
@@ -164,26 +240,6 @@ func _refresh_seed_visibility(_unused: bool = false) -> void:
 	%SeedInputRow.visible = custom_seed.button_pressed
 
 
-func _show_setup() -> void:
-	setup_content.visible = true
-	lobby_content.visible = false
-	player_id_input.editable = true
-	_local_ready = false
-	%ModeRow.visible = not _editing_room
-	host_port.get_parent().visible = not _editing_room
-	%CreateButton.text = tr(&"LAN_APPLY_ROOM") if _editing_room else tr(&"LAN_CREATE")
-
-
-func _show_lobby() -> void:
-	setup_content.visible = false
-	lobby_content.visible = true
-	player_id_input.editable = false
-	%ModeRow.visible = true
-	host_port.get_parent().visible = true
-	%CreateButton.text = tr(&"LAN_CREATE")
-	status_label.text = ""
-
-
 func _on_connection_state_changed(state: LanMultiplayerService.ConnectionState) -> void:
 	match state:
 		LanMultiplayerService.ConnectionState.CONNECTING:
@@ -191,71 +247,63 @@ func _on_connection_state_changed(state: LanMultiplayerService.ConnectionState) 
 		LanMultiplayerService.ConnectionState.IN_LOBBY:
 			_show_lobby()
 		LanMultiplayerService.ConnectionState.OFFLINE:
-			if lobby_content.visible:
-				_show_setup()
+			if _detail_mode == DetailMode.LOBBY:
+				_hide_detail()
 
 
 func _on_lobby_updated(snapshot: Dictionary) -> void:
 	if snapshot.is_empty():
 		return
 	_show_lobby()
-	_clear_members()
 	var config := snapshot.get("config", {}) as Dictionary
-	%RoomSummary.text = tr(&"LAN_ROOM_SUMMARY").format({
-		"count": int(config.get("player_count", 3)),
-		"timeout": int(config.get("turn_timeout", 30)),
-		"seed": str(config.get("seed_text", "")),
-	})
-	%RoomSummary.text += "\n" + _describe_rules(config.get("rules", {}) as Dictionary)
+	%RoomPlayerCount.text = str(int(config.get("player_count", 3)))
+	%RoomTimeout.text = tr(&"LAN_SECONDS").format({"seconds": int(config.get("turn_timeout", 30))})
+	%RoomSeed.text = str(config.get("seed_text", ""))
+	%RoomRules.text = _describe_rules(config.get("rules", {}) as Dictionary)
+	%EndpointRow.visible = LanMultiplayerService.is_host
 	if LanMultiplayerService.is_host:
-		%RoomSummary.text += "\n" + tr(&"LAN_HOST_ENDPOINT").format({
-			"address": _get_local_ipv4_addresses(),
-			"port": int(host_port.value),
-		})
+		%RoomEndpoint.text = "%s:%d" % [_get_preferred_local_ipv4(), int(host_port.value)]
 	var local_member := LanMultiplayerService.get_local_member()
 	_local_ready = bool(local_member.get("ready", false))
 	ready_button.text = tr(&"LAN_UNREADY") if _local_ready else tr(&"LAN_READY")
+	_clear_seat_slots()
 	for member_value in snapshot.get("members", []) as Array:
-		_add_member_row(member_value as Dictionary)
+		_update_seat_slot(member_value as Dictionary)
 	var host := LanMultiplayerService.is_host
 	add_ai_button.visible = host
 	%EditRoomButton.visible = host
+	%HostActionRow.visible = host
 	start_button.visible = host
 	start_button.disabled = not LanMultiplayerService.can_start_game()
 
 
-func _add_member_row(member: Dictionary) -> void:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
-	var name_label := Label.new()
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+func _clear_seat_slots() -> void:
+	for seat_key in _seat_slots:
+		var slot := _seat_slots[seat_key] as PanelContainer
+		slot.visible = false
+		(slot.get_node("Layout/Player") as Label).text = ""
+		(slot.get_node("Layout/StateRow/State") as Label).text = ""
+		(slot.get_node("Layout/StateRow/Kick") as Button).visible = false
+
+
+func _update_seat_slot(member: Dictionary) -> void:
+	var seat_key := str(member.get("seat_key", ""))
+	if not _seat_slots.has(seat_key):
+		return
+	var slot := _seat_slots[seat_key] as PanelContainer
+	slot.visible = true
+	(slot.get_node("Layout/Seat") as Label).text = tr(StringName(seat_key))
+	(slot.get_node("Layout/Player") as Label).text = str(member.get("player_id", ""))
 	var state_key := &"LAN_MEMBER_READY" if bool(member.get("ready", false)) else &"LAN_MEMBER_NOT_READY"
 	if bool(member.get("is_ai", false)):
 		state_key = &"LAN_MEMBER_AI"
-	name_label.text = "%s · %s · %s" % [
-		tr(StringName(str(member.get("seat_key", "")))),
-		str(member.get("player_id", "")),
-		tr(state_key),
-	]
-	row.add_child(name_label)
-	if (
-		LanMultiplayerService.is_host
-		and not bool(member.get("is_host", false))
-	):
-		var kick_button := Button.new()
-		kick_button.text = tr(&"LAN_KICK")
-		kick_button.custom_minimum_size = Vector2(74, 36)
-		var seat_index := int(member.get("seat_index", -1))
-		kick_button.pressed.connect(
-			func() -> void: LanMultiplayerService.remove_member(seat_index)
-		)
-		row.add_child(kick_button)
-	members_list.add_child(row)
-
-
-func _clear_members() -> void:
-	for child in members_list.get_children():
-		child.queue_free()
+	(slot.get_node("Layout/StateRow/State") as Label).text = tr(state_key)
+	var kick := slot.get_node("Layout/StateRow/Kick") as Button
+	kick.visible = LanMultiplayerService.is_host and not bool(member.get("is_host", false))
+	for connection in kick.pressed.get_connections():
+		kick.pressed.disconnect(connection.callable)
+	var seat_index := int(member.get("seat_index", -1))
+	kick.pressed.connect(func() -> void: LanMultiplayerService.remove_member(seat_index))
 
 
 func _toggle_ready() -> void:
@@ -275,7 +323,6 @@ func _edit_room() -> void:
 		return
 	var config := LanMultiplayerService.last_lobby_snapshot.get("config", {}) as Dictionary
 	_editing_room = true
-	_set_hosting_mode(true)
 	_set_player_count(int(config.get("player_count", 3)))
 	_set_turn_timeout(int(config.get("turn_timeout", 30)))
 	var rules := config.get("rules", {}) as Dictionary
@@ -288,7 +335,7 @@ func _edit_room() -> void:
 	seed_input.text = str(config.get("seed_text", ""))
 	_refresh_rule_dependencies()
 	_refresh_seed_visibility()
-	_show_setup()
+	_show_setup(true)
 
 
 func _set_player_count(value: int) -> void:
@@ -305,41 +352,39 @@ func _set_turn_timeout(value: int) -> void:
 	%Timeout60.button_pressed = _turn_timeout == 60
 
 
-func _get_local_ipv4_addresses() -> String:
-	var addresses := PackedStringArray()
+func _get_preferred_local_ipv4() -> String:
+	var candidates := PackedStringArray()
 	for address in IP.get_local_addresses():
-		if ":" not in address and address != "127.0.0.1":
-			addresses.append(address)
-	return ", ".join(addresses) if not addresses.is_empty() else "127.0.0.1"
+		if ":" in address or address == "127.0.0.1" or address.begins_with("169.254."):
+			continue
+		candidates.append(address)
+	for address in candidates:
+		if address.begins_with("192.168."):
+			return address
+	for address in candidates:
+		if address.begins_with("10.") or _is_private_172(address):
+			return address
+	return candidates[0] if not candidates.is_empty() else "127.0.0.1"
+
+
+func _is_private_172(address: String) -> bool:
+	if not address.begins_with("172."):
+		return false
+	var parts := address.split(".")
+	return parts.size() == 4 and int(parts[1]) >= 16 and int(parts[1]) <= 31
 
 
 func _describe_rules(rules: Dictionary) -> String:
 	var descriptions := PackedStringArray()
 	if bool(rules.get("include_jokers", true)):
 		descriptions.append(tr(&"RULE_INCLUDE_JOKERS"))
-		descriptions.append(
-			tr(&"RULE_JOKERS_WILD")
-			if bool(rules.get("jokers_are_wild", true))
-			else tr(&"RULE_JOKERS_NATURAL")
-		)
+		descriptions.append(tr(&"RULE_JOKERS_WILD") if bool(rules.get("jokers_are_wild", true)) else tr(&"RULE_JOKERS_NATURAL"))
 		if bool(rules.get("jokers_are_wild", true)):
-			descriptions.append(
-				tr(&"RULE_WILDCARD_FINISH_DRAW")
-				if bool(rules.get("draw_two_on_wildcard_finish", true))
-				else tr(&"RULE_WILDCARD_FINISH_NO_DRAW")
-			)
+			descriptions.append(tr(&"RULE_WILDCARD_FINISH_DRAW") if bool(rules.get("draw_two_on_wildcard_finish", true)) else tr(&"RULE_WILDCARD_FINISH_NO_DRAW"))
 	else:
 		descriptions.append(tr(&"RULE_EXCLUDE_JOKERS"))
-	descriptions.append(
-		tr(&"RULE_SEQUENCE_WITH_TWO")
-		if bool(rules.get("allow_two_in_sequences", false))
-		else tr(&"RULE_SEQUENCE_WITHOUT_TWO")
-	)
-	descriptions.append(
-		tr(&"RULE_VARIABLE_DRAW")
-		if bool(rules.get("draw_count_uses_dice", false))
-		else tr(&"RULE_FIXED_DRAW")
-	)
+	descriptions.append(tr(&"RULE_SEQUENCE_WITH_TWO") if bool(rules.get("allow_two_in_sequences", false)) else tr(&"RULE_SEQUENCE_WITHOUT_TWO"))
+	descriptions.append(tr(&"RULE_VARIABLE_DRAW") if bool(rules.get("draw_count_uses_dice", false)) else tr(&"RULE_FIXED_DRAW"))
 	return " · ".join(descriptions)
 
 
@@ -350,14 +395,17 @@ func _on_game_started(snapshot: Dictionary) -> void:
 	game_requested.emit(snapshot)
 
 
-func _leave_or_close() -> void:
+func _back_from_detail() -> void:
 	if _editing_room:
 		_editing_room = false
 		_show_lobby()
-		return
-	if LanMultiplayerService.connection_state != LanMultiplayerService.ConnectionState.OFFLINE:
-		LanMultiplayerService.close_connection()
-	close_requested.emit()
+	else:
+		_hide_detail()
+
+
+func _leave_room() -> void:
+	LanMultiplayerService.close_connection()
+	_hide_detail()
 
 
 func _show_error(error_key: StringName) -> void:

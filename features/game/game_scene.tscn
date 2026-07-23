@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" path="res://features/game/ui/hand_types_dialog.tscn" id="11_hand_types"]
 [ext_resource type="FontFile" uid="uid://bobda3iv4j3mt" path="res://assets/fonts/SourceHanSans-VF.otf.ttc" id="12_font"]
 [ext_resource type="Texture2D" path="res://assets/icons/list_menu.png" id="13_list_icon"]
+[ext_resource type="Texture2D" path="res://assets/icons/clock_icon.png" id="14_clock_icon"]
 
 [sub_resource type="FontVariation" id="Font_default"]
 base_font = ExtResource("12_font")
@@ -291,9 +292,6 @@ unique_name_in_owner = true
 texture_filter = 4
 custom_minimum_size = Vector2(112, 40)
 layout_mode = 2
-theme_override_styles/normal = SubResource("Style_button_neutral")
-theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
-theme_override_styles/hover = SubResource("Style_button_neutral_hover")
 text = "UI_HAND_TYPES"
 icon = ExtResource("13_list_icon")
 expand_icon = true
@@ -304,9 +302,6 @@ unique_name_in_owner = true
 texture_filter = 4
 custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
-theme_override_styles/normal = SubResource("Style_button_neutral")
-theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
-theme_override_styles/hover = SubResource("Style_button_neutral_hover")
 text = "UI_SETTINGS"
 icon = ExtResource("8_settings_icon")
 expand_icon = true
@@ -658,30 +653,20 @@ alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(104, 40)
 layout_mode = 2
-theme_override_styles/normal = SubResource("Style_button_neutral")
-theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
-theme_override_styles/hover = SubResource("Style_button_neutral_hover")
-theme_override_styles/disabled = SubResource("Style_button_disabled")
 text = "UI_RECOMMEND"
 
 [node name="PassButton" type="Button" parent="SafeArea/MainLayout/ActionSlot/ActionBar" unique_id=1877184807]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(104, 40)
 layout_mode = 2
-theme_override_styles/normal = SubResource("Style_button_pass")
-theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
-theme_override_styles/hover = SubResource("Style_button_neutral_hover")
-theme_override_styles/disabled = SubResource("Style_button_disabled")
+theme_type_variation = &"RedButton"
 text = "UI_PASS"
 
 [node name="PlayButton" type="Button" parent="SafeArea/MainLayout/ActionSlot/ActionBar" unique_id=103060594]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(126, 40)
 layout_mode = 2
-theme_override_styles/normal = SubResource("Style_button_play")
-theme_override_styles/pressed = SubResource("Style_button_play_hover")
-theme_override_styles/hover = SubResource("Style_button_play_hover")
-theme_override_styles/disabled = SubResource("Style_button_disabled")
+theme_type_variation = &"BlueButton"
 text = "UI_PLAY"
 
 [node name="HandPanel" type="PanelContainer" parent="SafeArea/MainLayout" unique_id=1863387464]
@@ -743,6 +728,37 @@ offset_right = 48.0
 offset_bottom = 48.0
 mouse_filter = 2
 script = ExtResource("6_indicator")
+
+[node name="TurnTimer" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+z_index = 31
+offset_right = 82.0
+offset_bottom = 34.0
+mouse_filter = 2
+
+[node name="Layout" type="HBoxContainer" parent="TurnTimer"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ClockIcon" type="TextureRect" parent="TurnTimer/Layout"]
+texture_filter = 4
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 2
+texture = ExtResource("14_clock_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TurnSeconds" type="Label" parent="TurnTimer/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(34, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.03, 0.03, 0.9)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 19
+text = "30"
+vertical_alignment = 1
 
 [node name="HandTypesOverlay" type="Control" parent="." unique_id=428305032]
 unique_name_in_owner = true
@@ -936,9 +952,7 @@ texture_filter = 4
 custom_minimum_size = Vector2(180, 44)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/normal = SubResource("Style_button_play")
-theme_override_styles/pressed = SubResource("Style_button_play_hover")
-theme_override_styles/hover = SubResource("Style_button_play_hover")
+theme_type_variation = &"GreenButton"
 text = "UI_RESTART"
 icon = ExtResource("9_restart_icon")
 expand_icon = true
@@ -949,9 +963,6 @@ texture_filter = 4
 custom_minimum_size = Vector2(180, 44)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/normal = SubResource("Style_button_neutral")
-theme_override_styles/pressed = SubResource("Style_button_neutral_hover")
-theme_override_styles/hover = SubResource("Style_button_neutral_hover")
 text = "UI_BACK_TO_MENU"
 icon = ExtResource("10_home_icon")
 expand_icon = true

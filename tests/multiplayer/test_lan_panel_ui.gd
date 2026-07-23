@@ -13,11 +13,60 @@ func _ready() -> void:
 	multiplayer_button.pressed.emit()
 	await get_tree().create_timer(0.35).timeout
 	assert(panel.visible)
-	assert((panel.get_node("%HostModeButton") as Button).button_pressed)
-	assert(not (panel.get_node("%JoinModeButton") as Button).button_pressed)
+	var detail_panel := panel.get_node("%DetailPanel") as PanelContainer
+	assert(not detail_panel.visible)
+	(panel.get_node("%CreateRoomButton") as Button).pressed.emit()
+	await get_tree().create_timer(0.3).timeout
+	assert(detail_panel.visible)
+	assert((panel.get_node("%HostSettings") as VBoxContainer).visible)
+	assert(not (panel.get_node("%JoinSettings") as VBoxContainer).visible)
 	assert(int((panel.get_node("%HostPort") as SpinBox).value) == 9077)
 	assert((panel.get_node("%PlayerCount3") as Button).button_pressed)
 	assert((panel.get_node("%Timeout30") as Button).button_pressed)
+	(panel.get_node("%CreateRoomButton") as Button).pressed.emit()
+	await get_tree().create_timer(0.25).timeout
+	assert(not detail_panel.visible)
+	(panel.get_node("%JoinRoomButton") as Button).pressed.emit()
+	await get_tree().create_timer(0.3).timeout
+	assert(detail_panel.visible)
+	assert((panel.get_node("%JoinSettings") as VBoxContainer).visible)
+	(panel.get_node("%DetailBackButton") as Button).pressed.emit()
+	await get_tree().create_timer(0.25).timeout
+	assert(not detail_panel.visible)
+	var lobby_snapshot := {
+		"room_id": "room-test",
+		"config": {
+			"player_count": 4,
+			"turn_timeout": 30,
+			"seed_text": "roomtest",
+			"rules": LanProtocol.rules_to_dictionary(GameRules.new()),
+		},
+		"members": [
+			_member("SEAT_SOUTH", 0, "Host", true, true),
+			_member("SEAT_EAST", 1, "East", true, false),
+			_member("SEAT_NORTH", 2, "North", false, false),
+			_member("SEAT_WEST", 3, "AI 1", true, false, true),
+		],
+		"game_started": false,
+	}
+	LanMultiplayerService.is_host = true
+	LanMultiplayerService.last_lobby_snapshot = lobby_snapshot
+	panel.call("_on_lobby_updated", lobby_snapshot)
+	await get_tree().process_frame
+	var north := panel.get_node("%NorthSlot") as PanelContainer
+	var south := panel.get_node("%SouthSlot") as PanelContainer
+	var west := panel.get_node("%WestSlot") as PanelContainer
+	var east := panel.get_node("%EastSlot") as PanelContainer
+	assert(north.visible and south.visible and west.visible and east.visible)
+	assert(north.global_position.y < west.global_position.y)
+	assert(south.global_position.y > west.global_position.y)
+	assert(west.global_position.x < east.global_position.x)
+	assert(not (panel.get_node("%RoomEndpoint") as Label).text.contains(","))
+	assert((panel.get_node("%HostActionRow") as HBoxContainer).visible)
+	(panel.get_node("%LobbyBackButton") as Button).pressed.emit()
+	await get_tree().create_timer(0.25).timeout
+	assert(panel.visible)
+	assert(not detail_panel.visible)
 	var stable_position := panel.position
 	multiplayer_button.pressed.emit()
 	await get_tree().create_timer(0.3).timeout
@@ -32,3 +81,22 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await AudioService.shutdown()
 	get_tree().quit()
+
+
+func _member(
+	seat_key: String,
+	seat_index: int,
+	player_id: String,
+	ready: bool,
+	is_host: bool,
+	is_ai: bool = false,
+) -> Dictionary:
+	return {
+		"seat_key": seat_key,
+		"seat_index": seat_index,
+		"player_id": player_id,
+		"ready": ready,
+		"is_host": is_host,
+		"is_ai": is_ai,
+		"connected": true,
+	}

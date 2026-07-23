@@ -5,7 +5,7 @@ const DEFAULT_PORT := 9077
 const MIN_PORT := 1024
 const MAX_PORT := 65535
 const MAX_PLAYER_ID_LENGTH := 24
-const PROTOCOL_VERSION := 1
+const PROTOCOL_VERSION := 2
 
 enum ActionType {
 	ROLL,
