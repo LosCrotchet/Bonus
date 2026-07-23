@@ -37,8 +37,8 @@ func _ready() -> void:
 	apply_button.pressed.connect(_on_apply_pressed)
 	%CancelButton.pressed.connect(cancel_edit)
 	exit_menu_button.pressed.connect(_show_exit_menu_confirmation)
-	%ExitMenuYes.pressed.connect(func() -> void: return_to_menu_requested.emit())
-	%ExitMenuNo.pressed.connect(_hide_confirmations)
+	%ExitMenuYes.pressed.connect(_confirm_return_to_menu)
+	%ExitMenuNo.pressed.connect(_cancel_return_to_menu)
 	master_volume_slider.value_changed.connect(SettingsService.set_master_volume)
 	sfx_volume_slider.value_changed.connect(SettingsService.set_sfx_volume)
 	music_volume_slider.value_changed.connect(SettingsService.set_music_volume)
@@ -72,6 +72,7 @@ func _on_apply_pressed() -> void:
 		"double_click_actions": double_click_toggle.button_pressed,
 	}
 	if SettingsService.apply_settings(snapshot):
+		AudioService.play(&"settings_applied")
 		_show_apply_success()
 		applied.emit()
 
@@ -142,9 +143,20 @@ func _resolution_label(value: Vector2i) -> String:
 
 
 func _show_exit_menu_confirmation() -> void:
+	AudioService.play(&"ui_confirm")
 	_hide_confirmations()
 	exit_menu_button.visible = false
 	exit_menu_confirmation.visible = true
+
+
+func _confirm_return_to_menu() -> void:
+	AudioService.play(&"ui_confirm")
+	return_to_menu_requested.emit()
+
+
+func _cancel_return_to_menu() -> void:
+	AudioService.play(&"ui_cancel")
+	_hide_confirmations()
 
 
 func _hide_confirmations() -> void:

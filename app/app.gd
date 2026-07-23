@@ -18,7 +18,7 @@ func _show_main_menu(animate: bool) -> void:
 	content.add_child(menu)
 	_current_screen = menu
 	menu.connect("single_player_requested", _on_single_player_requested)
-	menu.connect("quit_requested", get_tree().quit)
+	menu.connect("quit_requested", _on_quit_requested)
 	if animate:
 		await menu.call("play_enter_transition")
 
@@ -49,3 +49,8 @@ func _on_return_to_menu_requested() -> void:
 	_current_screen = null
 	await _show_main_menu(true)
 	_transitioning = false
+
+
+func _on_quit_requested() -> void:
+	await AudioService.shutdown()
+	get_tree().quit()

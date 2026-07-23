@@ -33,7 +33,7 @@ func _ready() -> void:
 	%SinglePlayerBackButton.pressed.connect(_close_secondary)
 	settings_side_panel.canceled.connect(_close_secondary)
 	exit_game_button.pressed.connect(_show_exit_confirmation)
-	%ExitYesButton.pressed.connect(func() -> void: quit_requested.emit())
+	%ExitYesButton.pressed.connect(_confirm_exit_game)
 	%ExitNoButton.pressed.connect(_hide_exit_confirmation)
 	include_jokers_toggle.toggled.connect(_on_include_jokers_toggled)
 	jokers_wild_toggle.toggled.connect(_on_jokers_wild_toggled)
@@ -53,6 +53,7 @@ func _ready() -> void:
 
 func play_enter_transition() -> void:
 	await get_tree().process_frame
+	AudioService.play(&"ui_fade_in")
 	var target_position := _menu_target_position
 	menu_panel.position = target_position + Vector2(-menu_panel.size.x, 0.0)
 	menu_panel.modulate.a = 0.0
@@ -64,6 +65,7 @@ func play_enter_transition() -> void:
 
 func play_exit_transition() -> void:
 	_transitioning = true
+	AudioService.play(&"ui_fade_out")
 	if _secondary_tween != null:
 		_secondary_tween.kill()
 	var tween := create_tween().set_parallel(true)
@@ -141,6 +143,7 @@ func _show_secondary(panel: Control) -> void:
 		return
 	if _secondary_tween != null:
 		_secondary_tween.kill()
+	AudioService.play(&"ui_fade_in")
 	if _active_secondary != null and _active_secondary != panel:
 		_active_secondary.position = _get_secondary_target(_active_secondary)
 		_active_secondary.modulate.a = 1.0
@@ -162,6 +165,7 @@ func _close_secondary() -> void:
 	_active_secondary = null
 	if _secondary_tween != null:
 		_secondary_tween.kill()
+	AudioService.play(&"ui_fade_out")
 	var target_position := _get_secondary_target(panel)
 	panel.position = target_position
 	_secondary_tween = create_tween().set_parallel(true)
@@ -197,6 +201,7 @@ func _get_secondary_target(panel: Control) -> Vector2:
 func _start_single_player() -> void:
 	if _transitioning:
 		return
+	AudioService.play(&"ui_confirm")
 	var rules := GameRules.new()
 	rules.include_jokers = include_jokers_toggle.button_pressed
 	rules.jokers_are_wild = jokers_wild_toggle.button_pressed
@@ -207,13 +212,21 @@ func _start_single_player() -> void:
 
 
 func _show_exit_confirmation() -> void:
+	AudioService.play(&"ui_confirm")
 	exit_game_button.visible = false
 	exit_confirmation.visible = true
 
 
 func _hide_exit_confirmation() -> void:
+	if exit_confirmation.visible:
+		AudioService.play(&"ui_cancel")
 	exit_game_button.visible = true
 	exit_confirmation.visible = false
+
+
+func _confirm_exit_game() -> void:
+	AudioService.play(&"ui_confirm")
+	quit_requested.emit()
 
 
 func _setup_button_motion() -> void:

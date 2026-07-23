@@ -66,6 +66,7 @@ var _dice_rest_position := Vector2.ZERO
 var _dice_prompt_tween: Tween
 var _draw_pile_rest_position := Vector2.ZERO
 var _draw_pile_tween: Tween
+var _draw_pile_activity_tween: Tween
 var _action_bar_tween: Tween
 var _settings_tween: Tween
 var _hand_types_tween: Tween
@@ -89,6 +90,8 @@ var _deal_visible_counts := PackedInt32Array()
 var _deal_flying_cards: Array[TextureRect] = []
 var _session_revision := 0
 var _auto_pass_checked_revision := -1
+var _bonus_sound_step := 0
+var _round_start_sound_played := false
 
 
 func configure(
@@ -112,6 +115,7 @@ func _ready() -> void:
 	settings_panel.applied.connect(_on_settings_applied)
 	settings_panel.canceled.connect(_close_settings)
 	settings_panel.return_to_menu_requested.connect(_on_return_to_menu_requested)
+	interpretation_popup.popup_hide.connect(_on_interpretation_popup_hidden)
 	dice_button.pressed.connect(_on_dice_pressed)
 	dice_button.mouse_entered.connect(_on_dice_mouse_entered)
 	dice_button.mouse_exited.connect(_on_dice_mouse_exited)
@@ -120,7 +124,7 @@ func _ready() -> void:
 	hint_button.pressed.connect(_on_hint_pressed)
 	pass_button.pressed.connect(_on_pass_pressed)
 	play_button.pressed.connect(_on_play_pressed)
-	restart_button.pressed.connect(_start_new_game)
+	restart_button.pressed.connect(_on_restart_pressed)
 	result_menu_button.pressed.connect(_on_return_to_menu_requested)
 	hand_view.selection_changed.connect(_on_hand_selection_changed)
 	SettingsService.language_changed.connect(_on_language_changed)
@@ -195,6 +199,8 @@ func _start_new_game(start_deal_animation: bool = true) -> void:
 	_indicator_player_index = -1
 	_last_play_signature = ""
 	_last_human_hand_count = -1
+	_bonus_sound_step = 0
+	_round_start_sound_played = false
 	_seat_card_counts.clear()
 	_panel_active_states.clear()
 	played_panel.modulate.a = 1.0
@@ -206,6 +212,7 @@ func _start_new_game(start_deal_animation: bool = true) -> void:
 	_clear_transient()
 	_stop_dice_prompt()
 	interpretation_popup.hide()
+	_reset_draw_pile_activity()
 
 	_session = GameSession.new()
 	_session.state_changed.connect(_on_session_state_changed)
@@ -223,6 +230,11 @@ func _start_new_game(start_deal_animation: bool = true) -> void:
 	_refresh()
 	if start_deal_animation:
 		_run_initial_deal.call_deferred(_game_serial)
+
+
+func _on_restart_pressed() -> void:
+	AudioService.play(&"ui_confirm")
+	_start_new_game()
 
 
 func _player_names_for_count(count: int) -> Array[String]:
@@ -275,6 +287,8 @@ func _animate_initial_deal_card(player_index: int) -> void:
 	var target_panel := _get_player_panel(player_index)
 	if target_panel == null:
 		return
+	_pulse_draw_pile()
+	AudioService.play(&"card_deal")
 	var card := TextureRect.new()
 	card.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	card.texture = CardTextureCatalog.get_card_back()
@@ -327,7 +341,58 @@ func _finish_initial_deal() -> void:
 		if is_instance_valid(card):
 			card.queue_free()
 	_deal_flying_cards.clear()
+	_reset_draw_pile_activity()
 	_refresh()
+	_play_round_start_if_needed()
+
+
+func _play_round_start_if_needed() -> void:
+	if _session == null:
+		return
+	if _session.phase != GameSession.Phase.AWAITING_ROLL:
+		_round_start_sound_played = false
+		return
+	if _dealing or _round_start_sound_played:
+		return
+	_round_start_sound_played = true
+	AudioService.play(&"round_start")
+
+
+func _pulse_draw_pile() -> void:
+	if not is_instance_valid(draw_pile_view):
+		return
+	if _draw_pile_activity_tween != null:
+		_draw_pile_activity_tween.kill()
+	draw_pile_view.pivot_offset = draw_pile_view.size * 0.5
+	draw_pile_view.rotation = 0.0
+	var duration := maxf(0.12, SettingsService.get_deal_card_duration() * 0.8)
+	_draw_pile_activity_tween = create_tween()
+	_draw_pile_activity_tween.tween_property(
+		draw_pile_view,
+		"rotation",
+		-0.035,
+		duration * 0.25,
+	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_draw_pile_activity_tween.tween_property(
+		draw_pile_view,
+		"rotation",
+		0.025,
+		duration * 0.4,
+	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_draw_pile_activity_tween.tween_property(
+		draw_pile_view,
+		"rotation",
+		0.0,
+		duration * 0.35,
+	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+func _reset_draw_pile_activity() -> void:
+	if _draw_pile_activity_tween != null:
+		_draw_pile_activity_tween.kill()
+		_draw_pile_activity_tween = null
+	if is_instance_valid(draw_pile_view):
+		draw_pile_view.rotation = 0.0
 
 
 func _get_visible_hand_count(player_index: int) -> int:
@@ -380,6 +445,7 @@ func _refresh() -> void:
 
 func _on_session_state_changed() -> void:
 	_session_revision += 1
+	_play_round_start_if_needed()
 	_refresh()
 
 
@@ -468,6 +534,11 @@ func _refresh_center_table() -> void:
 
 func _refresh_hand() -> void:
 	var hand_count := _session.players[HUMAN_PLAYER_INDEX].hand.size()
+	var drawn_count := hand_count - _last_human_hand_count
+	if _last_human_hand_count >= 0 and drawn_count > 0 and not _dealing:
+		_pulse_draw_pile()
+		for index in range(mini(drawn_count, 3)):
+			AudioService.play_delayed(&"card_draw", index * 0.055)
 	_last_human_hand_count = hand_count
 	var visible_hand := _get_visible_human_hand()
 	var can_select := _can_human_act() and not _auto_pass_pending and not _dealing
@@ -629,6 +700,8 @@ func _refresh_bonus_effect() -> void:
 			_session.is_bonus and player_index == bonus_owner,
 		)
 	if _session.is_bonus and not _last_bonus_state:
+		AudioService.play_bonus_step(_bonus_sound_step)
+		_bonus_sound_step = (_bonus_sound_step + 1) % maxi(1, AudioService.get_bonus_step_count())
 		_show_center_feedback(&"UI_BONUS_FEEDBACK", Color(1.0, 0.76, 0.25))
 	if _session.is_bonus != _last_bonus_state:
 		_animate_table_bonus(_session.is_bonus)
@@ -747,6 +820,7 @@ func _on_dice_pressed() -> void:
 
 func _animate_roll_and_commit(player_index: int, serial: int) -> void:
 	_rolling = true
+	AudioService.play(&"dice_shake")
 	_clear_transient()
 	_selected_card_ids.clear()
 	_stop_dice_prompt()
@@ -764,6 +838,7 @@ func _animate_roll_and_commit(player_index: int, serial: int) -> void:
 	if serial != _game_serial:
 		return
 	_session.roll_dice(player_index)
+	AudioService.play(&"dice_land")
 	_rolling = false
 	dice_button.rotation = 0.0
 	_refresh()
@@ -773,8 +848,10 @@ func _on_hint_pressed() -> void:
 	_clear_transient()
 	var recommendation := _session.get_recommended_play(HUMAN_PLAYER_INDEX)
 	if recommendation.is_empty():
+		AudioService.play(&"ui_invalid")
 		_set_transient(&"STATUS_NO_LEGAL_PLAY")
 	else:
+		AudioService.play(&"ui_confirm")
 		_selected_card_ids.assign(recommendation)
 		hand_view.set_selection(_selected_card_ids)
 	_refresh_selection_labels()
@@ -830,6 +907,7 @@ func _show_interpretation_popup(interpretations: Array[HandPattern]) -> void:
 		option.pressed.connect(_commit_play.bind(pattern.get_key()))
 		interpretation_options.add_child(option)
 		_setup_single_button_motion(option)
+	AudioService.play(&"ui_fade_in")
 	interpretation_popup.popup_centered(Vector2i(440, 350))
 
 
@@ -857,6 +935,11 @@ func _commit_play(interpretation_key: String) -> void:
 		_selected_card_ids.clear()
 	_presentation_busy = false
 	_refresh()
+
+
+func _on_interpretation_popup_hidden() -> void:
+	if not _pending_interpretations.is_empty():
+		AudioService.play(&"ui_fade_out")
 
 
 func _on_hand_selection_changed(selected_ids: Array[int]) -> void:
@@ -995,6 +1078,7 @@ func _animate_ai_card_play(player_index: int, card_count: int) -> void:
 		).set_delay(delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 		tween.tween_property(card_back, "rotation", 0.08 * (index - card_count * 0.5), SettingsService.get_card_travel_duration()).set_delay(delay)
 	await tween.finished
+	AudioService.play(&"card_play")
 	_fade_out_flying_cards(flying_cards)
 
 
@@ -1029,6 +1113,7 @@ func _animate_human_card_play(snapshots: Array[Dictionary]) -> void:
 		tween.tween_property(card, "size", Vector2(68.0, 96.0), SettingsService.get_card_travel_duration()).set_delay(delay)
 		tween.tween_property(card, "rotation", 0.0, SettingsService.get_card_travel_duration()).set_delay(delay)
 	await tween.finished
+	AudioService.play(&"card_play")
 	_fade_out_flying_cards(flying_cards)
 
 
@@ -1050,6 +1135,7 @@ func _fade_out_flying_cards(cards: Array[TextureRect]) -> void:
 func _animate_played_cards_reveal(expected_signature: String) -> void:
 	if expected_signature != _last_play_signature or played_cards.get_child_count() == 0:
 		return
+	AudioService.play(&"card_reveal")
 	var tween := create_tween().set_parallel(true)
 	for index in range(played_cards.get_child_count()):
 		var card := played_cards.get_child(index) as Control
@@ -1081,9 +1167,11 @@ func _animate_ai_draw(player_index: int, drawn_count: int) -> void:
 		return
 	var source := draw_pile_view.get_global_rect().get_center() - global_position
 	var target := target_panel.get_global_rect().get_center() - global_position
+	_pulse_draw_pile()
 	var flying_cards: Array[TextureRect] = []
 	var tween := create_tween().set_parallel(true)
 	for index in range(mini(drawn_count, 3)):
+		AudioService.play_delayed(&"card_draw", index * 0.055)
 		var card_back := TextureRect.new()
 		card_back.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		card_back.texture = CardTextureCatalog.get_card_back()
@@ -1126,6 +1214,7 @@ func _show_draw_feedback(player_index: int, drawn_count: int) -> void:
 
 
 func _show_pass_feedback(player_index: int) -> void:
+	AudioService.play(&"pass")
 	var panel := _get_player_panel(player_index)
 	if panel == null:
 		return
@@ -1198,6 +1287,7 @@ func _on_settings_pressed() -> void:
 	if _settings_tween != null:
 		_settings_tween.kill()
 	settings_panel.begin_edit()
+	AudioService.play(&"ui_fade_in")
 	settings_overlay.visible = true
 	settings_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	settings_overlay.modulate.a = 0.0
@@ -1213,6 +1303,7 @@ func _open_hand_types() -> void:
 		return
 	if _hand_types_tween != null:
 		_hand_types_tween.kill()
+	AudioService.play(&"ui_fade_in")
 	hand_types_overlay.visible = true
 	hand_types_overlay.modulate.a = 0.0
 	hand_types_dialog.scale = Vector2(0.97, 0.97)
@@ -1232,6 +1323,7 @@ func _close_hand_types() -> void:
 		return
 	if _hand_types_tween != null:
 		_hand_types_tween.kill()
+	AudioService.play(&"ui_fade_out")
 	_hand_types_tween = create_tween().set_parallel(true)
 	_hand_types_tween.tween_property(hand_types_overlay, "modulate:a", 0.0, 0.16)
 	_hand_types_tween.tween_property(
@@ -1253,6 +1345,7 @@ func _close_settings() -> void:
 		return
 	if _settings_tween != null:
 		_settings_tween.kill()
+	AudioService.play(&"ui_fade_out")
 	settings_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_settings_tween = create_tween().set_parallel(true)
 	_settings_tween.tween_property(
@@ -1295,6 +1388,7 @@ func _on_return_to_menu_requested() -> void:
 
 
 func _on_game_finished(player_index: int) -> void:
+	AudioService.play(&"game_win" if player_index == HUMAN_PLAYER_INDEX else &"game_lose")
 	winner_label.text = _translated(&"STATUS_WINNER", {"player": _player_name(player_index)})
 	result_overlay.visible = true
 
@@ -1508,7 +1602,10 @@ func _refresh_turn_indicator() -> void:
 	else:
 		target_center = Vector2(panel_rect.get_center().x, panel_rect.end.y + 28.0) - global_position
 		facing_rotation = 0.0
+	var moved_from_player := _indicator_player_index != -1 and _indicator_player_index != player_index
 	turn_indicator.move_to(target_center, facing_rotation, _indicator_player_index == -1)
+	if moved_from_player:
+		AudioService.play(&"turn_change")
 	_indicator_player_index = player_index
 
 
@@ -1557,6 +1654,7 @@ func _set_bonus_border(panel: PanelContainer, active: bool) -> void:
 
 func play_enter_transition() -> void:
 	await get_tree().process_frame
+	AudioService.play(&"ui_fade_in")
 	if _status_tween != null:
 		_status_tween.kill()
 	var entries := [
@@ -1588,6 +1686,7 @@ func play_enter_transition() -> void:
 
 
 func play_exit_transition() -> void:
+	AudioService.play(&"ui_fade_out")
 	settings_overlay.visible = false
 	result_overlay.visible = false
 	var exits := [
@@ -1681,6 +1780,7 @@ func _clear_transient() -> void:
 
 
 func _show_session_error() -> void:
+	AudioService.play(&"ui_invalid")
 	_set_transient(_session.last_error_key, _session.last_error_args)
 
 

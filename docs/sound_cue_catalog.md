@@ -1,6 +1,22 @@
 # Bonus 音效需求清单
 
-当前版本暂不包含任何音效。后续选材时，建议每类提供 2～4 个轻微变化的版本，避免高频操作产生明显重复感。
+版本 `0.5.6` 已接入选定音效。所有音效进入 `SFX` 总线；同类多素材使用 Godot `AudioStreamRandomizer` 避免连续重复，并按事件加入小范围随机音调和音量变化。高频事件由统一播放器池并发播放并限频。
+
+## 当前素材映射
+
+| 事件 | 素材与播放规则 |
+| --- | --- |
+| `ui_hover` | `pop_1`～`pop_4` 随机不连续重复，轻微变调 |
+| `ui_confirm` / `ui_cancel` / `ui_invalid` | 对应同名素材；弹出式界面不叠加 confirm |
+| `ui_fade_in` / `ui_fade_out` | 主菜单二级菜单、游戏设置、牌型窗口、万能牌选择窗口及场景转场 |
+| `card_deal` / `card_draw` / `card_play` | 共用 `card_draw_1`～`card_draw_3`，按用途调整音量并轻微变调 |
+| `card_reveal` | `card_fan`、`card_fan_2` 随机播放并轻微变调 |
+| `dice_shake` | `dice_shake_1`～`dice_shake_3` |
+| `dice_land` | `dice_roll_1`～`dice_roll_4` |
+| `bonus_trigger` | 每局从 `match_synth_1` 到 `match_synth_10_MAX` 依次播放，用尽后循环 |
+| `pass` / `turn_change` / `round_start` | 对应同名素材 |
+| `settings_applied` / `game_win` / `game_lose` | 对应同名素材 |
+| `bonus_loop` / `card_select` / `card_deselect` | 暂不播放，等待后续素材 |
 
 | 编号 | 触发时机 | 建议听感 | 建议时长 | 播放方式与备注 |
 | --- | --- | --- | --- | --- |

@@ -20,6 +20,7 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	var hand_view := game_scene.get_node("%HandView") as HandView
 	var dice_button := game_scene.get_node("%DiceButton") as TextureButton
+	var draw_pile := game_scene.get_node("%DrawPile") as TextureRect
 	var action_bar := game_scene.get_node("%ActionBar") as HBoxContainer
 	var west_seat := game_scene.get_node("%WestSeat") as PanelContainer
 	var east_seat := game_scene.get_node("%EastSeat") as PanelContainer
@@ -60,6 +61,13 @@ func _run_test() -> void:
 	assert(status_label.get_global_rect().position.y >= table_band.get_global_rect().end.y)
 	assert(status_label.get_global_rect().end.y <= action_slot.get_global_rect().position.y)
 	assert(not selection_type.visible)
+	assert(draw_pile.get_parent().name == "DrawPileArea")
+	assert(dice_button.get_global_rect().position.x - draw_pile.get_global_rect().end.x >= 20.0)
+	var draw_pile_position := draw_pile.global_position
+	dice_button.mouse_entered.emit()
+	await get_tree().create_timer(0.18).timeout
+	assert(draw_pile.global_position.is_equal_approx(draw_pile_position))
+	dice_button.mouse_exited.emit()
 	assert(header_title.text.begins_with("BONUS |"))
 	assert(int(game_scene.get("_indicator_player_index")) == 0)
 	var indicator_layout_center: Vector2 = (
@@ -123,6 +131,7 @@ func _run_test() -> void:
 	var first_card := hand_view.get_child(0) as CardView
 	var second_card := hand_view.get_child(1) as CardView
 	first_card.left_pressed.emit(first_card.card_id)
+	hand_view.set("_press_origin", Vector2(-100.0, -100.0))
 	second_card.pointer_entered.emit(second_card.card_id)
 	second_card.pointer_entered.emit(second_card.card_id)
 	var selected_ids: Array[int] = game_scene.get("_selected_card_ids")
@@ -143,6 +152,20 @@ func _run_test() -> void:
 	selected_ids = game_scene.get("_selected_card_ids")
 	assert(selected_ids.is_empty())
 	assert(not selection_type.visible)
+
+	# A drag can begin outside the hand and still select each entered card once.
+	Input.parse_input_event(mouse_down)
+	await get_tree().process_frame
+	first_card.pointer_entered.emit(first_card.card_id)
+	first_card.pointer_entered.emit(first_card.card_id)
+	second_card.pointer_entered.emit(second_card.card_id)
+	selected_ids = game_scene.get("_selected_card_ids")
+	assert(selected_ids.size() == 2)
+	Input.parse_input_event(mouse_up)
+	Input.parse_input_event(right_click)
+	await get_tree().process_frame
+	selected_ids = game_scene.get("_selected_card_ids")
+	assert(selected_ids.is_empty())
 
 	_test_bonus_controls(game_scene, session, pass_button, table_bonus, hand_bonus)
 	await get_tree().process_frame
@@ -165,7 +188,7 @@ func _run_test() -> void:
 	SettingsService.set_music_volume(float(original_settings["music_volume"]))
 	print("BONUS_TEST_GAME_SCENE_OK")
 	game_scene.queue_free()
-	await get_tree().process_frame
+	await AudioService.shutdown()
 	get_tree().quit()
 
 
@@ -273,10 +296,12 @@ func _test_bonus_controls(
 	assert(not pass_button.visible)
 	assert(table_bonus.visible)
 	assert(hand_bonus.visible)
+	assert(int(game_scene.get("_bonus_sound_step")) == 1)
 
 	session.roller_index = 1
 	session.current_player_index = 1
 	game_scene.call("_refresh")
+	assert(int(game_scene.get("_bonus_sound_step")) == 1)
 	assert(not hand_bonus.visible)
 	var north_panel := game_scene.get_node("%NorthSeat") as PanelContainer
 	var flow_borders := game_scene.get("_flow_borders") as Dictionary

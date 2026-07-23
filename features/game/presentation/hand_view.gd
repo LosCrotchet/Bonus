@@ -110,8 +110,14 @@ func set_cards_animation_hidden(card_ids: Array[int], should_hide: bool) -> void
 func _input(event: InputEvent) -> void:
 	if event is not InputEventMouseButton:
 		return
-	if event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
-		_reset_pointer_state()
+	if event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed and _interaction_enabled:
+			_selection_drag_active = true
+			_drag_visited.clear()
+			_pressed_card_id = -1
+			_press_origin = event.position
+		else:
+			_reset_pointer_state()
 	elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed and _interaction_enabled:
 		clear_selection()
 
@@ -179,9 +185,12 @@ func _on_card_pointer_entered(card_id: int) -> void:
 		and _interaction_enabled
 		and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	):
-		if get_global_mouse_position().distance_to(_press_origin) > SWIPE_THRESHOLD:
+		if (
+			_pressed_card_id == -1
+			or get_global_mouse_position().distance_to(_press_origin) > SWIPE_THRESHOLD
+		):
 			_pressed_card_id = -1
-		_toggle_card_once(card_id)
+			_toggle_card_once(card_id)
 
 
 func _on_card_pointer_exited(card_id: int) -> void:

@@ -13,7 +13,7 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	assert((app.get_node("Version") as Label).text == "v0.5.5")
+	assert((app.get_node("Version") as Label).text == "v0.5.6")
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
 	assert(menu != null)
@@ -116,7 +116,7 @@ func _run_test() -> void:
 	))
 	print("BONUS_TEST_APP_OK")
 	app.queue_free()
-	await get_tree().process_frame
+	await AudioService.shutdown()
 	get_tree().quit()
 
 

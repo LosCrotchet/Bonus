@@ -511,19 +511,34 @@ theme_override_styles/panel = SubResource("Style_table_section")
 
 [node name="RollLayout" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel" unique_id=924635401]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 26
 alignment = 1
 
 [node name="DrawGroup" type="VBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout" unique_id=543278086]
+custom_minimum_size = Vector2(88, 0)
 layout_mode = 2
 theme_override_constants/separation = 1
 alignment = 1
 
-[node name="DrawPile" type="TextureRect" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DrawGroup" unique_id=1246680439]
+[node name="DrawPileArea" type="Control" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DrawGroup"]
+custom_minimum_size = Vector2(88, 104)
+layout_mode = 2
+
+[node name="DrawPile" type="TextureRect" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DrawGroup/DrawPileArea" unique_id=1246680439]
 unique_name_in_owner = true
 texture_filter = 4
-custom_minimum_size = Vector2(72, 102)
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -36.0
+offset_top = -51.0
+offset_right = 36.0
+offset_bottom = 51.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 0
 texture = ExtResource("3_back")
 expand_mode = 1
@@ -531,6 +546,7 @@ stretch_mode = 5
 
 [node name="DeckCountLabel" type="Label" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DrawGroup" unique_id=1010024140]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(88, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.73, 0.83, 0.79, 1)
 theme_override_font_sizes/font_size = 14
@@ -538,12 +554,13 @@ text = "UI_DRAW_REMAINING"
 horizontal_alignment = 1
 
 [node name="DiceGroup" type="VBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout" unique_id=602253088]
+custom_minimum_size = Vector2(112, 0)
 layout_mode = 2
 theme_override_constants/separation = 1
 alignment = 1
 
 [node name="DiceArea" type="Control" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DiceGroup" unique_id=1083162428]
-custom_minimum_size = Vector2(96, 104)
+custom_minimum_size = Vector2(112, 104)
 layout_mode = 2
 
 [node name="DiceButton" type="TextureButton" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DiceGroup/DiceArea" unique_id=17105313]
@@ -566,6 +583,7 @@ stretch_mode = 5
 
 [node name="DiceValue" type="Label" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DiceGroup" unique_id=46426416]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(112, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.98, 0.77, 0.28, 1)
 theme_override_font_sizes/font_size = 14
