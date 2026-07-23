@@ -1,20 +1,35 @@
 class_name MainMenu
 extends Control
 
-signal single_player_requested(player_count: int, rules: GameRules)
+signal single_player_requested(
+	player_count: int,
+	rules: GameRules,
+	seed_value: int,
+	use_custom_seed: bool,
+)
+signal resume_game_requested
 signal quit_requested
 
 @onready var menu_panel: PanelContainer = %MenuPanel
 @onready var single_player_panel: PanelContainer = %SinglePlayerPanel
 @onready var settings_side_panel: AppSettingsPanel = %SettingsSidePanel
-@onready var player_count_option: OptionButton = %PlayerCountOption
-@onready var include_jokers_toggle: CheckButton = %IncludeJokersToggle
+@onready var player_count_buttons: Array[Button] = [
+	%PlayerCount2,
+	%PlayerCount3,
+	%PlayerCount4,
+]
+@onready var include_jokers_toggle: CheckBox = %IncludeJokersToggle
 @onready var jokers_wild_row: HBoxContainer = %JokersWildRow
-@onready var jokers_wild_toggle: CheckButton = %JokersWildToggle
+@onready var jokers_wild_toggle: CheckBox = %JokersWildToggle
 @onready var wildcard_finish_row: HBoxContainer = %WildcardFinishRow
-@onready var wildcard_finish_toggle: CheckButton = %WildcardFinishToggle
-@onready var sequences_include_two_toggle: CheckButton = %SequencesIncludeTwoToggle
-@onready var variable_draw_toggle: CheckButton = %VariableDrawToggle
+@onready var wildcard_finish_toggle: CheckBox = %WildcardFinishToggle
+@onready var sequences_include_two_toggle: CheckBox = %SequencesIncludeTwoToggle
+@onready var variable_draw_toggle: CheckBox = %VariableDrawToggle
+@onready var custom_seed_toggle: CheckBox = %CustomSeedToggle
+@onready var seed_input_row: HBoxContainer = %SeedInputRow
+@onready var seed_input: LineEdit = %SeedInput
+@onready var resume_prompt: VBoxContainer = %ResumePrompt
+@onready var start_game_button: Button = %StartGameButton
 @onready var exit_game_button: Button = %ExitGameButton
 @onready var exit_confirmation: HBoxContainer = %ExitConfirmation
 
@@ -30,6 +45,8 @@ func _ready() -> void:
 	%SinglePlayerButton.pressed.connect(_open_single_player)
 	%SettingsButton.pressed.connect(_open_settings)
 	%StartGameButton.pressed.connect(_start_single_player)
+	%ContinueGameButton.pressed.connect(_continue_saved_game)
+	%StartNewGameButton.pressed.connect(_discard_saved_game)
 	%SinglePlayerBackButton.pressed.connect(_close_secondary)
 	settings_side_panel.canceled.connect(_close_secondary)
 	exit_game_button.pressed.connect(_show_exit_confirmation)
@@ -37,7 +54,10 @@ func _ready() -> void:
 	%ExitNoButton.pressed.connect(_hide_exit_confirmation)
 	include_jokers_toggle.toggled.connect(_on_include_jokers_toggled)
 	jokers_wild_toggle.toggled.connect(_on_jokers_wild_toggled)
-	_populate_player_counts()
+	custom_seed_toggle.toggled.connect(_on_custom_seed_toggled)
+	seed_input.text_changed.connect(_on_seed_text_changed)
+	SettingsService.language_changed.connect(_on_language_changed)
+	_setup_player_count_buttons()
 	_reset_single_player_options()
 	single_player_panel.visible = false
 	settings_side_panel.visible = false
@@ -52,6 +72,7 @@ func _ready() -> void:
 
 
 func play_enter_transition() -> void:
+	_transitioning = true
 	await get_tree().process_frame
 	AudioService.play(&"ui_fade_in")
 	var target_position := _menu_target_position
@@ -61,6 +82,7 @@ func play_enter_transition() -> void:
 	tween.tween_property(menu_panel, "position", target_position, 0.42).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(menu_panel, "modulate:a", 1.0, 0.3)
 	await tween.finished
+	_transitioning = false
 
 
 func play_exit_transition() -> void:
@@ -80,15 +102,20 @@ func play_exit_transition() -> void:
 	await tween.finished
 
 
-func _populate_player_counts() -> void:
-	player_count_option.clear()
-	for count in range(2, 5):
-		player_count_option.add_item(
-			tr(&"UI_PLAYER_COUNT_OPTION").format({"count": count}),
-			count,
+func _setup_player_count_buttons() -> void:
+	var selected_count := _get_selected_player_count()
+	for index in range(player_count_buttons.size()):
+		var count := index + 2
+		player_count_buttons[index].text = tr(&"UI_PLAYER_COUNT_OPTION").format(
+			{"count": count},
 		)
-		if count == 3:
-			player_count_option.select(player_count_option.item_count - 1)
+		player_count_buttons[index].set_meta(&"player_count", count)
+		if count == selected_count:
+			player_count_buttons[index].button_pressed = true
+
+
+func _on_language_changed(_locale: String) -> void:
+	_setup_player_count_buttons()
 
 
 func _reset_single_player_options() -> void:
@@ -97,6 +124,9 @@ func _reset_single_player_options() -> void:
 	wildcard_finish_toggle.button_pressed = true
 	sequences_include_two_toggle.button_pressed = false
 	variable_draw_toggle.button_pressed = false
+	custom_seed_toggle.button_pressed = false
+	seed_input.text = ""
+	_refresh_seed_controls()
 	_refresh_rule_dependencies()
 
 
@@ -123,11 +153,27 @@ func _refresh_rule_dependencies() -> void:
 	wildcard_finish_row.visible = show_finish_rule
 
 
+func _on_custom_seed_toggled(_enabled: bool) -> void:
+	_refresh_seed_controls()
+
+
+func _on_seed_text_changed(_value: String) -> void:
+	_refresh_seed_controls()
+
+
+func _refresh_seed_controls() -> void:
+	seed_input_row.visible = custom_seed_toggle.button_pressed and not resume_prompt.visible
+	start_game_button.disabled = (
+		custom_seed_toggle.button_pressed and seed_input.text.strip_edges().is_empty()
+	)
+
+
 func _open_single_player() -> void:
 	if _active_secondary == single_player_panel and single_player_panel.visible:
 		_close_secondary()
 		return
 	_show_secondary(single_player_panel)
+	_set_resume_prompt_visible(SaveGameService.has_unfinished_game())
 
 
 func _open_settings() -> void:
@@ -208,12 +254,67 @@ func _start_single_player() -> void:
 	rules.draw_two_on_wildcard_finish = wildcard_finish_toggle.button_pressed
 	rules.allow_two_in_sequences = sequences_include_two_toggle.button_pressed
 	rules.draw_count_uses_dice = variable_draw_toggle.button_pressed
-	single_player_requested.emit(player_count_option.get_selected_id(), rules)
+	var use_custom_seed := custom_seed_toggle.button_pressed
+	var seed_value := _seed_from_text(seed_input.text) if use_custom_seed else 0
+	SaveGameService.clear_save()
+	single_player_requested.emit(
+		_get_selected_player_count(),
+		rules,
+		seed_value,
+		use_custom_seed,
+	)
+
+
+func _continue_saved_game() -> void:
+	AudioService.play(&"ui_confirm")
+	resume_game_requested.emit()
+
+
+func _discard_saved_game() -> void:
+	AudioService.play(&"ui_confirm")
+	SaveGameService.clear_save()
+	_set_resume_prompt_visible(false)
+
+
+func _set_resume_prompt_visible(should_show: bool) -> void:
+	resume_prompt.visible = should_show
+	for node in [
+		%PlayerCountRow,
+		%IncludeJokersRow,
+		%JokersWildRow,
+		%WildcardFinishRow,
+		%SequencesIncludeTwoRow,
+		%VariableDrawRow,
+		%CustomSeedRow,
+		%SeedInputRow,
+		%Spacer,
+		%StartGameButton,
+	]:
+		(node as CanvasItem).visible = not should_show
+	if not should_show:
+		_refresh_rule_dependencies()
+		_refresh_seed_controls()
+
+
+func _get_selected_player_count() -> int:
+	for button in player_count_buttons:
+		if button.button_pressed:
+			return int(button.get_meta(&"player_count", 3))
+	return 3
+
+
+func _seed_from_text(value: String) -> int:
+	var normalized := value.strip_edges()
+	var seed_value := normalized.to_int() if normalized.is_valid_int() else int(normalized.hash())
+	return seed_value if seed_value != 0 else 1
 
 
 func _show_exit_confirmation() -> void:
-	AudioService.play(&"ui_confirm")
 	exit_game_button.visible = false
+	if _active_secondary != null:
+		_close_secondary()
+		await get_tree().create_timer(0.24).timeout
+	AudioService.play(&"ui_confirm")
 	exit_confirmation.visible = true
 
 
@@ -236,6 +337,8 @@ func _setup_button_motion() -> void:
 		%SettingsButton,
 		exit_game_button,
 		%StartGameButton,
+		%ContinueGameButton,
+		%StartNewGameButton,
 		%SinglePlayerBackButton,
 		%ExitYesButton,
 		%ExitNoButton,

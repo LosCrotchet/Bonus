@@ -7,8 +7,6 @@ signal pointer_exited(card_id: int)
 
 const HOVER_OFFSET_Y := -9.0
 const SELECTED_OFFSET_Y := -22.0
-const MOVE_DURATION := 0.15
-
 var card_id := -1
 var selected := false
 var interaction_enabled := true
@@ -54,6 +52,8 @@ func set_selected(value: bool, instant: bool = false) -> void:
 	if selected == value:
 		return
 	selected = value
+	if not instant:
+		AudioService.play(&"card_select" if value else &"card_deselect")
 	_update_tint()
 	_animate_transform(instant)
 
@@ -84,10 +84,13 @@ func play_entry_animation(delay: float = 0.0) -> void:
 	scale = Vector2(0.78, 0.78)
 	modulate.a = 0.0
 	_move_tween = create_tween().set_parallel(true)
-	_move_tween.tween_property(self, "position", _target_position(), 0.36).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_move_tween.tween_property(self, "rotation", _base_rotation, 0.3).set_delay(delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_move_tween.tween_property(self, "scale", Vector2.ONE, 0.32).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_move_tween.tween_property(self, "modulate:a", 1.0, 0.18).set_delay(delay)
+	var duration := SettingsService.get_gameplay_duration(
+		SettingsService.GameplayTiming.CARD_ENTRY,
+	)
+	_move_tween.tween_property(self, "position", _target_position(), duration).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_move_tween.tween_property(self, "rotation", _base_rotation, duration * 0.84).set_delay(delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_move_tween.tween_property(self, "scale", Vector2.ONE, duration * 0.9).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_move_tween.tween_property(self, "modulate:a", 1.0, duration * 0.5).set_delay(delay)
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -101,6 +104,7 @@ func _gui_input(event: InputEvent) -> void:
 func _on_mouse_entered() -> void:
 	if not interaction_enabled:
 		return
+	AudioService.play(&"card_hover")
 	_hovered = true
 	_update_tint()
 	_animate_transform()
@@ -131,8 +135,9 @@ func _animate_transform(instant: bool = false) -> void:
 		return
 	_move_tween = create_tween().set_parallel(true)
 	_move_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_move_tween.tween_property(self, "position", target, MOVE_DURATION)
-	_move_tween.tween_property(self, "rotation", _base_rotation, MOVE_DURATION)
+	var duration := SettingsService.get_ui_animation_duration() * 0.4
+	_move_tween.tween_property(self, "position", target, duration)
+	_move_tween.tween_property(self, "rotation", _base_rotation, duration)
 
 
 func _target_position() -> Vector2:

@@ -6,6 +6,7 @@ func _ready() -> void:
 
 
 func _run_test() -> void:
+	SaveGameService.clear_save()
 	var original_settings := SettingsService.get_snapshot()
 	var packed_scene := load("res://features/game/game_scene.tscn") as PackedScene
 	assert(packed_scene != null)
@@ -16,6 +17,17 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	var session := game_scene.get("_session") as GameSession
 	assert(bool(game_scene.get("_dealing")))
+	var deal_counts := game_scene.get("_deal_visible_counts") as PackedInt32Array
+	deal_counts[0] = 5
+	game_scene.set("_deal_visible_counts", deal_counts)
+	var visible_deal_hand: Array[CardData] = game_scene.call("_get_visible_human_hand")
+	assert(visible_deal_hand.size() == 5)
+	var expected_dealt_ids := {}
+	for index in range(5):
+		expected_dealt_ids[session.initial_deal_card_ids[0][index]] = true
+	for card in visible_deal_hand:
+		assert(expected_dealt_ids.has(card.card_id))
+	assert(_is_hand_sorted(visible_deal_hand))
 	game_scene.call("skip_initial_deal")
 	await get_tree().process_frame
 	var hand_view := game_scene.get_node("%HandView") as HandView
@@ -118,7 +130,10 @@ func _run_test() -> void:
 	assert(_is_hand_sorted(session.players[0].hand))
 
 	dice_button.pressed.emit()
-	assert(await _wait_until(func() -> bool: return session.dice_value != 0, 2.0))
+	assert(await _wait_until(
+		func() -> bool: return session.dice_value != 0 and action_bar.visible,
+		2.5,
+	))
 	assert(session.dice_value in [1, 2, 3, 4, 5, 6])
 	assert(action_bar.visible)
 	assert(not pass_button.disabled)
@@ -186,6 +201,7 @@ func _run_test() -> void:
 	SettingsService.set_master_volume(float(original_settings["master_volume"]))
 	SettingsService.set_sfx_volume(float(original_settings["sfx_volume"]))
 	SettingsService.set_music_volume(float(original_settings["music_volume"]))
+	SaveGameService.clear_save()
 	print("BONUS_TEST_GAME_SCENE_OK")
 	game_scene.queue_free()
 	await AudioService.shutdown()
@@ -209,13 +225,17 @@ func _test_transactional_settings(
 	master_slider.value = live_master
 	await get_tree().process_frame
 	assert(is_equal_approx(SettingsService.master_volume, live_master))
-	var speed_option := settings_panel.get_node("%GameSpeedOption") as OptionButton
 	var draft_speed := (
 		SettingsService.GameSpeed.FAST
 		if original_speed != SettingsService.GameSpeed.FAST
 		else SettingsService.GameSpeed.SLOW
 	)
-	_select_option_by_id(speed_option, draft_speed)
+	var speed_buttons: Array[Button] = [
+		settings_panel.get_node("%SpeedSlowButton") as Button,
+		settings_panel.get_node("%SpeedMediumButton") as Button,
+		settings_panel.get_node("%SpeedFastButton") as Button,
+	]
+	speed_buttons[draft_speed].button_pressed = true
 	settings_dismiss.pressed.emit()
 	assert(await _wait_until(func() -> bool: return not settings_overlay.visible, 1.0))
 	assert(not settings_overlay.visible)
@@ -224,7 +244,7 @@ func _test_transactional_settings(
 
 	settings_button.pressed.emit()
 	await get_tree().process_frame
-	(settings_panel.get_node("%StatusTextToggle") as CheckButton).button_pressed = false
+	(settings_panel.get_node("%StatusTextToggle") as CheckBox).button_pressed = false
 	(settings_panel.get_node("%ApplyButton") as Button).pressed.emit()
 	await get_tree().process_frame
 	assert(settings_overlay.visible)
@@ -245,21 +265,13 @@ func _test_transactional_settings(
 	assert(not exit_menu_button.visible and confirmation.visible)
 	(settings_panel.get_node("%ExitMenuNo") as Button).pressed.emit()
 	assert(exit_menu_button.visible and not confirmation.visible)
-	(settings_panel.get_node("%StatusTextToggle") as CheckButton).button_pressed = true
+	(settings_panel.get_node("%StatusTextToggle") as CheckBox).button_pressed = true
 	(settings_panel.get_node("%ApplyButton") as Button).pressed.emit()
 	await get_tree().process_frame
 	assert(settings_overlay.visible)
 	assert(status_label.visible)
 	settings_dismiss.pressed.emit()
 	assert(await _wait_until(func() -> bool: return not settings_overlay.visible, 1.0))
-
-
-func _select_option_by_id(option: OptionButton, item_id: int) -> void:
-	for index in range(option.item_count):
-		if option.get_item_id(index) == item_id:
-			option.select(index)
-			return
-	assert(false)
 
 
 func _is_hand_sorted(cards: Array[CardData]) -> bool:
@@ -297,6 +309,12 @@ func _test_bonus_controls(
 	assert(table_bonus.visible)
 	assert(hand_bonus.visible)
 	assert(int(game_scene.get("_bonus_sound_step")) == 1)
+	game_scene.set("_bonus_dice_frame", 0)
+	game_scene.call("_process", 0.15)
+	var random_frame := int(game_scene.get("_bonus_dice_frame"))
+	assert(random_frame != 0)
+	game_scene.call("_process", 0.15)
+	assert(int(game_scene.get("_bonus_dice_frame")) != random_frame)
 
 	session.roller_index = 1
 	session.current_player_index = 1
@@ -344,7 +362,7 @@ func _test_conservative_auto_pass(game_scene: Control, session: GameSession) -> 
 	session.phase = GameSession.Phase.AWAITING_ACTION
 	session.current_player_index = 0
 	game_scene.call("_refresh")
-	await get_tree().create_timer(0.4).timeout
+	await get_tree().create_timer(1.1).timeout
 	assert(session.current_player_index == 0)
 
 	session.is_bonus = false
@@ -356,7 +374,7 @@ func _test_conservative_auto_pass(game_scene: Control, session: GameSession) -> 
 	var action_bar := game_scene.get_node("%ActionBar") as HBoxContainer
 	var play_button := game_scene.get_node("%PlayButton") as Button
 	assert(not action_bar.visible or play_button.disabled)
-	await get_tree().create_timer(0.4).timeout
+	await get_tree().create_timer(1.1).timeout
 	assert(session.current_player_index == 1)
 
 
@@ -406,7 +424,7 @@ func _test_global_double_clicks(game_scene: Control) -> void:
 	game_scene.call("_refresh")
 	var label_event := _double_click(MOUSE_BUTTON_RIGHT, (game_scene.get_node("%StatusLabel") as Control).get_global_rect().get_center())
 	game_scene.call("_input", label_event)
-	assert(session.current_player_index != 0)
+	assert(await _wait_until(func() -> bool: return session.current_player_index != 0, 1.5))
 
 
 func _double_click(button_index: int, position: Vector2) -> InputEventMouseButton:

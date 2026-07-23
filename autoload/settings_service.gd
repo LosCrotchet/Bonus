@@ -17,8 +17,36 @@ enum WindowMode {
 	FULLSCREEN,
 }
 
+enum GameplayTiming {
+	DEAL_CARD,
+	CARD_ENTRY,
+	CARD_TRAVEL,
+	CARD_REVEAL,
+	AI_THINK,
+	ACTION_PAUSE,
+	BONUS_TRANSITION,
+	FEEDBACK,
+	DICE_ROLL,
+	INDICATOR_MOVE,
+	UI_TRANSITION,
+}
+
 const SETTINGS_PATH := "user://bonus_settings.cfg"
-const DEFAULT_GAME_SPEED := GameSpeed.MEDIUM
+const DEFAULT_GAME_SPEED := GameSpeed.SLOW
+const SPEED_MULTIPLIERS: Array[float] = [1.0, 0.45, 0.2]
+const BASE_TIMINGS := {
+	GameplayTiming.DEAL_CARD: 0.31,
+	GameplayTiming.CARD_ENTRY: 0.38,
+	GameplayTiming.CARD_TRAVEL: 0.52,
+	GameplayTiming.CARD_REVEAL: 0.43,
+	GameplayTiming.AI_THINK: 0.66,
+	GameplayTiming.ACTION_PAUSE: 0.58,
+	GameplayTiming.BONUS_TRANSITION: 0.56,
+	GameplayTiming.FEEDBACK: 0.62,
+	GameplayTiming.DICE_ROLL: 0.64,
+	GameplayTiming.INDICATOR_MOVE: 0.48,
+	GameplayTiming.UI_TRANSITION: 0.38,
+}
 const RESOLUTIONS: Array[Vector2i] = [
 	Vector2i(1280, 720),
 	Vector2i(1440, 1080),
@@ -152,27 +180,32 @@ func set_music_volume(value: float) -> void:
 
 
 func get_ai_think_delay() -> float:
-	return [1.15, 0.8, 0.58][game_speed]
+	return get_gameplay_duration(GameplayTiming.AI_THINK)
 
 
 func get_dice_step_duration() -> float:
-	return [0.09, 0.07, 0.055][game_speed]
+	return get_gameplay_duration(GameplayTiming.DICE_ROLL) / 8.0
 
 
 func get_ui_animation_duration() -> float:
-	return [0.32, 0.24, 0.18][game_speed]
+	return get_gameplay_duration(GameplayTiming.UI_TRANSITION)
 
 
 func get_card_travel_duration() -> float:
-	return [0.58, 0.42, 0.3][game_speed]
+	return get_gameplay_duration(GameplayTiming.CARD_TRAVEL)
 
 
 func get_deal_card_duration() -> float:
-	return [0.19, 0.13, 0.085][game_speed]
+	return get_gameplay_duration(GameplayTiming.DEAL_CARD)
 
 
 func get_feedback_duration() -> float:
-	return [0.9, 0.65, 0.45][game_speed]
+	return get_gameplay_duration(GameplayTiming.FEEDBACK)
+
+
+func get_gameplay_duration(timing: GameplayTiming) -> float:
+	var base_duration := float(BASE_TIMINGS.get(timing, BASE_TIMINGS[GameplayTiming.UI_TRANSITION]))
+	return base_duration * SPEED_MULTIPLIERS[game_speed]
 
 
 func _apply_language() -> void:

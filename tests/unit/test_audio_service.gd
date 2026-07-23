@@ -12,6 +12,10 @@ func _run_test() -> void:
 		&"ui_fade_in",
 		&"card_deal",
 		&"card_draw",
+		&"card_select",
+		&"card_deselect",
+		&"card_hover",
+		&"card_play",
 		&"card_reveal",
 		&"dice_shake",
 		&"dice_land",
@@ -22,8 +26,6 @@ func _run_test() -> void:
 		&"game_lose",
 	]:
 		assert(AudioService.has_cue(cue), "Missing audio cue: %s" % cue)
-	assert(not AudioService.has_cue(&"card_select"))
-	assert(not AudioService.has_cue(&"card_deselect"))
 	assert(not AudioService.has_cue(&"bonus_loop"))
 	assert(AudioService.get_bonus_step_count() == 10)
 
@@ -36,6 +38,16 @@ func _run_test() -> void:
 	assert(card_deal == card_draw)
 	assert(card_deal.streams_count == 3)
 	assert(card_deal.random_pitch_semitones > 0.0)
+	var card_select := catalog[&"card_select"] as AudioStreamRandomizer
+	var card_deselect := catalog[&"card_deselect"] as AudioStreamRandomizer
+	assert(card_select == card_deselect)
+	assert(card_select.random_pitch_semitones > 0.0)
+	var card_hover := catalog[&"card_hover"] as AudioStreamRandomizer
+	assert(card_hover.get_stream(0).resource_path.ends_with("card_hover.wav"))
+	assert(card_hover.random_pitch_semitones > 0.0)
+	var card_play := catalog[&"card_play"] as AudioStreamRandomizer
+	assert(card_play.get_stream(0).resource_path.ends_with("card_play.wav"))
+	assert(card_play.random_pitch_semitones > 0.0)
 	var dice_land := catalog[&"dice_land"] as AudioStreamRandomizer
 	assert(dice_land.streams_count == 4)
 	assert(dice_land.get_stream(0).resource_path.ends_with("dice_roll_1.wav"))

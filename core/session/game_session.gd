@@ -30,6 +30,8 @@ var dice_value := 0
 var winner_index := -1
 var phase := Phase.READY
 var is_bonus := false
+var game_seed := 0
+var initial_deal_card_ids: Array[PackedInt32Array] = []
 var last_error_key: StringName = &""
 var last_error_args: Dictionary = {}
 var event_key: StringName = &""
@@ -51,6 +53,7 @@ func start_game(
 
 	rules = game_rules.clone() if game_rules != null else GameRules.new()
 	players.clear()
+	initial_deal_card_ids.clear()
 	draw_pile = DeckFactory.create_two_deck(rules.include_jokers)
 	discard_pile.clear()
 	last_played_cards.clear()
@@ -69,14 +72,18 @@ func start_game(
 		_random_source.randomize()
 	else:
 		_random_source.seed = seed_value
+	game_seed = _random_source.seed
 	DeckFactory.shuffle_cards(draw_pile, _random_source)
 
 	for index in range(player_names.size()):
 		players.append(PlayerState.new(index, player_names[index]))
+		initial_deal_card_ids.append(PackedInt32Array())
 
 	for _round_index in range(STARTING_HAND_SIZE):
-		for player in players:
-			player.add_card(draw_pile.pop_back())
+		for player_index in range(players.size()):
+			var card: CardData = draw_pile.pop_back()
+			players[player_index].add_card(card)
+			initial_deal_card_ids[player_index].append(card.card_id)
 
 	for player in players:
 		player.sort_hand()
@@ -340,6 +347,135 @@ func get_total_card_count() -> int:
 	return total
 
 
+func to_snapshot() -> Dictionary:
+	var player_snapshots: Array[Dictionary] = []
+	for player in players:
+		player_snapshots.append({
+			"player_id": player.player_id,
+			"display_name": player.display_name,
+			"hand": _cards_to_snapshots(player.hand),
+		})
+	var deal_order: Array[Array] = []
+	for player_order in initial_deal_card_ids:
+		var ids: Array = []
+		for card_id in player_order:
+			ids.append(card_id)
+		deal_order.append(ids)
+	return {
+		"rules": _rules_to_snapshot(rules),
+		"players": player_snapshots,
+		"draw_pile": _cards_to_snapshots(draw_pile),
+		"discard_pile": _cards_to_snapshots(discard_pile),
+		"last_played_cards": _cards_to_snapshots(last_played_cards),
+		"last_play_pattern": _pattern_to_snapshot(last_play_pattern),
+		"current_player_index": current_player_index,
+		"roller_index": roller_index,
+		"last_player_index": last_player_index,
+		"played_by_index": played_by_index,
+		"dice_value": dice_value,
+		"winner_index": winner_index,
+		"phase": phase,
+		"is_bonus": is_bonus,
+		"game_seed": str(game_seed),
+		"rng_seed": str(_random_source.seed),
+		"rng_state": str(_random_source.state),
+		"passes_since_play": _passes_since_play,
+		"round_pass_count": _round_pass_count,
+		"bonus_candidate": _bonus_candidate,
+		"event_key": str(event_key),
+		"event_args": event_args.duplicate(true),
+		"initial_deal_card_ids": deal_order,
+	}
+
+
+func restore_from_snapshot(snapshot: Dictionary) -> bool:
+	var player_values := snapshot.get("players", []) as Array
+	if player_values.size() < 2 or player_values.size() > 4:
+		return false
+	var loaded_rules := _rules_from_snapshot(snapshot.get("rules", {}) as Dictionary)
+	var loaded_players: Array[PlayerState] = []
+	for player_value in player_values:
+		if player_value is not Dictionary:
+			return false
+		var player_snapshot := player_value as Dictionary
+		var player := PlayerState.new(
+			int(player_snapshot.get("player_id", loaded_players.size())),
+			str(player_snapshot.get("display_name", "")),
+		)
+		player.hand.assign(_cards_from_snapshots(player_snapshot.get("hand", []) as Array))
+		loaded_players.append(player)
+
+	var loaded_draw_pile := _cards_from_snapshots(snapshot.get("draw_pile", []) as Array)
+	var loaded_discard_pile := _cards_from_snapshots(snapshot.get("discard_pile", []) as Array)
+	var loaded_table_cards := _cards_from_snapshots(
+		snapshot.get("last_played_cards", []) as Array,
+	)
+	var expected_count := 108 if loaded_rules.include_jokers else 104
+	var card_ids := {}
+	var total_count := 0
+	for card_list in [loaded_draw_pile, loaded_discard_pile, loaded_table_cards]:
+		for card in card_list:
+			if card_ids.has(card.card_id):
+				return false
+			card_ids[card.card_id] = true
+			total_count += 1
+	for player in loaded_players:
+		for card in player.hand:
+			if card_ids.has(card.card_id):
+				return false
+			card_ids[card.card_id] = true
+			total_count += 1
+	if total_count != expected_count:
+		return false
+
+	var loaded_phase := int(snapshot.get("phase", Phase.READY))
+	var loaded_current := int(snapshot.get("current_player_index", 0))
+	var loaded_roller := int(snapshot.get("roller_index", 0))
+	if (
+		loaded_phase < Phase.READY
+		or loaded_phase > Phase.FINISHED
+		or loaded_current < 0
+		or loaded_current >= loaded_players.size()
+		or loaded_roller < 0
+		or loaded_roller >= loaded_players.size()
+	):
+		return false
+
+	rules = loaded_rules
+	players.assign(loaded_players)
+	draw_pile.assign(loaded_draw_pile)
+	discard_pile.assign(loaded_discard_pile)
+	last_played_cards.assign(loaded_table_cards)
+	last_play_pattern = _pattern_from_snapshot(snapshot.get("last_play_pattern", null))
+	current_player_index = loaded_current
+	roller_index = loaded_roller
+	last_player_index = int(snapshot.get("last_player_index", -1))
+	played_by_index = int(snapshot.get("played_by_index", -1))
+	dice_value = int(snapshot.get("dice_value", 0))
+	winner_index = int(snapshot.get("winner_index", -1))
+	phase = loaded_phase as Phase
+	is_bonus = bool(snapshot.get("is_bonus", false))
+	game_seed = int(str(snapshot.get("game_seed", "0")))
+	_random_source.seed = int(str(snapshot.get("rng_seed", str(game_seed))))
+	_random_source.state = int(str(snapshot.get("rng_state", str(_random_source.state))))
+	_passes_since_play = int(snapshot.get("passes_since_play", 0))
+	_round_pass_count = int(snapshot.get("round_pass_count", 0))
+	_bonus_candidate = bool(snapshot.get("bonus_candidate", false))
+	event_key = StringName(str(snapshot.get("event_key", "")))
+	event_args = (snapshot.get("event_args", {}) as Dictionary).duplicate(true)
+	last_error_key = &""
+	last_error_args.clear()
+	initial_deal_card_ids.clear()
+	for order_value in snapshot.get("initial_deal_card_ids", []) as Array:
+		var order := PackedInt32Array()
+		for card_id in order_value as Array:
+			order.append(int(card_id))
+		initial_deal_card_ids.append(order)
+	while initial_deal_card_ids.size() < players.size():
+		initial_deal_card_ids.append(PackedInt32Array())
+	return true
+
+
 func _start_bonus() -> void:
 	_discard_table_cards()
 	current_player_index = roller_index
@@ -451,6 +587,70 @@ func _cards_to_snapshots(cards: Array[CardData]) -> Array[Dictionary]:
 				"rank": card.rank,
 				"suit": card.suit,
 				"joker_kind": card.joker_kind,
+				"deck_index": card.deck_index,
 			}
 		)
 	return snapshots
+
+
+func _cards_from_snapshots(snapshots: Array) -> Array[CardData]:
+	var cards: Array[CardData] = []
+	for value in snapshots:
+		if value is not Dictionary:
+			continue
+		var card := value as Dictionary
+		cards.append(CardData.new(
+			int(card.get("card_id", -1)),
+			int(card.get("rank", 0)),
+			int(card.get("suit", CardData.Suit.NONE)),
+			int(card.get("joker_kind", CardData.JokerKind.NONE)),
+			int(card.get("deck_index", 0)),
+		))
+	return cards
+
+
+func _rules_to_snapshot(value: GameRules) -> Dictionary:
+	return {
+		"include_jokers": value.include_jokers,
+		"jokers_are_wild": value.jokers_are_wild,
+		"draw_two_on_wildcard_finish": value.draw_two_on_wildcard_finish,
+		"allow_two_in_sequences": value.allow_two_in_sequences,
+		"draw_count_uses_dice": value.draw_count_uses_dice,
+	}
+
+
+func _rules_from_snapshot(snapshot: Dictionary) -> GameRules:
+	var value := GameRules.new()
+	value.include_jokers = bool(snapshot.get("include_jokers", true))
+	value.jokers_are_wild = bool(snapshot.get("jokers_are_wild", true))
+	value.draw_two_on_wildcard_finish = bool(
+		snapshot.get("draw_two_on_wildcard_finish", true),
+	)
+	value.allow_two_in_sequences = bool(snapshot.get("allow_two_in_sequences", false))
+	value.draw_count_uses_dice = bool(snapshot.get("draw_count_uses_dice", false))
+	return value
+
+
+func _pattern_to_snapshot(pattern: HandPattern) -> Variant:
+	if pattern == null:
+		return null
+	return {
+		"type": pattern.type,
+		"card_count": pattern.card_count,
+		"main_rank": pattern.main_rank,
+		"contains_joker": pattern.contains_joker,
+		"uses_wildcard": pattern.uses_wildcard,
+	}
+
+
+func _pattern_from_snapshot(value: Variant) -> HandPattern:
+	if value is not Dictionary:
+		return null
+	var pattern := value as Dictionary
+	return HandPattern.new(
+		int(pattern.get("type", HandPattern.Type.SINGLE)) as HandPattern.Type,
+		int(pattern.get("card_count", 1)),
+		int(pattern.get("main_rank", 0)),
+		bool(pattern.get("contains_joker", false)),
+		bool(pattern.get("uses_wildcard", false)),
+	)

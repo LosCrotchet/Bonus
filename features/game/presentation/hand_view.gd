@@ -58,7 +58,11 @@ func set_hand(
 	_card_views.assign(next_views)
 	_layout_cards(true)
 	for index in range(added_views.size()):
-		added_views[index].play_entry_animation(minf(index, 8) * 0.035)
+		added_views[index].play_entry_animation(
+			minf(index, 8) * SettingsService.get_gameplay_duration(
+				SettingsService.GameplayTiming.CARD_ENTRY,
+			) * 0.09,
+		)
 
 
 func set_selection(selected_ids: Array[int]) -> void:

@@ -10,6 +10,9 @@ UI_GAME_SETTINGS,牌局设置,Game Settings
 UI_PLAYER_COUNT,玩家数量,Players
 UI_PLAYER_COUNT_OPTION,{count} 人,{count} players
 UI_GAME_SPEED,游戏速度,Game Speed
+UI_SECTION_DISPLAY,显示,Display
+UI_SECTION_SOUND,声音,Sound
+UI_SECTION_GAME,游戏,Game
 UI_SPEED_SLOW,慢,Slow
 UI_SPEED_MEDIUM,中,Medium
 UI_SPEED_FAST,快,Fast
@@ -40,6 +43,12 @@ UI_SINGLE_PLAYER,单人游戏,Single Player
 UI_GAME_HEADER,BONUS | {mode}（{count}）,BONUS | {mode} ({count})
 UI_MULTIPLAYER,多人游戏,Multiplayer
 UI_START_GAME,开始游戏,Start Game
+UI_CUSTOM_SEED,自定义种子,Custom Seed
+UI_SEED_PLACEHOLDER,输入整数或任意文本,Enter an integer or any text
+UI_SAVED_GAME_FOUND,发现未完成的牌局,Unfinished Game Found
+UI_SAVED_GAME_PROMPT,是否继续上次的单人牌局？选择新开将覆盖旧存档。,Continue your previous single-player game? Starting new will replace the old save.
+UI_CONTINUE_GAME,继续上次牌局,Continue Game
+UI_START_NEW_GAME,开始新牌局,Start New Game
 UI_BACK,返回,Back
 UI_BACK_TO_MENU,回到主菜单,Back to Main Menu
 RULE_INCLUDE_JOKERS,牌堆包括大小王,Include Jokers

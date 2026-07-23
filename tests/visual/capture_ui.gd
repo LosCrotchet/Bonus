@@ -6,6 +6,7 @@ func _ready() -> void:
 
 
 func _capture() -> void:
+	SaveGameService.clear_save()
 	var state := "menu"
 	var requested_size := Vector2i(1280, 720)
 	for argument in OS.get_cmdline_user_args():
@@ -96,4 +97,5 @@ func _capture() -> void:
 		get_tree().quit(1)
 		return
 	print("BONUS_CAPTURE_OK %s" % output_path)
+	SaveGameService.clear_save()
 	get_tree().quit()

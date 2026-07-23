@@ -9,13 +9,20 @@ signal return_to_menu_requested
 @export var title_key: StringName = &"UI_GAME_SETTINGS"
 
 @onready var title_label: Label = %Title
-@onready var game_speed_option: OptionButton = %GameSpeedOption
+@onready var game_speed_buttons: Array[Button] = [
+	%SpeedSlowButton,
+	%SpeedMediumButton,
+	%SpeedFastButton,
+]
 @onready var resolution_option: OptionButton = %ResolutionOption
-@onready var window_mode_option: OptionButton = %WindowModeOption
+@onready var window_mode_buttons: Array[Button] = [
+	%WindowedButton,
+	%FullscreenButton,
+]
 @onready var language_option: OptionButton = %LanguageOption
-@onready var status_text_toggle: CheckButton = %StatusTextToggle
-@onready var auto_pass_toggle: CheckButton = %AutoPassToggle
-@onready var double_click_toggle: CheckButton = %DoubleClickToggle
+@onready var status_text_toggle: CheckBox = %StatusTextToggle
+@onready var auto_pass_toggle: CheckBox = %AutoPassToggle
+@onready var double_click_toggle: CheckBox = %DoubleClickToggle
 @onready var master_volume_slider: HSlider = %MasterVolumeSlider
 @onready var sfx_volume_slider: HSlider = %SfxVolumeSlider
 @onready var music_volume_slider: HSlider = %MusicVolumeSlider
@@ -63,9 +70,9 @@ func cancel_edit() -> void:
 
 func _on_apply_pressed() -> void:
 	var snapshot := {
-		"game_speed": game_speed_option.get_selected_id(),
+		"game_speed": _selected_button_index(game_speed_buttons),
 		"resolution": resolution_option.get_item_metadata(resolution_option.selected),
-		"window_mode": window_mode_option.get_selected_id(),
+		"window_mode": _selected_button_index(window_mode_buttons),
 		"locale": language_option.get_item_metadata(language_option.selected),
 		"show_status_text": status_text_toggle.button_pressed,
 		"auto_pass": auto_pass_toggle.button_pressed,
@@ -78,20 +85,11 @@ func _on_apply_pressed() -> void:
 
 
 func _populate_options() -> void:
-	game_speed_option.clear()
-	game_speed_option.add_item(tr(&"UI_SPEED_SLOW"), SettingsService.GameSpeed.SLOW)
-	game_speed_option.add_item(tr(&"UI_SPEED_MEDIUM"), SettingsService.GameSpeed.MEDIUM)
-	game_speed_option.add_item(tr(&"UI_SPEED_FAST"), SettingsService.GameSpeed.FAST)
-
 	resolution_option.clear()
 	for index in range(SettingsService.RESOLUTIONS.size()):
 		var value: Vector2i = SettingsService.RESOLUTIONS[index]
 		resolution_option.add_item(_resolution_label(value), index)
 		resolution_option.set_item_metadata(index, value)
-
-	window_mode_option.clear()
-	window_mode_option.add_item(tr(&"UI_WINDOWED"), SettingsService.WindowMode.WINDOWED)
-	window_mode_option.add_item(tr(&"UI_FULLSCREEN"), SettingsService.WindowMode.FULLSCREEN)
 
 	language_option.clear()
 	language_option.add_item(tr(&"UI_LANGUAGE_ZH_CN"), 0)
@@ -101,8 +99,8 @@ func _populate_options() -> void:
 
 
 func _sync_from_snapshot(snapshot: Dictionary) -> void:
-	_select_option_by_id(game_speed_option, int(snapshot["game_speed"]))
-	_select_option_by_id(window_mode_option, int(snapshot["window_mode"]))
+	_select_button_by_index(game_speed_buttons, int(snapshot["game_speed"]))
+	_select_button_by_index(window_mode_buttons, int(snapshot["window_mode"]))
 	for index in range(resolution_option.item_count):
 		if resolution_option.get_item_metadata(index) == snapshot["resolution"]:
 			resolution_option.select(index)
@@ -125,6 +123,18 @@ func _select_option_by_id(option: OptionButton, item_id: int) -> void:
 		if option.get_item_id(index) == item_id:
 			option.select(index)
 			return
+
+
+func _select_button_by_index(buttons: Array[Button], selected_index: int) -> void:
+	if selected_index >= 0 and selected_index < buttons.size():
+		buttons[selected_index].button_pressed = true
+
+
+func _selected_button_index(buttons: Array[Button]) -> int:
+	for index in range(buttons.size()):
+		if buttons[index].button_pressed:
+			return index
+	return 0
 
 
 func _resolution_label(value: Vector2i) -> String:

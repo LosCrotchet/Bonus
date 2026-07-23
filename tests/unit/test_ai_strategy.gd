@@ -1,8 +1,11 @@
 extends SceneTree
 
+const SettingsServiceScript := preload("res://autoload/settings_service.gd")
+
 
 func _init() -> void:
 	_test_default_speed()
+	_test_speed_profiles_do_not_overlap()
 	_test_strategy_context_is_public_and_detached()
 	_test_default_strategy_completes_a_legal_game()
 	print("BONUS_TEST_AI_STRATEGY_OK")
@@ -10,7 +13,33 @@ func _init() -> void:
 
 
 func _test_default_speed() -> void:
-	assert(SettingsService.DEFAULT_GAME_SPEED == SettingsService.GameSpeed.MEDIUM)
+	assert(
+		SettingsServiceScript.DEFAULT_GAME_SPEED
+		== SettingsServiceScript.GameSpeed.SLOW
+	)
+
+
+func _test_speed_profiles_do_not_overlap() -> void:
+	var settings := SettingsServiceScript.new()
+	var ranges: Array[Vector2] = []
+	for speed in SettingsServiceScript.GameSpeed.values():
+		settings.game_speed = speed
+		var minimum := INF
+		var maximum := 0.0
+		for timing in SettingsServiceScript.GameplayTiming.values():
+			var duration := settings.get_gameplay_duration(timing)
+			minimum = minf(minimum, duration)
+			maximum = maxf(maximum, duration)
+		ranges.append(Vector2(minimum, maximum))
+	assert(
+		ranges[SettingsServiceScript.GameSpeed.SLOW].x
+		> ranges[SettingsServiceScript.GameSpeed.MEDIUM].y
+	)
+	assert(
+		ranges[SettingsServiceScript.GameSpeed.MEDIUM].x
+		> ranges[SettingsServiceScript.GameSpeed.FAST].y
+	)
+	settings.free()
 
 
 func _test_strategy_context_is_public_and_detached() -> void:

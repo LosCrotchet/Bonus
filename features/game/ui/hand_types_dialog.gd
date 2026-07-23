@@ -107,6 +107,7 @@ func _create_preview_card(card: CardData) -> TextureRect:
 
 
 func _on_preview_entered(preview: TextureRect) -> void:
+	AudioService.play(&"card_hover")
 	_tween_preview(preview, Vector2(1.08, 1.08), -5.0, Color(1.0, 1.0, 0.92))
 	preview.z_index = 3
 

@@ -33,8 +33,11 @@ func move_to(target_center: Vector2, facing_rotation: float, instant: bool = fal
 		return
 	_move_tween = create_tween().set_parallel(true)
 	_move_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
-	_move_tween.tween_property(self, "position", target_position, 0.28)
-	_move_tween.tween_property(self, "rotation", target_rotation, 0.24)
+	var duration := SettingsService.get_gameplay_duration(
+		SettingsService.GameplayTiming.INDICATOR_MOVE,
+	)
+	_move_tween.tween_property(self, "position", target_position, duration)
+	_move_tween.tween_property(self, "rotation", target_rotation, duration * 0.86)
 
 
 func _draw() -> void:

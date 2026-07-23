@@ -71,6 +71,7 @@ func _build_stream_catalog() -> void:
 		0.8,
 		0.35,
 	)
+	var card_selection := _randomizer(["card_select.wav"], 0.7, 0.2)
 	_cue_streams = {
 		&"ui_hover": _randomizer(
 			["pop_1.wav", "pop_2.wav", "pop_3.wav", "pop_4.wav"],
@@ -85,7 +86,10 @@ func _build_stream_catalog() -> void:
 		&"settings_applied": _randomizer(["settings_applied.wav"], 0.12),
 		&"card_deal": card_handling,
 		&"card_draw": card_handling,
-		&"card_play": card_handling,
+		&"card_select": card_selection,
+		&"card_deselect": card_selection,
+		&"card_hover": _randomizer(["card_hover.wav"], 0.65, 0.2),
+		&"card_play": _randomizer(["card_play.wav"], 0.55, 0.2),
 		&"card_reveal": _randomizer(["card_fan.wav", "card_fan_2.wav"], 0.45),
 		&"dice_shake": _randomizer(
 			["dice_shake_1.wav", "dice_shake_2.wav", "dice_shake_3.wav"],
@@ -105,7 +109,10 @@ func _build_stream_catalog() -> void:
 		&"ui_hover": -8.0,
 		&"card_deal": -5.5,
 		&"card_draw": -3.5,
-		&"card_play": -2.0,
+		&"card_select": -5.0,
+		&"card_deselect": -6.0,
+		&"card_hover": -7.0,
+		&"card_play": -2.5,
 		&"card_reveal": -2.5,
 		&"dice_shake": -2.0,
 		&"turn_change": -3.0,
@@ -116,6 +123,9 @@ func _build_stream_catalog() -> void:
 		&"ui_invalid": 120,
 		&"card_deal": 24,
 		&"card_draw": 30,
+		&"card_select": 22,
+		&"card_deselect": 22,
+		&"card_hover": 35,
 		&"card_play": 45,
 		&"card_reveal": 80,
 		&"turn_change": 80,

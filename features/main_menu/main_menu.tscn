@@ -91,6 +91,62 @@ corner_radius_bottom_left = 11
 
 [sub_resource type="StyleBoxEmpty" id="Style_info_focus"]
 
+[sub_resource type="FontVariation" id="Font_info_bold"]
+base_font = ExtResource("10_font")
+variation_opentype = {
+2003265652: 750.0
+}
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_player_count"]
+
+[sub_resource type="StyleBoxFlat" id="Style_segment"]
+content_margin_left = 12.0
+content_margin_top = 7.0
+content_margin_right = 12.0
+content_margin_bottom = 7.0
+bg_color = Color(0.12, 0.15, 0.15, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.32, 0.4, 0.38, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="Style_segment_hover"]
+content_margin_left = 12.0
+content_margin_top = 7.0
+content_margin_right = 12.0
+content_margin_bottom = 7.0
+bg_color = Color(0.21, 0.27, 0.26, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.5, 0.61, 0.58, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="Style_segment_pressed"]
+content_margin_left = 12.0
+content_margin_top = 7.0
+content_margin_right = 12.0
+content_margin_bottom = 7.0
+bg_color = Color(0.66, 0.42, 0.11, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.75, 0.27, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
 [node name="MainMenu" type="Control" unique_id=1297981667]
 layout_mode = 3
 anchors_preset = 15
@@ -238,7 +294,44 @@ text = "UI_SINGLE_PLAYER"
 [node name="Rule" type="HSeparator" parent="SinglePlayerPanel/Layout" unique_id=1206303099]
 layout_mode = 2
 
+[node name="ResumePrompt" type="VBoxContainer" parent="SinglePlayerPanel/Layout"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="Heading" type="Label" parent="SinglePlayerPanel/Layout/ResumePrompt"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.78, 0.28, 1)
+theme_override_font_sizes/font_size = 22
+text = "UI_SAVED_GAME_FOUND"
+
+[node name="Description" type="Label" parent="SinglePlayerPanel/Layout/ResumePrompt"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.84, 0.82, 1)
+text = "UI_SAVED_GAME_PROMPT"
+autowrap_mode = 2
+
+[node name="PromptSpacer" type="Control" parent="SinglePlayerPanel/Layout/ResumePrompt"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ContinueGameButton" type="Button" parent="SinglePlayerPanel/Layout/ResumePrompt"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "UI_CONTINUE_GAME"
+
+[node name="StartNewGameButton" type="Button" parent="SinglePlayerPanel/Layout/ResumePrompt"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "UI_START_NEW_GAME"
+
 [node name="PlayerCountRow" type="HBoxContainer" parent="SinglePlayerPanel/Layout" unique_id=216228304]
+unique_name_in_owner = true
 layout_mode = 2
 
 [node name="Label" type="Label" parent="SinglePlayerPanel/Layout/PlayerCountRow" unique_id=570887753]
@@ -246,12 +339,46 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_PLAYER_COUNT"
 
-[node name="PlayerCountOption" type="OptionButton" parent="SinglePlayerPanel/Layout/PlayerCountRow" unique_id=2117620109]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(190, 40)
+[node name="PlayerCountButtons" type="HBoxContainer" parent="SinglePlayerPanel/Layout/PlayerCountRow"]
 layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PlayerCount2" type="Button" parent="SinglePlayerPanel/Layout/PlayerCountRow/PlayerCountButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 38)
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_player_count")
+theme_override_styles/normal = SubResource("Style_segment")
+theme_override_styles/hover = SubResource("Style_segment_hover")
+theme_override_styles/pressed = SubResource("Style_segment_pressed")
+text = "2 人"
+
+[node name="PlayerCount3" type="Button" parent="SinglePlayerPanel/Layout/PlayerCountRow/PlayerCountButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 38)
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("ButtonGroup_player_count")
+theme_override_styles/normal = SubResource("Style_segment")
+theme_override_styles/hover = SubResource("Style_segment_hover")
+theme_override_styles/pressed = SubResource("Style_segment_pressed")
+text = "3 人"
+
+[node name="PlayerCount4" type="Button" parent="SinglePlayerPanel/Layout/PlayerCountRow/PlayerCountButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 38)
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_player_count")
+theme_override_styles/normal = SubResource("Style_segment")
+theme_override_styles/hover = SubResource("Style_segment_hover")
+theme_override_styles/pressed = SubResource("Style_segment_pressed")
+text = "4 人"
 
 [node name="IncludeJokersRow" type="HBoxContainer" parent="SinglePlayerPanel/Layout" unique_id=177720139]
+unique_name_in_owner = true
 layout_mode = 2
 
 [node name="Label" type="Label" parent="SinglePlayerPanel/Layout/IncludeJokersRow" unique_id=635854058]
@@ -259,7 +386,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "RULE_INCLUDE_JOKERS"
 
-[node name="IncludeJokersToggle" type="CheckButton" parent="SinglePlayerPanel/Layout/IncludeJokersRow" unique_id=318577836]
+[node name="IncludeJokersToggle" type="CheckBox" parent="SinglePlayerPanel/Layout/IncludeJokersRow" unique_id=318577836]
 unique_name_in_owner = true
 layout_mode = 2
 
@@ -272,7 +399,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "RULE_JOKERS_WILD"
 
-[node name="JokersWildToggle" type="CheckButton" parent="SinglePlayerPanel/Layout/JokersWildRow" unique_id=701769034]
+[node name="JokersWildToggle" type="CheckBox" parent="SinglePlayerPanel/Layout/JokersWildRow" unique_id=701769034]
 unique_name_in_owner = true
 layout_mode = 2
 
@@ -285,11 +412,12 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "RULE_WILDCARD_FINISH_DRAW"
 
-[node name="WildcardFinishToggle" type="CheckButton" parent="SinglePlayerPanel/Layout/WildcardFinishRow" unique_id=1033245578]
+[node name="WildcardFinishToggle" type="CheckBox" parent="SinglePlayerPanel/Layout/WildcardFinishRow" unique_id=1033245578]
 unique_name_in_owner = true
 layout_mode = 2
 
 [node name="SequencesIncludeTwoRow" type="HBoxContainer" parent="SinglePlayerPanel/Layout" unique_id=314360413]
+unique_name_in_owner = true
 layout_mode = 2
 
 [node name="Label" type="Label" parent="SinglePlayerPanel/Layout/SequencesIncludeTwoRow" unique_id=1926034911]
@@ -297,11 +425,12 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "RULE_SEQUENCE_WITH_TWO"
 
-[node name="SequencesIncludeTwoToggle" type="CheckButton" parent="SinglePlayerPanel/Layout/SequencesIncludeTwoRow" unique_id=931720404]
+[node name="SequencesIncludeTwoToggle" type="CheckBox" parent="SinglePlayerPanel/Layout/SequencesIncludeTwoRow" unique_id=931720404]
 unique_name_in_owner = true
 layout_mode = 2
 
 [node name="VariableDrawRow" type="HBoxContainer" parent="SinglePlayerPanel/Layout" unique_id=17553493]
+unique_name_in_owner = true
 layout_mode = 2
 
 [node name="Label" type="Label" parent="SinglePlayerPanel/Layout/VariableDrawRow" unique_id=837487397]
@@ -315,17 +444,45 @@ layout_mode = 2
 tooltip_text = "RULE_VARIABLE_DRAW_HINT"
 focus_mode = 0
 theme_override_font_sizes/font_size = 14
+theme_override_fonts/font = SubResource("Font_info_bold")
 theme_override_styles/normal = SubResource("Style_info_button")
 theme_override_styles/pressed = SubResource("Style_info_hover")
 theme_override_styles/hover = SubResource("Style_info_hover")
 theme_override_styles/focus = SubResource("Style_info_focus")
 text = "?"
 
-[node name="VariableDrawToggle" type="CheckButton" parent="SinglePlayerPanel/Layout/VariableDrawRow" unique_id=556665278]
+[node name="VariableDrawToggle" type="CheckBox" parent="SinglePlayerPanel/Layout/VariableDrawRow" unique_id=556665278]
 unique_name_in_owner = true
 layout_mode = 2
 
+[node name="CustomSeedRow" type="HBoxContainer" parent="SinglePlayerPanel/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="SinglePlayerPanel/Layout/CustomSeedRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_CUSTOM_SEED"
+
+[node name="CustomSeedToggle" type="CheckBox" parent="SinglePlayerPanel/Layout/CustomSeedRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="SeedInputRow" type="HBoxContainer" parent="SinglePlayerPanel/Layout"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="SeedInput" type="LineEdit" parent="SinglePlayerPanel/Layout/SeedInputRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "UI_SEED_PLACEHOLDER"
+max_length = 64
+
 [node name="Spacer" type="Control" parent="SinglePlayerPanel/Layout" unique_id=1302890108]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
