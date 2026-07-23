@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bvxqhbdunh17n"
-path="res://.godot/imported/card_heart_13.png-e99c9c56d2219f4d6084bff4311abe39.ctex"
+uid="uid://c6sd1a1dhgscu"
+path="res://.godot/imported/list_menu.png-78b99306d6fd7b02d63a79e05284658d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/cards/card_heart_13.png"
-dest_files=["res://.godot/imported/card_heart_13.png-e99c9c56d2219f4d6084bff4311abe39.ctex"]
+source_file="res://assets/icons/list_menu.png"
+dest_files=["res://.godot/imported/list_menu.png-78b99306d6fd7b02d63a79e05284658d.ctex"]
 
 [params]
 
@@ -36,5 +36,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=512
+process/size_limit=0
 detect_3d/compress_to=1

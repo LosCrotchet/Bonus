@@ -70,8 +70,11 @@ var _action_bar_tween: Tween
 var _settings_tween: Tween
 var _hand_types_tween: Tween
 var _status_tween: Tween
+var _table_bonus_tween: Tween
 var _button_tweens: Dictionary = {}
 var _flow_borders: Dictionary = {}
+var _seat_card_counts: Dictionary = {}
+var _panel_active_states: Dictionary = {}
 var _bonus_dice_elapsed := 0.0
 var _bonus_dice_frame := 0
 var _auto_pass_pending := false
@@ -84,6 +87,8 @@ var _dealing := false
 var _deal_animation_running := false
 var _deal_visible_counts := PackedInt32Array()
 var _deal_flying_cards: Array[TextureRect] = []
+var _session_revision := 0
+var _auto_pass_checked_revision := -1
 
 
 func configure(
@@ -97,6 +102,8 @@ func configure(
 
 
 func _ready() -> void:
+	CardTextureCatalog.warm_up()
+	_finish_card_texture_warmup.call_deferred()
 	settings_button.pressed.connect(_on_settings_pressed)
 	hand_types_button.pressed.connect(_open_hand_types)
 	hand_types_dialog.close_requested.connect(_close_hand_types)
@@ -157,8 +164,12 @@ func _ready() -> void:
 	_refresh_dice_prompt()
 
 
+func _finish_card_texture_warmup() -> void:
+	await get_tree().create_timer(0.2).timeout
+	CardTextureCatalog.finish_warm_up()
+
+
 func _process(delta: float) -> void:
-	_sync_flow_borders()
 	if _session == null or not _session.is_bonus or _rolling:
 		_bonus_dice_elapsed = 0.0
 		return
@@ -176,6 +187,7 @@ func _start_new_game(start_deal_animation: bool = true) -> void:
 	_ai_task_running = false
 	_rolling = false
 	_last_bonus_state = false
+	_reset_table_bonus_effect()
 	_pending_interpretations.clear()
 	_selected_card_ids.clear()
 	_auto_pass_pending = false
@@ -183,6 +195,11 @@ func _start_new_game(start_deal_animation: bool = true) -> void:
 	_indicator_player_index = -1
 	_last_play_signature = ""
 	_last_human_hand_count = -1
+	_seat_card_counts.clear()
+	_panel_active_states.clear()
+	played_panel.modulate.a = 1.0
+	_session_revision = 0
+	_auto_pass_checked_revision = -1
 	_dealing = true
 	_deal_animation_running = false
 	_deal_visible_counts = PackedInt32Array()
@@ -191,7 +208,7 @@ func _start_new_game(start_deal_animation: bool = true) -> void:
 	interpretation_popup.hide()
 
 	_session = GameSession.new()
-	_session.state_changed.connect(_refresh)
+	_session.state_changed.connect(_on_session_state_changed)
 	_session.game_finished.connect(_on_game_finished)
 	_session.action_resolved.connect(_on_public_action_resolved)
 	_session.start_game(
@@ -259,6 +276,7 @@ func _animate_initial_deal_card(player_index: int) -> void:
 	if target_panel == null:
 		return
 	var card := TextureRect.new()
+	card.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	card.texture = CardTextureCatalog.get_card_back()
 	card.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	card.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -360,6 +378,11 @@ func _refresh() -> void:
 		_schedule_ai_if_needed()
 
 
+func _on_session_state_changed() -> void:
+	_session_revision += 1
+	_refresh()
+
+
 func _refresh_seats() -> void:
 	header_title.text = _translated(
 		&"UI_GAME_HEADER",
@@ -371,6 +394,7 @@ func _refresh_seats() -> void:
 		var panel := view["panel"] as PanelContainer
 		panel.visible = player_index != -1
 		if player_index == -1:
+			_seat_card_counts.erase(seat_key)
 			continue
 
 		var player := _session.players[player_index]
@@ -378,7 +402,9 @@ func _refresh_seats() -> void:
 		var visible_count := _get_visible_hand_count(player_index)
 		(view["count"] as Label).text = str(visible_count)
 		_set_active_border(panel, player_index == _session.roller_index)
-		_fill_card_backs(view["cards"] as HBoxContainer, visible_count)
+		if int(_seat_card_counts.get(seat_key, -1)) != visible_count:
+			_fill_card_backs(view["cards"] as HBoxContainer, visible_count)
+			_seat_card_counts[seat_key] = visible_count
 
 	hand_title.text = _translated(
 		&"UI_HAND_TITLE",
@@ -407,9 +433,9 @@ func _refresh_center_table() -> void:
 			dice_value_label.text = _translated(&"UI_DICE_VALUE", {"value": _session.dice_value})
 
 	var play_signature := _get_play_signature()
-	var should_reveal := not play_signature.is_empty() and play_signature != _last_play_signature
-	_clear_container(played_cards)
 	if _session.last_played_cards.is_empty():
+		if not _last_play_signature.is_empty() or played_cards.get_child_count() > 0:
+			_clear_container(played_cards)
 		_last_play_signature = ""
 		played_caption.text = tr(&"UI_PLAY_AREA_EMPTY")
 		return
@@ -421,17 +447,23 @@ func _refresh_center_table() -> void:
 			"hand_type": _hand_type_name(_session.last_play_pattern),
 		},
 	)
+	if (
+		play_signature == _last_play_signature
+		and played_cards.get_child_count() == _session.last_played_cards.size()
+	):
+		return
+	_last_play_signature = play_signature
+	_clear_container(played_cards)
 	for card in _session.last_played_cards:
 		var card_texture := TextureRect.new()
+		card_texture.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		card_texture.texture = CardTextureCatalog.get_texture(card)
 		card_texture.custom_minimum_size = Vector2(68.0, 96.0)
 		card_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		card_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		card_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		played_cards.add_child(card_texture)
-	if should_reveal:
-		_last_play_signature = play_signature
-		_animate_played_cards_reveal.call_deferred(play_signature)
+	_animate_played_cards_reveal(play_signature)
 
 
 func _refresh_hand() -> void:
@@ -586,7 +618,6 @@ func _refresh_selection_labels() -> void:
 func _refresh_bonus_effect() -> void:
 	var bonus_owner := _session.roller_index
 	bonus_effect.visible = _session.is_bonus and bonus_owner == HUMAN_PLAYER_INDEX
-	table_bonus_effect.visible = _session.is_bonus
 	_set_bonus_border(hand_panel, false)
 	for seat_key in _seat_views:
 		var player_index := _find_player_index(seat_key)
@@ -599,7 +630,54 @@ func _refresh_bonus_effect() -> void:
 		)
 	if _session.is_bonus and not _last_bonus_state:
 		_show_center_feedback(&"UI_BONUS_FEEDBACK", Color(1.0, 0.76, 0.25))
+	if _session.is_bonus != _last_bonus_state:
+		_animate_table_bonus(_session.is_bonus)
 	_last_bonus_state = _session.is_bonus
+
+
+func _animate_table_bonus(entering: bool) -> void:
+	if _table_bonus_tween != null:
+		_table_bonus_tween.kill()
+	var material := table_bonus_effect.material as ShaderMaterial
+	var duration := SettingsService.get_ui_animation_duration() * 1.4
+	_table_bonus_tween = create_tween()
+	if entering:
+		table_bonus_effect.visible = true
+		material.set_shader_parameter("wipe_left", 0.0)
+		material.set_shader_parameter("wipe_right", 0.0)
+		_table_bonus_tween.tween_method(
+			func(value: float) -> void:
+				material.set_shader_parameter("wipe_right", value),
+			0.0,
+			1.0,
+			duration,
+		).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	else:
+		material.set_shader_parameter("wipe_left", 0.0)
+		material.set_shader_parameter("wipe_right", 1.0)
+		_table_bonus_tween.tween_method(
+			func(value: float) -> void:
+				material.set_shader_parameter("wipe_left", value),
+			0.0,
+			1.0,
+			duration,
+		).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+		_table_bonus_tween.tween_callback(_finish_table_bonus_exit)
+
+
+func _reset_table_bonus_effect() -> void:
+	if _table_bonus_tween != null:
+		_table_bonus_tween.kill()
+		_table_bonus_tween = null
+	_finish_table_bonus_exit()
+
+
+func _finish_table_bonus_exit() -> void:
+	var material := table_bonus_effect.material as ShaderMaterial
+	material.set_shader_parameter("wipe_left", 0.0)
+	material.set_shader_parameter("wipe_right", 1.0)
+	table_bonus_effect.visible = false
+	_table_bonus_tween = null
 
 
 func _input(event: InputEvent) -> void:
@@ -796,6 +874,9 @@ func _schedule_auto_pass_if_needed() -> void:
 		or (_session.is_bonus and _session.last_play_pattern == null)
 	):
 		return
+	if _auto_pass_checked_revision == _session_revision:
+		return
+	_auto_pass_checked_revision = _session_revision
 	# An empty recommendation is conclusive: the exhaustive finder checked every
 	# combination of the required size against the current public target.
 	if not _session.get_recommended_play(HUMAN_PLAYER_INDEX).is_empty():
@@ -893,6 +974,7 @@ func _animate_ai_card_play(player_index: int, card_count: int) -> void:
 	var tween := create_tween().set_parallel(true)
 	for index in range(card_count):
 		var card_back := TextureRect.new()
+		card_back.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		card_back.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		card_back.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		card_back.texture = CardTextureCatalog.get_card_back()
@@ -913,8 +995,7 @@ func _animate_ai_card_play(player_index: int, card_count: int) -> void:
 		).set_delay(delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 		tween.tween_property(card_back, "rotation", 0.08 * (index - card_count * 0.5), SettingsService.get_card_travel_duration()).set_delay(delay)
 	await tween.finished
-	for card_back in flying_cards:
-		card_back.queue_free()
+	_fade_out_flying_cards(flying_cards)
 
 
 func _animate_human_card_play(snapshots: Array[Dictionary]) -> void:
@@ -926,6 +1007,7 @@ func _animate_human_card_play(snapshots: Array[Dictionary]) -> void:
 	for index in range(snapshots.size()):
 		var snapshot := snapshots[index]
 		var card := TextureRect.new()
+		card.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		card.texture = snapshot["texture"] as Texture2D
 		card.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		card.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -947,18 +1029,31 @@ func _animate_human_card_play(snapshots: Array[Dictionary]) -> void:
 		tween.tween_property(card, "size", Vector2(68.0, 96.0), SettingsService.get_card_travel_duration()).set_delay(delay)
 		tween.tween_property(card, "rotation", 0.0, SettingsService.get_card_travel_duration()).set_delay(delay)
 	await tween.finished
-	for card in flying_cards:
-		card.queue_free()
+	_fade_out_flying_cards(flying_cards)
+
+
+func _fade_out_flying_cards(cards: Array[TextureRect]) -> void:
+	if cards.is_empty():
+		return
+	var cleanup := create_tween().set_parallel(true)
+	for card in cards:
+		if is_instance_valid(card):
+			cleanup.tween_property(card, "modulate:a", 0.0, 0.12).set_delay(0.03)
+	cleanup.chain().tween_callback(
+		func() -> void:
+			for card in cards:
+				if is_instance_valid(card):
+					card.queue_free()
+	)
 
 
 func _animate_played_cards_reveal(expected_signature: String) -> void:
-	await get_tree().process_frame
 	if expected_signature != _last_play_signature or played_cards.get_child_count() == 0:
 		return
 	var tween := create_tween().set_parallel(true)
 	for index in range(played_cards.get_child_count()):
 		var card := played_cards.get_child(index) as Control
-		card.pivot_offset = card.size * Vector2(0.0, 0.5)
+		card.pivot_offset = Vector2(0.0, 48.0)
 		card.scale = Vector2(0.08, 0.92)
 		card.modulate.a = 0.0
 		var delay := index * 0.055
@@ -990,6 +1085,7 @@ func _animate_ai_draw(player_index: int, drawn_count: int) -> void:
 	var tween := create_tween().set_parallel(true)
 	for index in range(mini(drawn_count, 3)):
 		var card_back := TextureRect.new()
+		card_back.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		card_back.texture = CardTextureCatalog.get_card_back()
 		card_back.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		card_back.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -1038,8 +1134,8 @@ func _show_pass_feedback(player_index: int) -> void:
 	label.add_theme_font_size_override("font_size", 32)
 	var rect := panel.get_global_rect()
 	if player_index == HUMAN_PLAYER_INDEX:
-		#var title_rect := hand_title.get_global_rect()
-		label.position = Vector2(rect.position.x + rect.size.x / 2 + 15.0, rect.position.y - 40.0) - global_position
+		var title_rect := hand_title.get_global_rect()
+		label.position = Vector2(title_rect.position.x + 80.0, title_rect.position.y - 60.0) - global_position
 	else:
 		label.position = Vector2(rect.end.x - 100.0, rect.end.y + 5.0) - global_position
 	_animate_pass_label(label)
@@ -1050,7 +1146,14 @@ func _show_center_feedback(key: StringName, color: Color) -> void:
 	label.size = Vector2(300.0, 88.0)
 	label.add_theme_font_size_override("font_size", 52)
 	label.position = get_global_rect().get_center() - global_position - label.size * 0.5
-	_animate_feedback_label(label, Vector2(0.0, -22.0))
+	played_panel.modulate.a = 0.0
+	_animate_feedback_label(
+		label,
+		Vector2(0.0, -22.0),
+		func() -> void:
+			if is_instance_valid(played_panel):
+				played_panel.modulate.a = 1.0
+	)
 
 
 func _create_feedback_label(text_value: String, color: Color) -> Label:
@@ -1068,7 +1171,11 @@ func _create_feedback_label(text_value: String, color: Color) -> Label:
 	return label
 
 
-func _animate_feedback_label(label: Label, offset: Vector2) -> void:
+func _animate_feedback_label(
+	label: Label,
+	offset: Vector2,
+	finished: Callable = Callable(),
+) -> void:
 	label.modulate.a = 0.0
 	label.scale = Vector2(0.92, 0.92)
 	var hold_duration := SettingsService.get_feedback_duration()
@@ -1079,6 +1186,8 @@ func _animate_feedback_label(label: Label, offset: Vector2) -> void:
 	tween.tween_property(label, "position", label.position + offset, exit_duration).set_delay(hold_duration)
 	tween.tween_property(label, "modulate:a", 0.0, exit_duration).set_delay(hold_duration)
 	tween.chain().tween_callback(label.queue_free)
+	if finished.is_valid():
+		tween.tween_callback(finished)
 
 
 func _animate_pass_label(label: Label) -> void:
@@ -1171,6 +1280,7 @@ func _on_settings_applied() -> void:
 
 
 func _on_settings_changed(_snapshot: Dictionary) -> void:
+	_auto_pass_checked_revision = -1
 	_refresh()
 
 
@@ -1339,6 +1449,7 @@ func _fill_card_backs(container: HBoxContainer, card_count: int) -> void:
 	_clear_container(container)
 	for _index in range(mini(card_count, 7)):
 		var card_back := TextureRect.new()
+		card_back.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		card_back.texture = CardTextureCatalog.get_card_back()
 		card_back.custom_minimum_size = Vector2(38.0, 52.0)
 		card_back.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -1361,19 +1472,19 @@ func _fill_card_backs(container: HBoxContainer, card_count: int) -> void:
 
 
 func _set_active_border(panel: PanelContainer, active: bool) -> void:
-	var source := panel.get_theme_stylebox("panel") as StyleBoxFlat
-	if source == null:
-		return
-	var style := source.duplicate() as StyleBoxFlat
-	style.border_color = INACTIVE_BORDER_COLOR
-	style.border_width_left = 2
-	style.border_width_top = 2
-	style.border_width_right = 2
-	style.border_width_bottom = 2
-	panel.add_theme_stylebox_override("panel", style)
+	if _panel_active_states.get(panel, null) != active:
+		_panel_active_states[panel] = active
+		var source := panel.get_theme_stylebox("panel") as StyleBoxFlat
+		if source != null:
+			var style := source.duplicate() as StyleBoxFlat
+			style.border_color = INACTIVE_BORDER_COLOR
+			style.border_width_left = 2
+			style.border_width_top = 2
+			style.border_width_right = 2
+			style.border_width_bottom = 2
+			panel.add_theme_stylebox_override("panel", style)
 	if _flow_borders.has(panel):
 		var border := _flow_borders[panel] as ColorRect
-		(border.material as ShaderMaterial).set_shader_parameter("bonus_mode", false)
 		border.visible = active and panel.visible
 
 
@@ -1416,7 +1527,7 @@ func _setup_flow_borders() -> void:
 		border.material = border_material
 		add_child(border)
 		_flow_borders[panel] = border
-		panel.resized.connect(_update_flow_border_size.bind(panel))
+		panel.item_rect_changed.connect(_update_flow_border_size.bind(panel))
 	_update_all_flow_borders.call_deferred()
 
 
@@ -1433,12 +1544,6 @@ func _update_flow_border_size(panel: PanelContainer) -> void:
 func _update_all_flow_borders() -> void:
 	for panel in _flow_borders:
 		_update_flow_border_size(panel as PanelContainer)
-
-
-func _sync_flow_borders() -> void:
-	if not is_inside_tree():
-		return
-	_update_all_flow_borders()
 
 
 func _set_bonus_border(panel: PanelContainer, active: bool) -> void:

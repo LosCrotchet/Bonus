@@ -34,6 +34,7 @@ func _run_test() -> void:
 	var table_bonus := game_scene.get_node("%TableBonusEffect") as ColorRect
 	var hand_bonus := game_scene.get_node("%BonusEffect") as ColorRect
 	var status_label := game_scene.get_node("%StatusLabel") as Label
+	var action_slot := game_scene.get_node("%ActionSlot") as Control
 	var selection_type := game_scene.get_node("%SelectionTypeLabel") as Label
 	var interpretation_popup := game_scene.get_node("%InterpretationPopup") as PopupPanel
 	var turn_indicator := game_scene.get_node("%TurnIndicator") as Control
@@ -56,7 +57,8 @@ func _run_test() -> void:
 	assert(is_equal_approx(table_band.size.y, 156.0))
 	assert(table_band.get_global_rect().position.x <= 1.0)
 	assert(table_band.get_global_rect().end.x >= game_scene.get_global_rect().end.x - 1.0)
-	assert(status_label.global_position.y < played_panel.global_position.y)
+	assert(status_label.get_global_rect().position.y >= table_band.get_global_rect().end.y)
+	assert(status_label.get_global_rect().end.y <= action_slot.get_global_rect().position.y)
 	assert(not selection_type.visible)
 	assert(header_title.text.begins_with("BONUS |"))
 	assert(int(game_scene.get("_indicator_player_index")) == 0)
@@ -90,6 +92,11 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	assert(hand_types_overlay.visible)
 	assert((hand_types_dialog.get_node("%Rows") as VBoxContainer).get_child_count() == 6)
+	var preview_cards := hand_types_dialog.find_children("*", "TextureRect", true, false)
+	assert(not preview_cards.is_empty())
+	var preview := preview_cards[0] as TextureRect
+	assert(preview.custom_minimum_size == Vector2(48.0, 65.0))
+	assert(preview.texture_filter == CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS)
 	hand_types_dialog.close_requested.emit()
 	assert(await _wait_until(func() -> bool: return not hand_types_overlay.visible, 1.0))
 

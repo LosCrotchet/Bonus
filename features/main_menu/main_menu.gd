@@ -122,10 +122,16 @@ func _refresh_rule_dependencies() -> void:
 
 
 func _open_single_player() -> void:
+	if _active_secondary == single_player_panel and single_player_panel.visible:
+		_close_secondary()
+		return
 	_show_secondary(single_player_panel)
 
 
 func _open_settings() -> void:
+	if _active_secondary == settings_side_panel and settings_side_panel.visible:
+		_close_secondary()
+		return
 	settings_side_panel.begin_edit()
 	_show_secondary(settings_side_panel)
 

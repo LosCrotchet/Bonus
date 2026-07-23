@@ -13,7 +13,7 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	assert((app.get_node("Version") as Label).text == "v0.5.4")
+	assert((app.get_node("Version") as Label).text == "v0.5.5")
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
 	assert(menu != null)
@@ -50,6 +50,12 @@ func _run_test() -> void:
 	await get_tree().create_timer(0.35).timeout
 	var secondary_position := single_panel.position
 	var secondary_size := single_panel.size
+	(menu.get_node("%SinglePlayerButton") as Button).pressed.emit()
+	assert(await _wait_until(func() -> bool: return not single_panel.visible, 1.0))
+	(menu.get_node("%SinglePlayerButton") as Button).pressed.emit()
+	assert(await _wait_until(func() -> bool: return single_panel.visible, 1.0))
+	await get_tree().create_timer(0.35).timeout
+	assert(single_panel.position.is_equal_approx(secondary_position))
 
 	(menu.get_node("%SinglePlayerBackButton") as Button).pressed.emit()
 	assert(await _wait_until(func() -> bool: return not single_panel.visible, 1.0))

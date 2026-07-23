@@ -23,6 +23,7 @@ var _shadow_far: TextureRect
 
 
 func _ready() -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	ignore_texture_size = true
 	stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	focus_mode = Control.FOCUS_NONE
@@ -163,6 +164,7 @@ func _create_shadows() -> void:
 
 func _new_shadow(tint: Color) -> TextureRect:
 	var shadow := TextureRect.new()
+	shadow.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	shadow.show_behind_parent = true
 	shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	shadow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE

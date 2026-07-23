@@ -1,10 +1,16 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://app/app.gd" id="1_app"]
 [ext_resource type="FontFile" path="res://assets/fonts/SourceHanSans-VF.otf.ttc" id="2_font"]
 
+[sub_resource type="FontVariation" id="Font_default"]
+base_font = ExtResource("2_font")
+variation_opentype = {
+2003265652: 500.0
+}
+
 [sub_resource type="Theme" id="Theme_app"]
-default_font = ExtResource("2_font")
+default_font = SubResource("Font_default")
 default_font_size = 16
 Button/constants/h_separation = 12
 
@@ -76,5 +82,5 @@ grow_vertical = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.78, 0.83, 0.81, 0.9)
 theme_override_font_sizes/font_size = 14
-text = "v0.5.4"
+text = "v0.5.5"
 horizontal_alignment = 2

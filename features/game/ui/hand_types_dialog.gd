@@ -3,7 +3,7 @@ extends PanelContainer
 
 signal close_requested
 
-const CARD_SIZE := Vector2(42.0, 59.0)
+const CARD_SIZE := Vector2(48.0, 65.0)
 const SUITS := [
 	CardData.Suit.CLUBS,
 	CardData.Suit.DIAMONDS,
@@ -56,7 +56,7 @@ func _create_point_group(group_data: Dictionary) -> HBoxContainer:
 
 func _create_pattern_row(entry: Dictionary, alternate: bool) -> PanelContainer:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(0.0, 74.0)
+	panel.custom_minimum_size = Vector2(0.0, 80.0)
 	panel.add_theme_stylebox_override("panel", _row_style(alternate))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 14)
@@ -94,6 +94,7 @@ func _create_pattern_row(entry: Dictionary, alternate: bool) -> PanelContainer:
 
 func _create_preview_card(card: CardData) -> TextureRect:
 	var preview := TextureRect.new()
+	preview.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	preview.custom_minimum_size = CARD_SIZE
 	preview.texture = CardTextureCatalog.get_texture(card)
 	preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
