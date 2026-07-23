@@ -60,6 +60,7 @@ var locale := "zh_CN"
 var show_status_text := true
 var auto_pass := false
 var double_click_actions := false
+var player_id := ""
 var master_volume := 0.8
 var sfx_volume := 0.75
 var music_volume := 0.65
@@ -74,6 +75,9 @@ func _ready() -> void:
 	_audio_save_timer.timeout.connect(_save_settings)
 	add_child(_audio_save_timer)
 	_load_settings()
+	if player_id.is_empty():
+		player_id = "Player-%s" % SeedCodec.generate_random_text().left(4)
+		_save_settings()
 	_apply_language()
 	_apply_audio()
 	_apply_display.call_deferred()
@@ -88,6 +92,7 @@ func get_snapshot() -> Dictionary:
 		"show_status_text": show_status_text,
 		"auto_pass": auto_pass,
 		"double_click_actions": double_click_actions,
+		"player_id": player_id,
 		"master_volume": master_volume,
 		"sfx_volume": sfx_volume,
 		"music_volume": music_volume,
@@ -174,6 +179,16 @@ func set_music_volume(value: float) -> void:
 	music_volume = clampf(value, 0.0, 1.0)
 	_apply_audio_bus(&"Music", music_volume)
 	_emit_audio_change()
+
+
+func set_player_id(value: String) -> bool:
+	var clean_id := value.strip_edges().left(24)
+	if clean_id.is_empty():
+		return false
+	player_id = clean_id
+	_save_settings()
+	settings_changed.emit(get_snapshot())
+	return true
 
 
 func get_ai_think_delay() -> float:
@@ -263,6 +278,7 @@ func _load_settings() -> void:
 	show_status_text = bool(config.get_value("gameplay", "show_status_text", true))
 	auto_pass = bool(config.get_value("gameplay", "auto_pass", false))
 	double_click_actions = bool(config.get_value("gameplay", "double_click_actions", false))
+	player_id = str(config.get_value("network", "player_id", "")).strip_edges().left(24)
 	master_volume = clampf(config.get_value("audio", "master_volume", master_volume), 0.0, 1.0)
 	sfx_volume = clampf(config.get_value("audio", "sfx_volume", sfx_volume), 0.0, 1.0)
 	music_volume = clampf(config.get_value("audio", "music_volume", music_volume), 0.0, 1.0)
@@ -291,4 +307,5 @@ func _save_settings() -> void:
 	config.set_value("audio", "master_volume", master_volume)
 	config.set_value("audio", "sfx_volume", sfx_volume)
 	config.set_value("audio", "music_volume", music_volume)
+	config.set_value("network", "player_id", player_id)
 	config.save(SETTINGS_PATH)

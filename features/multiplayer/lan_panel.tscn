@@ -1,0 +1,328 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://features/multiplayer/lan_panel.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="Style_panel"]
+content_margin_left = 28.0
+content_margin_top = 30.0
+content_margin_right = 28.0
+content_margin_bottom = 24.0
+bg_color = Color(0.15, 0.17, 0.17, 0.98)
+border_width_right = 1
+border_color = Color(0.34, 0.42, 0.4, 1)
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 12
+
+[sub_resource type="ButtonGroup" id="Group_mode"]
+[sub_resource type="ButtonGroup" id="Group_players"]
+[sub_resource type="ButtonGroup" id="Group_timeout"]
+
+[node name="LanPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(620, 720)
+theme_override_styles/panel = SubResource("Style_panel")
+script = ExtResource("1_script")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Layout" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Scroll/Layout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "LAN_TITLE"
+
+[node name="Rule" type="HSeparator" parent="Scroll/Layout"]
+layout_mode = 2
+
+[node name="PlayerIdRow" type="HBoxContainer" parent="Scroll/Layout"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Scroll/Layout/PlayerIdRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "LAN_PLAYER_ID"
+[node name="PlayerIdInput" type="LineEdit" parent="Scroll/Layout/PlayerIdRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(270, 40)
+layout_mode = 2
+max_length = 24
+
+[node name="StatusLabel" type="Label" parent="Scroll/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.72, 0.28, 1)
+autowrap_mode = 2
+
+[node name="SetupContent" type="VBoxContainer" parent="Scroll/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ModeRow" type="HBoxContainer" parent="Scroll/Layout/SetupContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+[node name="HostModeButton" type="Button" parent="Scroll/Layout/SetupContent/ModeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 42)
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("Group_mode")
+text = "LAN_CREATE_ROOM"
+[node name="JoinModeButton" type="Button" parent="Scroll/Layout/SetupContent/ModeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 42)
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("Group_mode")
+text = "LAN_JOIN_ROOM"
+
+[node name="HostSettings" type="VBoxContainer" parent="Scroll/Layout/SetupContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 9
+
+[node name="PortRow" type="HBoxContainer" parent="Scroll/Layout/SetupContent/HostSettings"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Scroll/Layout/SetupContent/HostSettings/PortRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "LAN_PORT"
+[node name="HostPort" type="SpinBox" parent="Scroll/Layout/SetupContent/HostSettings/PortRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+min_value = 1024.0
+max_value = 65535.0
+value = 9077.0
+
+[node name="PlayerCountRow" type="HBoxContainer" parent="Scroll/Layout/SetupContent/HostSettings"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Scroll/Layout/SetupContent/HostSettings/PlayerCountRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_PLAYER_COUNT"
+[node name="PlayerCount2" type="Button" parent="Scroll/Layout/SetupContent/HostSettings/PlayerCountRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(66, 38)
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("Group_players")
+text = "2"
+[node name="PlayerCount3" type="Button" parent="Scroll/Layout/SetupContent/HostSettings/PlayerCountRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(66, 38)
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("Group_players")
+text = "3"
+[node name="PlayerCount4" type="Button" parent="Scroll/Layout/SetupContent/HostSettings/PlayerCountRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(66, 38)
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("Group_players")
+text = "4"
+
+[node name="TimeoutRow" type="HBoxContainer" parent="Scroll/Layout/SetupContent/HostSettings"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Scroll/Layout/SetupContent/HostSettings/TimeoutRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "LAN_TURN_TIMER"
+[node name="Timeout15" type="Button" parent="Scroll/Layout/SetupContent/HostSettings/TimeoutRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(70, 38)
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("Group_timeout")
+text = "15s"
+[node name="Timeout30" type="Button" parent="Scroll/Layout/SetupContent/HostSettings/TimeoutRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(70, 38)
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("Group_timeout")
+text = "30s"
+[node name="Timeout60" type="Button" parent="Scroll/Layout/SetupContent/HostSettings/TimeoutRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(70, 38)
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("Group_timeout")
+text = "60s"
+
+[node name="IncludeJokersRow" type="HBoxContainer" parent="Scroll/Layout/SetupContent/HostSettings"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Scroll/Layout/SetupContent/HostSettings/IncludeJokersRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "RULE_INCLUDE_JOKERS"
+[node name="IncludeJokers" type="CheckBox" parent="Scroll/Layout/SetupContent/HostSettings/IncludeJokersRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="JokersWildRow" type="HBoxContainer" parent="Scroll/Layout/SetupContent/HostSettings"]
+unique_name_in_owner = true
+layout_mode = 2
+[node name="Label" type="Label" parent="Scroll/Layout/SetupContent/HostSettings/JokersWildRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "RULE_JOKERS_WILD"
+[node name="JokersWild" type="CheckBox" parent="Scroll/Layout/SetupContent/HostSettings/JokersWildRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="WildcardFinishRow" type="HBoxContainer" parent="Scroll/Layout/SetupContent/HostSettings"]
+unique_name_in_owner = true
+layout_mode = 2
+[node name="Label" type="Label" parent="Scroll/Layout/SetupContent/HostSettings/WildcardFinishRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "RULE_WILDCARD_FINISH_DRAW"
+[node name="WildcardFinish" type="CheckBox" parent="Scroll/Layout/SetupContent/HostSettings/WildcardFinishRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="AllowTwoRow" type="HBoxContainer" parent="Scroll/Layout/SetupContent/HostSettings"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Scroll/Layout/SetupContent/HostSettings/AllowTwoRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "RULE_SEQUENCE_WITH_TWO"
+[node name="AllowTwo" type="CheckBox" parent="Scroll/Layout/SetupContent/HostSettings/AllowTwoRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="VariableDrawRow" type="HBoxContainer" parent="Scroll/Layout/SetupContent/HostSettings"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Scroll/Layout/SetupContent/HostSettings/VariableDrawRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "RULE_VARIABLE_DRAW"
+[node name="VariableDraw" type="CheckBox" parent="Scroll/Layout/SetupContent/HostSettings/VariableDrawRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="CustomSeedRow" type="HBoxContainer" parent="Scroll/Layout/SetupContent/HostSettings"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Scroll/Layout/SetupContent/HostSettings/CustomSeedRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_CUSTOM_SEED"
+[node name="CustomSeed" type="CheckBox" parent="Scroll/Layout/SetupContent/HostSettings/CustomSeedRow"]
+unique_name_in_owner = true
+layout_mode = 2
+[node name="SeedInputRow" type="HBoxContainer" parent="Scroll/Layout/SetupContent/HostSettings"]
+unique_name_in_owner = true
+layout_mode = 2
+[node name="SeedInput" type="LineEdit" parent="Scroll/Layout/SetupContent/HostSettings/SeedInputRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+max_length = 8
+placeholder_text = "UI_SEED_PLACEHOLDER"
+
+[node name="CreateButton" type="Button" parent="Scroll/Layout/SetupContent/HostSettings"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+text = "LAN_CREATE"
+
+[node name="JoinSettings" type="VBoxContainer" parent="Scroll/Layout/SetupContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+[node name="AddressRow" type="HBoxContainer" parent="Scroll/Layout/SetupContent/JoinSettings"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Scroll/Layout/SetupContent/JoinSettings/AddressRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "LAN_ADDRESS"
+[node name="AddressInput" type="LineEdit" parent="Scroll/Layout/SetupContent/JoinSettings/AddressRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(270, 40)
+layout_mode = 2
+text = "127.0.0.1"
+[node name="PortRow" type="HBoxContainer" parent="Scroll/Layout/SetupContent/JoinSettings"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Scroll/Layout/SetupContent/JoinSettings/PortRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "LAN_PORT"
+[node name="JoinPort" type="SpinBox" parent="Scroll/Layout/SetupContent/JoinSettings/PortRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+min_value = 1024.0
+max_value = 65535.0
+value = 9077.0
+[node name="JoinButton" type="Button" parent="Scroll/Layout/SetupContent/JoinSettings"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+text = "LAN_JOIN"
+
+[node name="BackButton" type="Button" parent="Scroll/Layout/SetupContent"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "UI_BACK"
+
+[node name="LobbyContent" type="VBoxContainer" parent="Scroll/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+[node name="RoomSummary" type="Label" parent="Scroll/Layout/LobbyContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.79, 0.27, 1)
+autowrap_mode = 2
+[node name="MembersTitle" type="Label" parent="Scroll/Layout/LobbyContent"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "LAN_MEMBERS"
+[node name="MembersList" type="VBoxContainer" parent="Scroll/Layout/LobbyContent"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+theme_override_constants/separation = 7
+[node name="ReadyButton" type="Button" parent="Scroll/Layout/LobbyContent"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "LAN_READY"
+[node name="EditRoomButton" type="Button" parent="Scroll/Layout/LobbyContent"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "LAN_EDIT_ROOM"
+[node name="HostActions" type="HBoxContainer" parent="Scroll/Layout/LobbyContent"]
+layout_mode = 2
+theme_override_constants/separation = 10
+[node name="AddAiButton" type="Button" parent="Scroll/Layout/LobbyContent/HostActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "LAN_ADD_AI"
+[node name="StartButton" type="Button" parent="Scroll/Layout/LobbyContent/HostActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_START_GAME"
+[node name="LobbyBackButton" type="Button" parent="Scroll/Layout/LobbyContent"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "LAN_LEAVE_ROOM"

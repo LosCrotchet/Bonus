@@ -169,3 +169,48 @@ CARD_SUIT_HEARTS,红心,Hearts
 CARD_SUIT_SPADES,黑桃,Spades
 AI_STRATEGY_BASE,基础策略,Base Strategy
 AI_STRATEGY_DEFAULT,默认策略,Default Strategy
+LAN_TITLE,局域网联机,LAN Multiplayer
+LAN_PLAYER_ID,玩家 ID,Player ID
+LAN_CREATE_ROOM,创建房间,Host Room
+LAN_JOIN_ROOM,加入房间,Join Room
+LAN_CREATE,创建,Create
+LAN_JOIN,加入,Join
+LAN_ADDRESS,房主 IP 地址,Host IP Address
+LAN_PORT,端口,Port
+LAN_TURN_TIMER,回合读秒,Turn Timer
+LAN_READY,准备,Ready
+LAN_UNREADY,取消准备,Cancel Ready
+LAN_ADD_AI,添加 AI,Add AI
+LAN_KICK,踢出,Kick
+LAN_LEAVE_ROOM,离开房间,Leave Room
+LAN_MEMBERS,房间成员,Room Members
+LAN_ROOM_SUMMARY,{count} 人 · 每回合 {timeout} 秒 · 种子 {seed},{count} players · {timeout}s turns · Seed {seed}
+LAN_MEMBER_READY,已准备,Ready
+LAN_MEMBER_NOT_READY,未准备,Not Ready
+LAN_MEMBER_AI,AI · 已准备,AI · Ready
+LAN_STATUS_CONNECTING,正在连接房主……,Connecting to host...
+LAN_STATUS_DISCONNECTED,连接已断开,Disconnected
+LAN_ERROR_PLAYER_ID_REQUIRED,请输入有效的玩家 ID,Enter a valid player ID
+LAN_ERROR_INVALID_PORT,端口必须在 1024 至 65535 之间,Port must be between 1024 and 65535
+LAN_ERROR_ADDRESS_REQUIRED,请输入房主的 IP 地址,Enter the host IP address
+LAN_ERROR_INVALID_SEED,种子必须是 8 位小写字母或数字,Seed must contain 8 lowercase letters or digits
+LAN_ERROR_CREATE_SERVER,无法创建局域网房间,Could not create the LAN room
+LAN_ERROR_CONNECT_FAILED,无法连接到房主,Could not connect to the host
+LAN_ERROR_ROOM_NOT_JOINABLE,房间不存在、已关闭或对局已经开始,The room is unavailable or the match has started
+LAN_ERROR_ROOM_FULL,房间已满,The room is full
+LAN_ERROR_DUPLICATE_PLAYER_ID,该玩家 ID 已在房间中,That player ID is already in the room
+LAN_ERROR_PROTOCOL_MISMATCH,客户端与房主的游戏版本不兼容,Client and host versions are incompatible
+LAN_ERROR_MEMBER_NOT_FOUND,未找到该房间成员,Room member not found
+LAN_ERROR_GAME_ALREADY_STARTED,对局已经开始,The match has already started
+LAN_ERROR_SEAT_UNAVAILABLE,该位置不可用,That seat is unavailable
+LAN_ERROR_CANNOT_REMOVE_HOST,不能移除房主,The host cannot be removed
+LAN_ERROR_SEATS_OCCUPIED,人数变更会移除已有玩家,Changing player count would remove an occupied seat
+LAN_ERROR_NOT_ALL_READY,所有位置必须有人且全部准备后才能开始,Every seat must be occupied and ready before starting
+LAN_ERROR_KICKED,你已被房主移出房间,You were removed by the host
+LAN_ERROR_HOST_DISCONNECTED,房主已断线，对局结束,The host disconnected and the match ended
+LAN_STATUS_TURN_TIME,剩余 {seconds} 秒,{seconds}s remaining
+LAN_STATUS_PLAYER_DISCONNECTED,{player} 已断线，AI 正在接管,{player} disconnected; AI is taking over
+LAN_HAND_TITLE,{player}（你） · {count} 张,{player} (You) · {count} cards
+LAN_EDIT_ROOM,房间设置,Room Settings
+LAN_APPLY_ROOM,应用房间设置,Apply Room Settings
+LAN_HOST_ENDPOINT,局域网地址：{address}:{port},LAN address: {address}:{port}

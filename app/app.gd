@@ -19,6 +19,7 @@ func _show_main_menu(animate: bool) -> void:
 	_current_screen = menu
 	menu.connect("single_player_requested", _on_single_player_requested)
 	menu.connect("resume_game_requested", _on_resume_game_requested)
+	menu.connect("lan_game_requested", _on_lan_game_requested)
 	menu.connect("quit_requested", _on_quit_requested)
 	if animate:
 		await menu.call("play_enter_transition")
@@ -47,6 +48,10 @@ func _on_resume_game_requested() -> void:
 	await _open_game({"resume_payload": payload})
 
 
+func _on_lan_game_requested(snapshot: Dictionary) -> void:
+	await _open_game({"network_snapshot": snapshot})
+
+
 func _open_game(configuration: Dictionary) -> void:
 	if _transitioning:
 		return
@@ -58,6 +63,8 @@ func _open_game(configuration: Dictionary) -> void:
 	var game := GAME_SCENE.instantiate() as Control
 	if configuration.has("resume_payload"):
 		game.call("configure_resume", configuration["resume_payload"], true)
+	elif configuration.has("network_snapshot"):
+		game.call("configure_network", configuration["network_snapshot"], true)
 	else:
 		game.call(
 			"configure",

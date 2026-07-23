@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Bonus"
-config/version="0.5.11"
+config/version="0.5.12"
 run/main_scene="res://app/app.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
@@ -25,6 +25,7 @@ default_bus_layout="res://default_bus_layout.tres"
 SettingsService="*res://autoload/settings_service.gd"
 AudioService="*res://autoload/audio_service.gd"
 SaveGameService="*res://autoload/save_game_service.gd"
+LanMultiplayerService="*res://autoload/lan_multiplayer_service.gd"
 
 [display]
 

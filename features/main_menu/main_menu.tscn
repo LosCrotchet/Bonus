@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dumaily2aj2nt" path="res://features/main_menu/main_menu.gd" id="1_menu"]
 [ext_resource type="PackedScene" path="res://shared/ui/settings_panel.tscn" id="2_settings"]
+[ext_resource type="PackedScene" path="res://features/multiplayer/lan_panel.tscn" id="3_lan"]
 [ext_resource type="Texture2D" uid="uid://p3670spq12rh" path="res://assets/icons/single_player.png" id="4_single"]
 [ext_resource type="Texture2D" uid="uid://cytp8wxofr3ew" path="res://assets/icons/multiplayer_2.png" id="5_multi"]
 [ext_resource type="Texture2D" uid="uid://f0n8ynnrfqs8" path="res://assets/icons/settings.png" id="6_settings"]
@@ -525,3 +526,13 @@ grow_vertical = 2
 theme_override_styles/panel = SubResource("Style_secondary")
 show_navigation_actions = false
 title_key = &"UI_SETTINGS"
+
+[node name="LanPanel" parent="." instance=ExtResource("3_lan")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = 350.0
+offset_right = 970.0
+grow_vertical = 2

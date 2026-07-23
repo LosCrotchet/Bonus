@@ -9,11 +9,13 @@ signal single_player_requested(
 	seed_text: String,
 )
 signal resume_game_requested
+signal lan_game_requested(snapshot: Dictionary)
 signal quit_requested
 
 @onready var menu_panel: PanelContainer = %MenuPanel
 @onready var single_player_panel: PanelContainer = %SinglePlayerPanel
 @onready var settings_side_panel: AppSettingsPanel = %SettingsSidePanel
+@onready var lan_panel: Control = %LanPanel
 @onready var player_count_buttons: Array[Button] = [
 	%PlayerCount2,
 	%PlayerCount3,
@@ -46,12 +48,17 @@ var _menu_target_position := Vector2.ZERO
 func _ready() -> void:
 	AudioService.play_music(&"menu")
 	%SinglePlayerButton.pressed.connect(_open_single_player)
+	%MultiplayerButton.pressed.connect(_open_multiplayer)
 	%SettingsButton.pressed.connect(_open_settings)
 	%StartGameButton.pressed.connect(_start_single_player)
 	%ContinueGameButton.pressed.connect(_continue_saved_game)
 	%StartNewGameButton.pressed.connect(_discard_saved_game)
 	%SinglePlayerBackButton.pressed.connect(_close_secondary)
 	settings_side_panel.canceled.connect(_close_secondary)
+	lan_panel.close_requested.connect(_close_secondary)
+	lan_panel.game_requested.connect(
+		func(snapshot: Dictionary) -> void: lan_game_requested.emit(snapshot)
+	)
 	exit_game_button.pressed.connect(_show_exit_confirmation)
 	%ExitYesButton.pressed.connect(_confirm_exit_game)
 	%ExitNoButton.pressed.connect(_hide_exit_confirmation)
@@ -64,6 +71,7 @@ func _ready() -> void:
 	_reset_single_player_options()
 	single_player_panel.visible = false
 	settings_side_panel.visible = false
+	lan_panel.visible = false
 	_hide_exit_confirmation()
 	_setup_button_motion()
 	await get_tree().process_frame
@@ -71,6 +79,7 @@ func _ready() -> void:
 	_secondary_targets = {
 		single_player_panel: single_player_panel.position,
 		settings_side_panel: settings_side_panel.position,
+		lan_panel: lan_panel.position,
 	}
 
 
@@ -200,6 +209,14 @@ func _open_settings() -> void:
 	_show_secondary(settings_side_panel)
 
 
+func _open_multiplayer() -> void:
+	if _active_secondary == lan_panel and lan_panel.visible:
+		_close_secondary()
+		return
+	lan_panel.begin_open()
+	_show_secondary(lan_panel)
+
+
 func _show_secondary(panel: Control) -> void:
 	if _transitioning:
 		return
@@ -207,6 +224,8 @@ func _show_secondary(panel: Control) -> void:
 		_secondary_tween.kill()
 	AudioService.play(&"ui_fade_in")
 	if _active_secondary != null and _active_secondary != panel:
+		if _active_secondary == lan_panel:
+			LanMultiplayerService.close_connection()
 		_active_secondary.position = _get_secondary_target(_active_secondary)
 		_active_secondary.modulate.a = 1.0
 		_active_secondary.visible = false
@@ -225,6 +244,8 @@ func _close_secondary() -> void:
 		return
 	var panel := _active_secondary
 	_active_secondary = null
+	if panel == lan_panel:
+		LanMultiplayerService.close_connection()
 	if _secondary_tween != null:
 		_secondary_tween.kill()
 	AudioService.play(&"ui_fade_out")

@@ -2,11 +2,12 @@ extends Control
 
 signal return_to_menu_requested
 
-const HUMAN_PLAYER_INDEX := 0
 const DEFAULT_PLAYER_COUNT := 3
 const DICE_ROOT := "res://assets/art/dice/"
 const INACTIVE_BORDER_COLOR := Color(0.25, 0.4, 0.36, 0.75)
 const FLOW_BORDER_SHADER := preload("res://assets/shaders/flow_border.gdshader")
+const DISCONNECT_ICON := preload("res://assets/icons/disconnect_icon.png")
+const NETWORK_GAME_VIEW = preload("res://multiplayer/session/network_game_view.gd")
 const PLAYED_CARD_REVEAL_DURATION := 0.22
 const FLYING_CARD_FADE_DURATION := 0.06
 const SCENE_TRANSITION_DURATION := 0.38
@@ -51,6 +52,10 @@ const BONUS_DICE_FRAME_INTERVAL := 0.14
 @onready var result_menu_button: Button = %ResultMenuButton
 
 var _session: GameSession
+var _human_player_index := 0
+var _network_mode := false
+var _network_initial_snapshot: Dictionary = {}
+var _network_player_meta: Dictionary = {}
 var _selected_card_ids: Array[int] = []
 var _player_count := DEFAULT_PLAYER_COUNT
 var _game_rules := GameRules.new()
@@ -103,6 +108,9 @@ var _auto_pass_checked_revision := -1
 var _bonus_sound_step := 0
 var _round_start_sound_played := false
 var _presentation_random := RandomNumberGenerator.new()
+var _last_network_revision := -1
+var _last_network_timer_second := -1
+var _disconnect_icons: Dictionary = {}
 
 
 func configure(
@@ -124,6 +132,13 @@ func configure(
 
 func configure_resume(payload: Dictionary, embedded_in_app: bool = false) -> void:
 	_resume_payload = payload.duplicate(true)
+	_embedded_in_app = embedded_in_app
+
+
+func configure_network(snapshot: Dictionary, embedded_in_app: bool = false) -> void:
+	_network_mode = true
+	_network_initial_snapshot = snapshot.duplicate(true)
+	_human_player_index = int(snapshot.get("local_player_index", 0))
 	_embedded_in_app = embedded_in_app
 
 
@@ -154,6 +169,11 @@ func _ready() -> void:
 	hand_view.selection_changed.connect(_on_hand_selection_changed)
 	SettingsService.language_changed.connect(_on_language_changed)
 	SettingsService.settings_changed.connect(_on_settings_changed)
+	LanMultiplayerService.game_snapshot_received.connect(_on_network_snapshot_received)
+	LanMultiplayerService.game_started.connect(_on_network_game_restarted)
+	LanMultiplayerService.lobby_updated.connect(_on_network_lobby_updated)
+	LanMultiplayerService.network_error.connect(_on_network_error)
+	LanMultiplayerService.match_ended.connect(_on_network_match_ended)
 
 	_seat_views = {
 		"SEAT_NORTH": {
@@ -183,7 +203,9 @@ func _ready() -> void:
 	_setup_flow_borders()
 	if _embedded_in_app:
 		%Background.visible = false
-	if _resume_payload.is_empty() or not _restore_saved_game():
+	if _network_mode:
+		_start_network_game(_network_initial_snapshot)
+	elif _resume_payload.is_empty() or not _restore_saved_game():
 		_start_new_game(not _embedded_in_app)
 	await get_tree().process_frame
 	_action_bar_rest_position = action_bar.position
@@ -202,6 +224,11 @@ func _finish_card_texture_warmup() -> void:
 
 
 func _process(delta: float) -> void:
+	if _network_mode:
+		var timer_second := LanMultiplayerService.get_turn_seconds_remaining()
+		if timer_second != _last_network_timer_second:
+			_last_network_timer_second = timer_second
+			_refresh_status()
 	if _session == null or not _session.is_bonus or _rolling:
 		_bonus_dice_elapsed = 0.0
 		return
@@ -264,6 +291,127 @@ func _start_new_game(start_deal_animation: bool = true) -> void:
 		_run_initial_deal.call_deferred(_game_serial)
 
 
+func _start_network_game(snapshot: Dictionary) -> void:
+	_game_serial += 1
+	_ai_task_running = false
+	_rolling = false
+	_last_bonus_state = false
+	_reset_table_bonus_effect()
+	_pending_interpretations.clear()
+	_selected_card_ids.clear()
+	_auto_pass_pending = false
+	_presentation_busy = false
+	_indicator_player_index = -1
+	_last_play_signature = ""
+	_last_human_hand_count = -1
+	_bonus_sound_step = 0
+	_round_start_sound_played = false
+	_seat_card_counts.clear()
+	_panel_active_states.clear()
+	_session_revision = int(snapshot.get("revision", 0))
+	_last_network_revision = _session_revision
+	_auto_pass_checked_revision = -1
+	_dealing = false
+	_deal_animation_running = false
+	_clear_transient()
+	_stop_dice_prompt()
+	interpretation_popup.hide()
+	_reset_draw_pile_activity()
+
+	_session = GameSession.new()
+	if not NETWORK_GAME_VIEW.apply_snapshot(_session, snapshot):
+		_on_network_match_ended(&"LAN_ERROR_PROTOCOL_MISMATCH")
+		return
+	_human_player_index = int(snapshot.get("local_player_index", 0))
+	_player_count = _session.players.size()
+	_game_rules = _session.rules.clone()
+	_configured_seed_text = _session.game_seed_text
+	_update_network_player_meta(snapshot)
+	_deal_visible_counts.resize(_player_count)
+	for player_index in range(_player_count):
+		_deal_visible_counts[player_index] = _session.players[player_index].hand.size()
+	result_overlay.visible = false
+	_refresh()
+
+
+func _on_network_snapshot_received(snapshot: Dictionary) -> void:
+	if not _network_mode or _session == null:
+		return
+	var revision := int(snapshot.get("revision", 0))
+	if revision <= _last_network_revision:
+		return
+	var previous_counts := _snapshot_hand_counts()
+	var previous_phase := _session.phase
+	var action := snapshot.get("public_action", {}) as Dictionary
+	if not NETWORK_GAME_VIEW.apply_snapshot(_session, snapshot):
+		_on_network_error(&"LAN_ERROR_PROTOCOL_MISMATCH")
+		return
+	_last_network_revision = revision
+	_session_revision = revision
+	_update_network_player_meta(snapshot)
+	_selected_card_ids.clear()
+	_presentation_busy = false
+	_rolling = false
+	dice_button.rotation = 0.0
+	if not action.is_empty():
+		_on_public_action_resolved(action)
+		var actor := int(action.get("player_index", -1))
+		match StringName(str(action.get("type", ""))):
+			&"pass":
+				if actor != _human_player_index:
+					_show_pass_feedback(actor)
+			&"play":
+				if actor != _human_player_index:
+					_animate_ai_card_play(actor, (action.get("cards", []) as Array).size())
+	_animate_non_human_draws(previous_counts)
+	_refresh()
+	if previous_phase != GameSession.Phase.FINISHED and _session.phase == GameSession.Phase.FINISHED:
+		_on_game_finished(_session.winner_index)
+
+
+func _on_network_game_restarted(snapshot: Dictionary) -> void:
+	if not _network_mode or _network_initial_snapshot == snapshot:
+		return
+	_network_initial_snapshot = snapshot.duplicate(true)
+	_start_network_game(snapshot)
+
+
+func _update_network_player_meta(snapshot: Dictionary) -> void:
+	_network_player_meta.clear()
+	for value in snapshot.get("players", []) as Array:
+		if value is Dictionary:
+			var player := value as Dictionary
+			_network_player_meta[int(player.get("player_index", -1))] = player.duplicate(true)
+
+
+func _on_network_lobby_updated(_snapshot: Dictionary) -> void:
+	if _network_mode:
+		_refresh()
+
+
+func _on_network_error(error_key: StringName) -> void:
+	if not _network_mode:
+		return
+	_presentation_busy = false
+	hand_view.set_cards_animation_hidden(_selected_card_ids, false)
+	_set_transient(error_key)
+	_refresh()
+
+
+func _on_network_match_ended(reason_key: StringName) -> void:
+	if not _network_mode:
+		return
+	_set_transient(reason_key)
+	_refresh()
+	_return_after_network_end.call_deferred(_game_serial)
+
+
+func _return_after_network_end(serial: int) -> void:
+	await get_tree().create_timer(1.8).timeout
+	if serial == _game_serial:
+		return_to_menu_requested.emit()
+
+
 func _restore_saved_game() -> bool:
 	var session_snapshot := _resume_payload.get("session", {}) as Dictionary
 	if session_snapshot.is_empty():
@@ -317,6 +465,10 @@ func _restore_saved_game() -> bool:
 
 func _on_restart_pressed() -> void:
 	AudioService.play(&"ui_confirm")
+	if _network_mode:
+		if LanMultiplayerService.is_host:
+			LanMultiplayerService.restart_game()
+		return
 	_start_new_game()
 
 
@@ -383,7 +535,7 @@ func _animate_initial_deal_card(player_index: int) -> void:
 	card.pivot_offset = card.size * 0.5
 	var source := draw_pile_view.get_global_rect().get_center() - global_position
 	var target := target_panel.get_global_rect().get_center() - global_position
-	if player_index == HUMAN_PLAYER_INDEX:
+	if player_index == _human_player_index:
 		target = hand_view.get_global_rect().get_center() - global_position
 	card.position = source - card.size * 0.5
 	card.scale = Vector2(0.82, 0.82)
@@ -393,7 +545,7 @@ func _animate_initial_deal_card(player_index: int) -> void:
 	var duration := SettingsService.get_deal_card_duration()
 	var destination_size := (
 		Vector2(52.0, 74.0)
-		if player_index == HUMAN_PLAYER_INDEX
+		if player_index == _human_player_index
 		else Vector2(36.0, 50.0)
 	)
 	var tween := create_tween().set_parallel(true)
@@ -489,14 +641,14 @@ func _get_visible_hand_count(player_index: int) -> int:
 
 func _get_visible_human_hand() -> Array[CardData]:
 	var result: Array[CardData] = []
-	var hand := _session.players[HUMAN_PLAYER_INDEX].hand
-	var visible_count := _get_visible_hand_count(HUMAN_PLAYER_INDEX)
+	var hand := _session.players[_human_player_index].hand
+	var visible_count := _get_visible_hand_count(_human_player_index)
 	if not _dealing or _session.initial_deal_card_ids.is_empty():
 		for index in range(visible_count):
 			result.append(hand[index])
 		return result
 	var dealt_ids := {}
-	var deal_order := _session.initial_deal_card_ids[HUMAN_PLAYER_INDEX]
+	var deal_order := _session.initial_deal_card_ids[_human_player_index]
 	for index in range(mini(visible_count, deal_order.size())):
 		dealt_ids[deal_order[index]] = true
 	for card in hand:
@@ -548,31 +700,45 @@ func _on_session_state_changed() -> void:
 func _refresh_seats() -> void:
 	header_title.text = _translated(
 		&"UI_GAME_HEADER",
-		{"mode": tr(&"UI_SINGLE_PLAYER"), "count": _player_count},
+		{
+			"mode": tr(&"UI_MULTIPLAYER") if _network_mode else tr(&"UI_SINGLE_PLAYER"),
+			"count": _player_count,
+		},
 	)
 	for seat_key in _seat_views:
 		var view: Dictionary = _seat_views[seat_key]
-		var player_index := _find_player_index(seat_key)
+		var player_index := _get_visual_player_index(seat_key)
 		var panel := view["panel"] as PanelContainer
 		panel.visible = player_index != -1
 		if player_index == -1:
 			_seat_card_counts.erase(seat_key)
 			continue
 
-		var player := _session.players[player_index]
-		(view["name"] as Label).text = tr(player.display_name)
+		(view["name"] as Label).text = _player_name(player_index)
 		var visible_count := _get_visible_hand_count(player_index)
 		(view["count"] as Label).text = str(visible_count)
+		_apply_network_connection_visual(panel, player_index)
 		_set_active_border(panel, player_index == _session.roller_index)
 		if int(_seat_card_counts.get(seat_key, -1)) != visible_count:
 			_fill_card_backs(view["cards"] as HBoxContainer, visible_count)
 			_seat_card_counts[seat_key] = visible_count
 
-	hand_title.text = _translated(
-		&"UI_HAND_TITLE",
-		{"count": _get_visible_hand_count(HUMAN_PLAYER_INDEX)},
+	hand_title.text = (
+		_translated(
+			&"LAN_HAND_TITLE",
+			{
+				"player": _player_name(_human_player_index),
+				"count": _get_visible_hand_count(_human_player_index),
+			},
+		)
+		if _network_mode
+		else _translated(
+			&"UI_HAND_TITLE",
+			{"count": _get_visible_hand_count(_human_player_index)},
+		)
 	)
-	_set_active_border(hand_panel, _session.roller_index == HUMAN_PLAYER_INDEX)
+	_apply_network_connection_visual(hand_panel, _human_player_index)
+	_set_active_border(hand_panel, _session.roller_index == _human_player_index)
 
 
 func _refresh_center_table() -> void:
@@ -629,7 +795,7 @@ func _refresh_center_table() -> void:
 
 
 func _refresh_hand() -> void:
-	var hand_count := _session.players[HUMAN_PLAYER_INDEX].hand.size()
+	var hand_count := _session.players[_human_player_index].hand.size()
 	var drawn_count := hand_count - _last_human_hand_count
 	if _last_human_hand_count >= 0 and drawn_count > 0 and not _dealing:
 		_pulse_draw_pile()
@@ -698,7 +864,7 @@ func _refresh_status() -> void:
 		if _session.phase == GameSession.Phase.AWAITING_ROLL:
 			message = (
 				tr(&"STATUS_CLICK_DICE")
-				if _session.current_player_index == HUMAN_PLAYER_INDEX
+				if _session.current_player_index == _human_player_index
 				else _translated(&"STATUS_PREPARING_ROLL", {"player": current_name})
 			)
 		elif _session.is_bonus and _session.last_play_pattern == null:
@@ -716,6 +882,11 @@ func _refresh_status() -> void:
 				&"STATUS_MUST_PLAY",
 				{"player": current_name, "count": _session.dice_value},
 			)
+	if _network_mode and _transient_key.is_empty() and _session.phase != GameSession.Phase.FINISHED:
+		message += " · " + _translated(
+			&"LAN_STATUS_TURN_TIME",
+			{"seconds": LanMultiplayerService.get_turn_seconds_remaining()},
+		)
 	_set_status_message(message)
 
 
@@ -787,7 +958,7 @@ func _refresh_selection_labels() -> void:
 
 func _refresh_bonus_effect() -> void:
 	var bonus_owner := _session.roller_index
-	bonus_effect.visible = _session.is_bonus and bonus_owner == HUMAN_PLAYER_INDEX
+	bonus_effect.visible = _session.is_bonus and bonus_owner == _human_player_index
 	_set_bonus_border(hand_panel, false)
 	for seat_key in _seat_views:
 		var player_index := _find_player_index(seat_key)
@@ -916,7 +1087,7 @@ func _handle_gameplay_double_click(button_index: int) -> void:
 func _on_dice_pressed() -> void:
 	if not _can_human_roll() or _rolling:
 		return
-	_animate_roll_and_commit(HUMAN_PLAYER_INDEX, _game_serial)
+	_animate_roll_and_commit(_human_player_index, _game_serial)
 
 
 func _animate_roll_and_commit(player_index: int, serial: int) -> void:
@@ -939,7 +1110,10 @@ func _animate_roll_and_commit(player_index: int, serial: int) -> void:
 
 	if serial != _game_serial:
 		return
-	_session.roll_dice(player_index)
+	if _network_mode:
+		LanMultiplayerService.request_roll()
+	else:
+		_session.roll_dice(player_index)
 	AudioService.play(&"dice_land")
 	_rolling = false
 	dice_button.rotation = 0.0
@@ -955,7 +1129,7 @@ func _animate_roll_and_commit(player_index: int, serial: int) -> void:
 
 func _on_hint_pressed() -> void:
 	_clear_transient()
-	var recommendation := _session.get_recommended_play(HUMAN_PLAYER_INDEX)
+	var recommendation := _session.get_recommended_play(_human_player_index)
 	if recommendation.is_empty():
 		AudioService.play(&"ui_invalid")
 		_set_transient(&"STATUS_NO_LEGAL_PLAY")
@@ -976,13 +1150,15 @@ func _on_pass_pressed() -> void:
 	_presentation_busy = true
 	_refresh_actions()
 	var hand_counts := _snapshot_hand_counts()
-	_show_pass_feedback(HUMAN_PLAYER_INDEX)
+	_show_pass_feedback(_human_player_index)
 	await get_tree().create_timer(SettingsService.get_gameplay_duration(
 		SettingsService.GameplayTiming.ACTION_PAUSE,
 	)).timeout
 	if serial != _game_serial:
 		return
-	if not _session.pass_turn(HUMAN_PLAYER_INDEX):
+	if _network_mode:
+		LanMultiplayerService.request_pass()
+	elif not _session.pass_turn(_human_player_index):
 		_show_session_error()
 	else:
 		_animate_non_human_draws(hand_counts)
@@ -995,11 +1171,13 @@ func _on_play_pressed() -> void:
 		return
 	_clear_transient()
 	var interpretations := _session.get_legal_interpretations(
-		HUMAN_PLAYER_INDEX,
+		_human_player_index,
 		_selected_card_ids,
 	)
 	if interpretations.is_empty():
-		if not _session.play_cards(HUMAN_PLAYER_INDEX, _selected_card_ids):
+		if _network_mode:
+			_set_transient(&"ERROR_INVALID_HAND")
+		elif not _session.play_cards(_human_player_index, _selected_card_ids):
 			_show_session_error()
 		_refresh()
 		return
@@ -1042,8 +1220,11 @@ func _commit_play(interpretation_key: String) -> void:
 	await _animate_human_card_play(snapshots)
 	if serial != _game_serial:
 		return
-	if not _session.play_cards(
-		HUMAN_PLAYER_INDEX,
+	if _network_mode:
+		LanMultiplayerService.request_play(selected_ids, interpretation_key)
+		_selected_card_ids.clear()
+	elif not _session.play_cards(
+		_human_player_index,
 		selected_ids,
 		interpretation_key,
 	):
@@ -1085,7 +1266,7 @@ func _schedule_auto_pass_if_needed() -> void:
 	_auto_pass_checked_revision = _session_revision
 	# An empty recommendation is conclusive: the exhaustive finder checked every
 	# combination of the required size against the current public target.
-	if not _session.get_recommended_play(HUMAN_PLAYER_INDEX).is_empty():
+	if not _session.get_recommended_play(_human_player_index).is_empty():
 		return
 	_auto_pass_pending = true
 	_run_auto_pass.call_deferred(_game_serial, _session.current_player_index)
@@ -1096,15 +1277,15 @@ func _run_auto_pass(serial: int, player_index: int) -> void:
 	_auto_pass_pending = false
 	if (
 		serial != _game_serial
-		or player_index != HUMAN_PLAYER_INDEX
+		or player_index != _human_player_index
 		or not SettingsService.auto_pass
 		or not _can_human_act()
 		or (_session.is_bonus and _session.last_play_pattern == null)
-		or not _session.get_recommended_play(HUMAN_PLAYER_INDEX).is_empty()
+		or not _session.get_recommended_play(_human_player_index).is_empty()
 	):
 		_refresh()
 		return
-	_show_pass_feedback(HUMAN_PLAYER_INDEX)
+	_show_pass_feedback(_human_player_index)
 	_presentation_busy = true
 	_refresh_actions()
 	await get_tree().create_timer(SettingsService.get_gameplay_duration(
@@ -1113,16 +1294,20 @@ func _run_auto_pass(serial: int, player_index: int) -> void:
 	if serial != _game_serial:
 		return
 	var hand_counts := _snapshot_hand_counts()
-	if _session.pass_turn(HUMAN_PLAYER_INDEX):
+	if _network_mode:
+		LanMultiplayerService.request_pass()
+	elif _session.pass_turn(_human_player_index):
 		await _animate_non_human_draws(hand_counts)
 	_presentation_busy = false
 	_refresh()
 
 
 func _schedule_ai_if_needed() -> void:
+	if _network_mode:
+		return
 	if _ai_task_running or _presentation_busy or _session.phase == GameSession.Phase.FINISHED:
 		return
-	if _session.current_player_index == HUMAN_PLAYER_INDEX:
+	if _session.current_player_index == _human_player_index:
 		return
 	_ai_task_running = true
 	_run_ai_until_human.call_deferred(_game_serial)
@@ -1132,7 +1317,7 @@ func _run_ai_until_human(serial: int) -> void:
 	while (
 		serial == _game_serial
 		and _session.phase != GameSession.Phase.FINISHED
-		and _session.current_player_index != HUMAN_PLAYER_INDEX
+		and _session.current_player_index != _human_player_index
 	):
 		var player_index := _session.current_player_index
 		var strategy := _strategies[player_index] as PlayerStrategy
@@ -1315,7 +1500,9 @@ func _snapshot_hand_counts() -> PackedInt32Array:
 
 
 func _animate_non_human_draws(previous_counts: PackedInt32Array) -> void:
-	for player_index in range(1, mini(previous_counts.size(), _session.players.size())):
+	for player_index in range(mini(previous_counts.size(), _session.players.size())):
+		if player_index == _human_player_index:
+			continue
 		var drawn_count := _session.players[player_index].hand.size() - previous_counts[player_index]
 		if drawn_count > 0:
 			await _animate_ai_draw(player_index, drawn_count)
@@ -1386,7 +1573,7 @@ func _show_pass_feedback(player_index: int) -> void:
 	label.size = Vector2(180.0, 54.0)
 	label.add_theme_font_size_override("font_size", 32)
 	var rect := panel.get_global_rect()
-	if player_index == HUMAN_PLAYER_INDEX:
+	if player_index == _human_player_index:
 		var title_rect := hand_title.get_global_rect()
 		label.position = Vector2(title_rect.position.x + 80.0, title_rect.position.y - 60.0) - global_position
 	else:
@@ -1579,7 +1766,9 @@ func _on_language_changed(_locale: String) -> void:
 
 
 func _on_return_to_menu_requested() -> void:
-	if _session != null and _session.phase != GameSession.Phase.FINISHED:
+	if _network_mode:
+		LanMultiplayerService.close_connection()
+	elif _session != null and _session.phase != GameSession.Phase.FINISHED:
 		SaveGameService.save_session(_session, _use_custom_seed)
 	settings_overlay.visible = false
 	result_overlay.visible = false
@@ -1587,10 +1776,12 @@ func _on_return_to_menu_requested() -> void:
 
 
 func _on_game_finished(player_index: int) -> void:
-	SaveGameService.clear_save()
-	AudioService.play(&"game_win" if player_index == HUMAN_PLAYER_INDEX else &"game_lose")
+	if not _network_mode:
+		SaveGameService.clear_save()
+	AudioService.play(&"game_win" if player_index == _human_player_index else &"game_lose")
 	winner_label.text = _translated(&"STATUS_WINNER", {"player": _player_name(player_index)})
 	result_overlay.visible = true
+	restart_button.visible = not _network_mode or LanMultiplayerService.is_host
 
 
 func _on_public_action_resolved(public_action: Dictionary) -> void:
@@ -1802,7 +1993,7 @@ func _refresh_turn_indicator() -> void:
 	var panel_rect := panel.get_global_rect()
 	var target_center: Vector2
 	var facing_rotation: float
-	if player_index == HUMAN_PLAYER_INDEX:
+	if player_index == _human_player_index:
 		var title_rect := hand_title.get_global_rect()
 		target_center = Vector2(title_rect.position.x + 60.0, title_rect.position.y - 38.0) - global_position
 		facing_rotation = PI
@@ -1924,21 +2115,93 @@ func _find_player_index(display_name_key: String) -> int:
 	return -1
 
 
+func _get_visual_player_index(visual_seat_key: String) -> int:
+	if not _network_mode:
+		return _find_player_index(visual_seat_key)
+	var count := _session.players.size()
+	if count == 2:
+		return (_human_player_index + 1) % count if visual_seat_key == "SEAT_NORTH" else -1
+	if count == 3:
+		if visual_seat_key == "SEAT_NORTH":
+			return (_human_player_index + 1) % count
+		if visual_seat_key == "SEAT_WEST":
+			return (_human_player_index + 2) % count
+		return -1
+	match visual_seat_key:
+		"SEAT_EAST":
+			return (_human_player_index + 1) % count
+		"SEAT_NORTH":
+			return (_human_player_index + 2) % count
+		"SEAT_WEST":
+			return (_human_player_index + 3) % count
+	return -1
+
+
 func _get_player_panel(player_index: int) -> PanelContainer:
 	if player_index < 0 or player_index >= _session.players.size():
 		return null
+	if player_index == _human_player_index:
+		return hand_panel
+	if _network_mode:
+		for visual_seat_key in _seat_views:
+			if _get_visual_player_index(visual_seat_key) == player_index:
+				return (_seat_views[visual_seat_key] as Dictionary)["panel"] as PanelContainer
+		return null
 	var seat_key := _session.players[player_index].display_name
-	if not _seat_views.has(seat_key):
-		return hand_panel if player_index == HUMAN_PLAYER_INDEX else null
-	return (_seat_views[seat_key] as Dictionary)["panel"] as PanelContainer
+	return (
+		(_seat_views[seat_key] as Dictionary)["panel"] as PanelContainer
+		if _seat_views.has(seat_key)
+		else null
+	)
+
+
+func _apply_network_connection_visual(panel: PanelContainer, player_index: int) -> void:
+	if not _network_mode:
+		panel.self_modulate = Color.WHITE
+		_hide_disconnect_icon(panel)
+		return
+	var meta := _network_player_meta.get(player_index, {}) as Dictionary
+	var disconnected := (
+		not bool(meta.get("is_ai", false))
+		and not bool(meta.get("connected", true))
+	)
+	panel.self_modulate = Color(0.43, 0.43, 0.43, 1.0) if disconnected else Color.WHITE
+	if disconnected:
+		_show_disconnect_icon(panel)
+	else:
+		_hide_disconnect_icon(panel)
+
+
+func _show_disconnect_icon(panel: PanelContainer) -> void:
+	var icon := _disconnect_icons.get(panel) as TextureRect
+	if icon == null:
+		icon = TextureRect.new()
+		icon.texture = DISCONNECT_ICON
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.z_index = 60
+		icon.size = Vector2(48.0, 48.0)
+		add_child(icon)
+		_disconnect_icons[panel] = icon
+	icon.visible = true
+	var rect := panel.get_global_rect()
+	icon.position = rect.get_center() - global_position - icon.size * 0.5
+
+
+func _hide_disconnect_icon(panel: PanelContainer) -> void:
+	var icon := _disconnect_icons.get(panel) as TextureRect
+	if icon != null:
+		icon.visible = false
 
 
 func _get_selected_cards() -> Array[CardData]:
 	var cards: Array[CardData] = []
 	for card_id in _selected_card_ids:
-		var index := _session.players[HUMAN_PLAYER_INDEX].find_card_index(card_id)
+		var index := _session.players[_human_player_index].find_card_index(card_id)
 		if index != -1:
-			cards.append(_session.players[HUMAN_PLAYER_INDEX].hand[index])
+			cards.append(_session.players[_human_player_index].hand[index])
 	return cards
 
 
@@ -1946,7 +2209,7 @@ func _can_human_roll() -> bool:
 	return (
 		_session != null
 		and not _dealing
-		and _session.current_player_index == HUMAN_PLAYER_INDEX
+		and _session.current_player_index == _human_player_index
 		and _session.phase == GameSession.Phase.AWAITING_ROLL
 	)
 
@@ -1955,7 +2218,7 @@ func _can_human_act() -> bool:
 	return (
 		_session != null
 		and not _dealing
-		and _session.current_player_index == HUMAN_PLAYER_INDEX
+		and _session.current_player_index == _human_player_index
 		and _session.phase == GameSession.Phase.AWAITING_ACTION
 		and not _rolling
 		and not _presentation_busy
@@ -1967,6 +2230,11 @@ func _dice_texture(value: int) -> Texture2D:
 
 
 func _player_name(player_index: int) -> String:
+	if _network_mode:
+		var meta := _network_player_meta.get(player_index, {}) as Dictionary
+		var player_id := str(meta.get("player_id", ""))
+		var seat_name := tr(StringName(_session.players[player_index].display_name))
+		return "%s · %s" % [seat_name, player_id] if not player_id.is_empty() else seat_name
 	return tr(_session.players[player_index].display_name)
 
 
@@ -2004,7 +2272,7 @@ func _get_play_signature() -> String:
 
 func _prune_selection() -> void:
 	for index in range(_selected_card_ids.size() - 1, -1, -1):
-		if _session.players[HUMAN_PLAYER_INDEX].find_card_index(_selected_card_ids[index]) == -1:
+		if _session.players[_human_player_index].find_card_index(_selected_card_ids[index]) == -1:
 			_selected_card_ids.remove_at(index)
 
 
