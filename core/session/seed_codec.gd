@@ -40,5 +40,5 @@ static func from_int(value: int) -> String:
 	var result := ""
 	for _index in range(LENGTH):
 		result = ALPHABET[remaining % ALPHABET.length()] + result
-		remaining = int(remaining / ALPHABET.length())
+		remaining = floori(float(remaining) / float(ALPHABET.length()))
 	return result

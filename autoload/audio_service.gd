@@ -88,24 +88,26 @@ func play_music(track: StringName, fade_duration: float = MUSIC_FADE_DURATION) -
 		_music_tween.kill()
 
 	var current_player := _music_players[_music_active_index]
+	var had_current_track := current_player.playing
 	var next_index := _music_active_index
-	if current_player.playing:
+	if had_current_track:
 		next_index = 1 - _music_active_index
 	var next_player := _music_players[next_index]
 	next_player.stop()
 	next_player.stream = stream
-	next_player.volume_db = -80.0 if current_player.playing else 0.0
+	next_player.volume_db = -80.0 if had_current_track else 0.0
 	next_player.play()
 	_music_active_index = next_index
 	_music_track = track
 
-	if not current_player.playing:
+	if not had_current_track:
+		_music_tween = null
 		return
 	var duration := maxf(0.05, fade_duration)
 	_music_tween = create_tween().set_parallel(true)
 	_music_tween.tween_property(next_player, "volume_db", 0.0, duration)
 	_music_tween.tween_property(current_player, "volume_db", -80.0, duration)
-	_music_tween.chain().tween_callback(current_player.stop)
+	_music_tween.chain().tween_callback(_finish_music_crossfade.bind(current_player))
 
 
 func stop_music() -> void:
@@ -121,6 +123,13 @@ func stop_music() -> void:
 
 func has_music(track: StringName) -> bool:
 	return _music_streams.has(track)
+
+
+func _finish_music_crossfade(previous_player: AudioStreamPlayer) -> void:
+	previous_player.stop()
+	previous_player.stream = null
+	previous_player.volume_db = 0.0
+	_music_tween = null
 
 
 func _build_stream_catalog() -> void:
