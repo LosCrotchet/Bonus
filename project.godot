@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Bonus"
-config/version="0.5.17"
+config/version="0.5.18"
 run/main_scene="res://app/app.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
@@ -33,6 +33,10 @@ window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godotsteam/plugin.cfg", "res://addons/landetector/plugin.cfg")
 
 [internationalization]
 

@@ -115,6 +115,8 @@ var _last_network_revision := -1
 var _last_network_timer_second := -1
 var _disconnect_icons: Dictionary = {}
 var _turn_timer_tween: Tween
+var _played_reveal_tween: Tween
+var _indicator_update_suspended := false
 var _disconnected_material := ShaderMaterial.new()
 
 
@@ -356,22 +358,34 @@ func _on_network_snapshot_received(snapshot: Dictionary) -> void:
 	_last_network_revision = revision
 	_session_revision = revision
 	_update_network_player_meta(snapshot)
-	_selected_card_ids.clear()
-	_presentation_busy = false
 	_rolling = false
 	dice_button.rotation = 0.0
+	var action_type := StringName(str(action.get("type", "")))
+	var actor := int(action.get("player_index", -1))
+	var is_play_action := action_type == &"play"
+	_presentation_busy = is_play_action
+	_indicator_update_suspended = is_play_action
 	if not action.is_empty():
 		_on_public_action_resolved(action)
-		var actor := int(action.get("player_index", -1))
-		match StringName(str(action.get("type", ""))):
+		match action_type:
 			&"pass":
 				if actor != _human_player_index:
 					_show_pass_feedback(actor)
 			&"play":
 				if actor != _human_player_index:
-					_animate_ai_card_play(actor, (action.get("cards", []) as Array).size())
-	_animate_non_human_draws(previous_counts)
+					await _animate_ai_card_play(
+						actor,
+						(action.get("cards", []) as Array).size(),
+					)
 	_refresh()
+	if is_play_action:
+		if not await _wait_for_play_presentation(_game_serial):
+			_indicator_update_suspended = false
+			return
+		_indicator_update_suspended = false
+		_presentation_busy = false
+		_refresh()
+	await _animate_non_human_draws(previous_counts)
 	if previous_phase != GameSession.Phase.FINISHED and _session.phase == GameSession.Phase.FINISHED:
 		_on_game_finished(_session.winner_index)
 
@@ -813,7 +827,10 @@ func _refresh_hand() -> void:
 			)
 	_last_human_hand_count = hand_count
 	var visible_hand := _get_visible_human_hand()
-	var can_select := _can_human_act() and not _auto_pass_pending and not _dealing
+	var can_select := (
+		not _dealing
+		and _session.phase != GameSession.Phase.FINISHED
+	)
 	hand_view.set_hand(
 		visible_hand,
 		_selected_card_ids,
@@ -1225,20 +1242,22 @@ func _commit_play(interpretation_key: String) -> void:
 	if _network_mode:
 		LanMultiplayerService.request_play(selected_ids, interpretation_key)
 		_selected_card_ids.clear()
-	elif not _session.play_cards(
-		_human_player_index,
-		selected_ids,
-		interpretation_key,
-	):
-		hand_view.set_cards_animation_hidden(selected_ids, false)
-		_show_session_error()
 	else:
-		_selected_card_ids.clear()
-		await get_tree().create_timer(SettingsService.get_gameplay_duration(
-			SettingsService.GameplayTiming.ACTION_PAUSE,
-		)).timeout
-		if serial != _game_serial:
-			return
+		_indicator_update_suspended = true
+		if not _session.play_cards(
+			_human_player_index,
+			selected_ids,
+			interpretation_key,
+		):
+			_indicator_update_suspended = false
+			hand_view.set_cards_animation_hidden(selected_ids, false)
+			_show_session_error()
+		else:
+			_selected_card_ids.clear()
+			if not await _wait_for_play_presentation(serial):
+				_indicator_update_suspended = false
+				return
+			_indicator_update_suspended = false
 	_presentation_busy = false
 	_refresh()
 
@@ -1337,17 +1356,18 @@ func _run_ai_until_human(serial: int) -> void:
 				await _animate_ai_card_play(player_index, decision.card_ids.size())
 				if serial != _game_serial:
 					return
+				_indicator_update_suspended = true
 				if not _session.play_cards(
 					player_index,
 					decision.card_ids,
 					decision.interpretation_key,
 				):
 					_apply_ai_fallback(player_index)
-				await get_tree().create_timer(SettingsService.get_gameplay_duration(
-					SettingsService.GameplayTiming.ACTION_PAUSE,
-				)).timeout
-				if serial != _game_serial:
+				if not await _wait_for_play_presentation(serial):
+					_indicator_update_suspended = false
 					return
+				_indicator_update_suspended = false
+				_refresh()
 				await _animate_non_human_draws(play_hand_counts)
 			PlayerDecision.Action.PASS:
 				_show_pass_feedback(player_index)
@@ -1377,6 +1397,7 @@ func _animate_ai_card_play(player_index: int, card_count: int) -> void:
 	var source_panel := _get_player_panel(player_index)
 	if source_panel == null or card_count <= 0:
 		return
+	AudioService.play(&"card_draw")
 	var source: Vector2 = source_panel.get_global_rect().get_center() - global_position
 	var target: Vector2 = played_panel.get_global_rect().get_center() - global_position
 	var flying_cards: Array[TextureRect] = []
@@ -1419,6 +1440,7 @@ func _animate_ai_card_play(player_index: int, card_count: int) -> void:
 func _animate_human_card_play(snapshots: Array[Dictionary]) -> void:
 	if snapshots.is_empty():
 		return
+	AudioService.play(&"card_draw")
 	var target := played_panel.get_global_rect().get_center() - global_position
 	var flying_cards: Array[TextureRect] = []
 	var tween := create_tween().set_parallel(true)
@@ -1447,7 +1469,12 @@ func _animate_human_card_play(snapshots: Array[Dictionary]) -> void:
 			destination,
 			travel_duration,
 		).set_delay(delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
-		tween.tween_property(card, "size", Vector2(68.0, 96.0), travel_duration).set_delay(delay)
+		tween.tween_property(
+			card,
+			"size",
+			Vector2(68.0, 96.0),
+			travel_duration,
+		).set_delay(delay)
 		tween.tween_property(card, "rotation", 0.0, travel_duration).set_delay(delay)
 	await tween.finished
 	AudioService.play(&"card_play")
@@ -1478,7 +1505,9 @@ func _animate_played_cards_reveal(expected_signature: String) -> void:
 	if expected_signature != _last_play_signature or played_cards.get_child_count() == 0:
 		return
 	AudioService.play(&"card_reveal")
-	var tween := create_tween().set_parallel(true)
+	if _played_reveal_tween != null and _played_reveal_tween.is_valid():
+		_played_reveal_tween.kill()
+	_played_reveal_tween = create_tween().set_parallel(true)
 	var total_duration := PLAYED_CARD_REVEAL_DURATION
 	var reveal_duration := total_duration * 0.72
 	var stagger_span := total_duration - reveal_duration
@@ -1490,8 +1519,30 @@ func _animate_played_cards_reveal(expected_signature: String) -> void:
 		var delay := stagger_span * float(index) / float(
 			maxi(1, played_cards.get_child_count() - 1),
 		)
-		tween.tween_property(card, "scale", Vector2.ONE, reveal_duration).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		tween.tween_property(card, "modulate:a", 1.0, reveal_duration * 0.55).set_delay(delay)
+		_played_reveal_tween.tween_property(
+			card,
+			"scale",
+			Vector2.ONE,
+			reveal_duration,
+		).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		_played_reveal_tween.tween_property(
+			card,
+			"modulate:a",
+			1.0,
+			reveal_duration * 0.55,
+		).set_delay(delay)
+
+
+func _wait_for_play_presentation(serial: int) -> bool:
+	var reveal := _played_reveal_tween
+	if reveal != null and reveal.is_valid() and reveal.is_running():
+		await reveal.finished
+	if serial != _game_serial:
+		return false
+	await get_tree().create_timer(SettingsService.get_gameplay_duration(
+		SettingsService.GameplayTiming.ACTION_PAUSE,
+	)).timeout
+	return serial == _game_serial
 
 
 func _snapshot_hand_counts() -> PackedInt32Array:
@@ -1595,8 +1646,8 @@ func _show_center_feedback(key: StringName, color: Color) -> void:
 	label.scale = Vector2(0.62, 0.62)
 	label.rotation = deg_to_rad(-3.0)
 	var total_duration := SettingsService.get_feedback_duration()
-	var enter_duration := total_duration * 0.2
-	var hold_duration := total_duration * 0.48
+	var enter_duration := total_duration * 0.15
+	var hold_duration := total_duration * 0.07
 	var exit_duration := total_duration - enter_duration - hold_duration
 	var tween := create_tween()
 	tween.set_parallel(true)
@@ -1645,8 +1696,8 @@ func _animate_feedback_label(
 	label.scale = Vector2(0.92, 0.92)
 	var total_duration := SettingsService.get_feedback_duration()
 	var enter_duration := total_duration * 0.18
-	var hold_duration := total_duration * 0.56
-	var exit_duration := total_duration - enter_duration - hold_duration
+	var hold_duration := total_duration * 1.55
+	var exit_duration := total_duration * 0.26
 	var tween := create_tween().set_parallel(true)
 	tween.tween_property(label, "modulate:a", 1.0, enter_duration)
 	tween.tween_property(label, "scale", Vector2.ONE, enter_duration).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -1953,6 +2004,8 @@ func _set_active_border(panel: PanelContainer, active: bool) -> void:
 
 
 func _refresh_turn_indicator() -> void:
+	if _indicator_update_suspended:
+		return
 	if _dealing or _session.phase == GameSession.Phase.FINISHED:
 		turn_indicator.visible = false
 		_hide_turn_timer()

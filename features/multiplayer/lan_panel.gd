@@ -135,6 +135,7 @@ func _show_setup(hosting: bool) -> void:
 	%DetailTitle.text = tr(&"LAN_CREATE_ROOM") if hosting else tr(&"LAN_JOIN_ROOM")
 	%CreateButton.text = tr(&"LAN_APPLY_ROOM") if _editing_room else tr(&"LAN_CREATE")
 	status_label.text = ""
+	status_label.visible = true
 	_show_detail()
 
 
@@ -146,6 +147,7 @@ func _show_lobby() -> void:
 	lobby_content.visible = true
 	%DetailTitle.text = tr(&"LAN_ROOM_TITLE")
 	status_label.text = ""
+	status_label.visible = false
 	if not already_visible:
 		_show_detail()
 
@@ -259,10 +261,18 @@ func _on_lobby_updated(snapshot: Dictionary) -> void:
 		return
 	_show_lobby()
 	var config := snapshot.get("config", {}) as Dictionary
-	%RoomPlayerCount.text = str(int(config.get("player_count", 3)))
-	%RoomTimeout.text = tr(&"LAN_SECONDS").format({"seconds": int(config.get("turn_timeout", 30))})
+	var player_capacity := int(config.get("player_count", 3))
+	var members := snapshot.get("members", []) as Array
 	%RoomSeed.text = str(config.get("seed_text", ""))
-	%RoomRules.text = _describe_rules(config.get("rules", {}) as Dictionary)
+	%RoomRules.text = _describe_rules(
+		config.get("rules", {}) as Dictionary,
+		player_capacity,
+		int(config.get("turn_timeout", 30)),
+	)
+	%MembersTitle.text = tr(&"LAN_MEMBERS_COUNT").format({
+		"current": members.size(),
+		"capacity": player_capacity,
+	})
 	%EndpointRow.visible = LanMultiplayerService.is_host
 	if LanMultiplayerService.is_host:
 		%RoomEndpoint.text = "%s:%d" % [_get_preferred_local_ipv4(), int(host_port.value)]
@@ -270,7 +280,7 @@ func _on_lobby_updated(snapshot: Dictionary) -> void:
 	_local_ready = bool(local_member.get("ready", false))
 	ready_button.text = tr(&"LAN_UNREADY") if _local_ready else tr(&"LAN_READY")
 	_clear_seat_slots()
-	for member_value in snapshot.get("members", []) as Array:
+	for member_value in members:
 		_update_seat_slot(member_value as Dictionary)
 	var host := LanMultiplayerService.is_host
 	add_ai_button.visible = host
@@ -288,8 +298,8 @@ func _clear_seat_slots() -> void:
 		slot.modulate.a = 0.0
 		slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		(slot.get_node("Layout/Player") as Label).text = ""
-		(slot.get_node("Layout/StateRow/State") as Label).text = ""
-		(slot.get_node("Layout/StateRow/Kick") as Button).visible = false
+		(slot.get_node("Layout/HeaderRow/State") as Label).text = ""
+		(slot.get_node("Layout/Kick") as Button).visible = false
 
 
 func _update_seat_slot(member: Dictionary) -> void:
@@ -300,13 +310,13 @@ func _update_seat_slot(member: Dictionary) -> void:
 	slot.visible = true
 	slot.modulate.a = 1.0
 	slot.mouse_filter = Control.MOUSE_FILTER_PASS
-	(slot.get_node("Layout/Seat") as Label).text = tr(StringName(seat_key))
+	(slot.get_node("Layout/HeaderRow/Seat") as Label).text = tr(StringName(seat_key))
 	(slot.get_node("Layout/Player") as Label).text = str(member.get("player_id", ""))
 	var state_key := &"LAN_MEMBER_READY" if bool(member.get("ready", false)) else &"LAN_MEMBER_NOT_READY"
 	if bool(member.get("is_ai", false)):
 		state_key = &"LAN_MEMBER_AI"
-	(slot.get_node("Layout/StateRow/State") as Label).text = tr(state_key)
-	var kick := slot.get_node("Layout/StateRow/Kick") as Button
+	(slot.get_node("Layout/HeaderRow/State") as Label).text = tr(state_key)
+	var kick := slot.get_node("Layout/Kick") as Button
 	kick.visible = LanMultiplayerService.is_host and not bool(member.get("is_host", false))
 	for connection in kick.pressed.get_connections():
 		kick.pressed.disconnect(connection.callable)
@@ -382,17 +392,21 @@ func _is_private_172(address: String) -> bool:
 	return parts.size() == 4 and int(parts[1]) >= 16 and int(parts[1]) <= 31
 
 
-func _describe_rules(rules: Dictionary) -> String:
-	var descriptions := PackedStringArray()
+func _describe_rules(rules: Dictionary, player_count: int, turn_timeout: int) -> String:
+	var descriptions := PackedStringArray([
+		tr(&"UI_PLAYER_COUNT_SHORT").format({"count": player_count}),
+	])
 	if bool(rules.get("include_jokers", true)):
-		descriptions.append(tr(&"RULE_INCLUDE_JOKERS"))
-		descriptions.append(tr(&"RULE_JOKERS_WILD") if bool(rules.get("jokers_are_wild", true)) else tr(&"RULE_JOKERS_NATURAL"))
+		descriptions.append(tr(&"RULE_SHORT_JOKERS"))
 		if bool(rules.get("jokers_are_wild", true)):
-			descriptions.append(tr(&"RULE_WILDCARD_FINISH_DRAW") if bool(rules.get("draw_two_on_wildcard_finish", true)) else tr(&"RULE_WILDCARD_FINISH_NO_DRAW"))
-	else:
-		descriptions.append(tr(&"RULE_EXCLUDE_JOKERS"))
-	descriptions.append(tr(&"RULE_SEQUENCE_WITH_TWO") if bool(rules.get("allow_two_in_sequences", false)) else tr(&"RULE_SEQUENCE_WITHOUT_TWO"))
-	descriptions.append(tr(&"RULE_VARIABLE_DRAW") if bool(rules.get("draw_count_uses_dice", false)) else tr(&"RULE_FIXED_DRAW"))
+			descriptions.append(tr(&"RULE_SHORT_WILDCARD"))
+			if bool(rules.get("draw_two_on_wildcard_finish", true)):
+				descriptions.append(tr(&"RULE_SHORT_FINISH_LIMIT"))
+	if bool(rules.get("allow_two_in_sequences", false)):
+		descriptions.append(tr(&"RULE_SHORT_SEQUENCE_TWO"))
+	if bool(rules.get("draw_count_uses_dice", false)):
+		descriptions.append(tr(&"RULE_SHORT_VARIABLE_DRAW"))
+	descriptions.append(tr(&"LAN_SECONDS_SHORT").format({"seconds": turn_timeout}))
 	return " · ".join(descriptions)
 
 
@@ -418,3 +432,4 @@ func _leave_room() -> void:
 
 func _show_error(error_key: StringName) -> void:
 	status_label.text = tr(error_key)
+	status_label.visible = true

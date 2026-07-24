@@ -11,7 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://b63m3i6ycb48e" path="res://assets/icons/button_home.png" id="10_home_icon"]
 [ext_resource type="PackedScene" path="res://features/game/ui/hand_types_dialog.tscn" id="11_hand_types"]
 [ext_resource type="FontFile" uid="uid://bobda3iv4j3mt" path="res://assets/fonts/SourceHanSans-VF.otf.ttc" id="12_font"]
-[ext_resource type="Texture2D" path="res://assets/icons/list_menu.png" id="13_list_icon"]
+[ext_resource type="Texture2D" uid="uid://c6sd1a1dhgscu" path="res://assets/icons/list_menu.png" id="13_list_icon"]
 [ext_resource type="Texture2D" path="res://assets/icons/clock_icon.png" id="14_clock_icon"]
 
 [sub_resource type="FontVariation" id="Font_default"]
@@ -180,6 +180,9 @@ corner_radius_bottom_left = 6
 [sub_resource type="ShaderMaterial" id="Material_bonus"]
 shader = SubResource("Shader_bonus")
 shader_parameter/opacity = 0.28
+shader_parameter/darken = 0.0
+shader_parameter/wipe_left = 0.0
+shader_parameter/wipe_right = 1.0
 
 [sub_resource type="StyleBoxFlat" id="Style_popup"]
 content_margin_left = 20.0
@@ -293,7 +296,7 @@ size_flags_horizontal = 3
 [node name="HandTypesButton" type="Button" parent="SafeArea/MainLayout/Header/HeaderRow" unique_id=666370902]
 unique_name_in_owner = true
 texture_filter = 4
-custom_minimum_size = Vector2(112, 40)
+custom_minimum_size = Vector2(142, 40)
 layout_mode = 2
 text = "UI_HAND_TYPES"
 icon = ExtResource("13_list_icon")
@@ -303,7 +306,7 @@ icon_max_width = 27
 [node name="SettingsButton" type="Button" parent="SafeArea/MainLayout/Header/HeaderRow" unique_id=733284581]
 unique_name_in_owner = true
 texture_filter = 4
-custom_minimum_size = Vector2(110, 40)
+custom_minimum_size = Vector2(122, 40)
 layout_mode = 2
 text = "UI_SETTINGS"
 icon = ExtResource("8_settings_icon")
@@ -518,7 +521,7 @@ layout_mode = 2
 theme_override_constants/separation = 1
 alignment = 1
 
-[node name="DrawPileArea" type="Control" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DrawGroup"]
+[node name="DrawPileArea" type="Control" parent="SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DrawGroup" unique_id=994871523]
 custom_minimum_size = Vector2(88, 104)
 layout_mode = 2
 

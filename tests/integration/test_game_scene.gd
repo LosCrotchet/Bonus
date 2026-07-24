@@ -56,6 +56,10 @@ func _run_test() -> void:
 	var north_cards := game_scene.get_node("%NorthCards") as HBoxContainer
 	var header_title := game_scene.get_node("%HeaderTitle") as Label
 	var hand_types_button := game_scene.get_node("%HandTypesButton") as Button
+	assert(hand_types_button.icon != null)
+	assert(hand_types_button.custom_minimum_size.x >= 140.0)
+	assert(settings_button.icon != null)
+	assert(settings_button.custom_minimum_size.x >= 120.0)
 	var hand_types_overlay := game_scene.get_node("%HandTypesOverlay") as Control
 	var hand_types_dialog := game_scene.get_node("%HandTypesDialog") as HandTypesDialog
 	assert(session.players.size() == 3)
@@ -76,6 +80,7 @@ func _run_test() -> void:
 	hand_view.set_interaction_enabled(false)
 	await get_tree().create_timer(CardView.INTERACTION_DURATION + 0.03).timeout
 	assert(hover_card.position.is_equal_approx(hover_rest_position))
+	hand_view.set_interaction_enabled(true)
 	assert(not dice_button.disabled)
 	assert(not action_bar.visible)
 	assert(west_seat.visible)
@@ -385,6 +390,9 @@ func _test_bonus_controls(
 	session.roller_index = 1
 	session.current_player_index = 1
 	game_scene.call("_refresh")
+	var active_hand_view := game_scene.get_node("%HandView") as HandView
+	for card_node in active_hand_view.get_children():
+		assert((card_node as CardView).interaction_enabled)
 	assert(int(game_scene.get("_bonus_sound_step")) == 1)
 	assert(not hand_bonus.visible)
 	var north_panel := game_scene.get_node("%NorthSeat") as PanelContainer

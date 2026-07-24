@@ -8,7 +8,8 @@ UI_HAND_TYPES_DESCRIPTION,简易描述,Description
 UI_HAND_TYPES_EXAMPLE,牌型示例,Example
 UI_GAME_SETTINGS,牌局设置,Game Settings
 UI_PLAYER_COUNT,玩家数量,Players
-UI_PLAYER_COUNT_OPTION,{count} 人,{count} players
+UI_PLAYER_COUNT_OPTION,{count} 人,{count}P
+UI_PLAYER_COUNT_SHORT,{count}人,{count}P
 UI_GAME_SPEED,游戏速度,Game Speed
 UI_SECTION_DISPLAY,显示,Display
 UI_SECTION_SOUND,声音,Sound
@@ -47,7 +48,7 @@ UI_CUSTOM_SEED,自定义种子,Custom Seed
 UI_SEED_PLACEHOLDER,8位小写字母或数字,8 lowercase letters or digits
 UI_SAVED_GAME_FOUND,发现未完成的牌局,Unfinished Game Found
 UI_SAVED_GAME_PROMPT,是否继续上次的单人牌局？选择新开将覆盖旧存档。,Continue your previous single-player game? Starting new will replace the old save.
-UI_SAVED_GAME_META,{count} 人 · {seed},{count} players · {seed}
+UI_SAVED_GAME_META,{count} 人 · {seed},{count}P · {seed}
 UI_SAVED_GAME_RULES,规则：{rules},Rules: {rules}
 UI_SEED_SUMMARY_CUSTOM,自定义种子：{seed},Custom seed: {seed}
 UI_SEED_SUMMARY_RANDOM,随机种子：{seed},Random seed: {seed}
@@ -66,6 +67,11 @@ RULE_SEQUENCE_WITHOUT_TWO,顺子不带 2,Straights Exclude 2
 RULE_VARIABLE_DRAW,未出牌时摸 7-x 张,Draw 7-x After All Pass
 RULE_FIXED_DRAW,未出牌时摸 3 张,Draw 3 After All Pass
 RULE_VARIABLE_DRAW_HINT,其中 x 是骰子点数；如果不启用则默认摸 3 张,x is the die value; when disabled the default draw is 3 cards
+RULE_SHORT_JOKERS,大小王,Jokers
+RULE_SHORT_WILDCARD,万能牌,Wildcards
+RULE_SHORT_FINISH_LIMIT,绝杀限制,Final-play Limit
+RULE_SHORT_SEQUENCE_TWO,顺子带2,Straights +2
+RULE_SHORT_VARIABLE_DRAW,摸牌张数可变,Variable Draw
 UI_RECOMMEND,提示,Hint
 UI_PASS,不出,Pass
 UI_PLAY,出牌,Play
@@ -184,6 +190,8 @@ LAN_ADD_AI,添加 AI,Add AI
 LAN_KICK,踢出,Kick
 LAN_LEAVE_ROOM,离开房间,Leave Room
 LAN_MEMBERS,房间成员,Room Members
+LAN_MEMBERS_COUNT,房间成员 | {current} / {capacity},Room Members | {current} / {capacity}
+LAN_SECONDS_SHORT,{seconds}秒,{seconds}s
 LAN_ROOM_SUMMARY,{count} 人 · 每回合 {timeout} 秒 · 种子 {seed},{count} players · {timeout}s turns · Seed {seed}
 LAN_MEMBER_READY,已准备,Ready
 LAN_MEMBER_NOT_READY,未准备,Not Ready

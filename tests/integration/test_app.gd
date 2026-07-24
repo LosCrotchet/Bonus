@@ -14,7 +14,7 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	assert((app.get_node("Version") as Label).text == "v0.5.17")
+	assert((app.get_node("Version") as Label).text == "v0.5.18")
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
 	assert(menu != null)
@@ -77,6 +77,14 @@ func _run_test() -> void:
 	assert(single_panel.visible)
 	assert((menu.get_node("%PlayerCount3") as Button).button_pressed)
 	assert(not (menu.get_node("%PlayerCount2") as Button).button_pressed)
+	var original_locale := TranslationServer.get_locale()
+	TranslationServer.set_locale("en")
+	menu.call("_on_language_changed", "en")
+	assert((menu.get_node("%PlayerCount2") as Button).text == "2P")
+	assert((menu.get_node("%PlayerCount3") as Button).text == "3P")
+	assert((menu.get_node("%PlayerCount4") as Button).text == "4P")
+	TranslationServer.set_locale(original_locale)
+	menu.call("_on_language_changed", original_locale)
 	assert((menu.get_node("%IncludeJokersToggle") as CheckBox).button_pressed)
 	assert((menu.get_node("%JokersWildToggle") as CheckBox).button_pressed)
 	assert((menu.get_node("%WildcardFinishToggle") as CheckBox).button_pressed)

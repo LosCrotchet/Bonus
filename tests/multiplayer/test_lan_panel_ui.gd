@@ -15,9 +15,16 @@ func _ready() -> void:
 	assert(panel.visible)
 	var detail_panel := panel.get_node("%DetailPanel") as PanelContainer
 	var menu_panel := panel.get_node("MenuPanel") as PanelContainer
-	assert(menu_panel.size.x <= 260.0)
-	assert(detail_panel.size.x <= 380.0)
-	assert(panel.get_global_rect().end.x <= menu.get_global_rect().end.x - 250.0)
+	assert(menu_panel.size.x <= 300.0, "Menu width: %s" % menu_panel.size.x)
+	assert(detail_panel.size.x <= 425.0, "Detail width: %s" % detail_panel.size.x)
+	assert(is_equal_approx(menu_panel.get_global_rect().end.x, detail_panel.global_position.x))
+	assert(
+		panel.get_global_rect().end.x <= menu.get_global_rect().end.x - 200.0,
+		"Panel end: %s, menu end: %s" % [
+			panel.get_global_rect().end.x,
+			menu.get_global_rect().end.x,
+		],
+	)
 	var disabled_button := panel.get_node(
 		"MenuPanel/Layout/SteamLobbyButton",
 	) as Button
@@ -66,20 +73,43 @@ func _ready() -> void:
 	LanMultiplayerService.last_lobby_snapshot = lobby_snapshot
 	panel.call("_on_lobby_updated", lobby_snapshot)
 	await get_tree().process_frame
-	assert(detail_panel.size.x <= 380.0)
+	assert(detail_panel.size.x <= 425.0)
 	assert(not (panel.get_node("%SetupScroll") as ScrollContainer).visible)
 	var lobby_view := panel.get_node("%LobbyView") as VBoxContainer
 	assert(lobby_view.visible)
 	assert(lobby_view.get_global_rect().end.y <= detail_panel.get_global_rect().end.y)
 	assert((panel.get_node("%LobbyBackButton") as Button).get_global_rect().end.y <= detail_panel.get_global_rect().end.y)
+	var lobby_scroll := panel.get_node("DetailPanel/Layout/LobbyView/LobbyScroll") as ScrollContainer
+	assert(not lobby_scroll.get_v_scroll_bar().visible)
+	var lobby_content := panel.get_node("%LobbyContent") as VBoxContainer
+	assert(
+		lobby_content.size.y <= lobby_scroll.size.y + 1.0,
+		"Lobby content: %s, viewport: %s" % [lobby_content.size.y, lobby_scroll.size.y],
+	)
+	var room_rules := (panel.get_node("%RoomRules") as Label).text
+	assert(room_rules.contains(tr(&"UI_PLAYER_COUNT_SHORT").format({"count": 4})))
+	assert(room_rules.contains(tr(&"RULE_SHORT_JOKERS")))
+	assert(room_rules.contains(tr(&"RULE_SHORT_WILDCARD")))
+	assert(room_rules.contains(tr(&"RULE_SHORT_FINISH_LIMIT")))
+	assert(room_rules.contains(tr(&"LAN_SECONDS_SHORT").format({"seconds": 30})))
+	assert(not room_rules.contains(tr(&"RULE_SHORT_SEQUENCE_TWO")))
+	assert(not room_rules.contains(tr(&"RULE_SHORT_VARIABLE_DRAW")))
+	assert((panel.get_node("%MembersTitle") as Label).text == tr(&"LAN_MEMBERS_COUNT").format({
+		"current": 4,
+		"capacity": 4,
+	}))
 	var north := panel.get_node("%NorthSlot") as PanelContainer
 	var south := panel.get_node("%SouthSlot") as PanelContainer
 	var west := panel.get_node("%WestSlot") as PanelContainer
 	var east := panel.get_node("%EastSlot") as PanelContainer
 	assert(north.visible and south.visible and west.visible and east.visible)
-	assert(north.global_position.y < west.global_position.y)
-	assert(south.global_position.y > west.global_position.y)
-	assert(west.global_position.x < east.global_position.x)
+	assert(is_equal_approx(north.global_position.y, east.global_position.y))
+	assert(is_equal_approx(south.global_position.y, west.global_position.y))
+	assert(north.global_position.x < east.global_position.x)
+	assert(south.global_position.x < west.global_position.x)
+	assert(north.global_position.y < south.global_position.y)
+	for seat in [north, east, south, west]:
+		assert(seat.size.is_equal_approx(north.size))
 	var seat_rects: Array[Rect2] = [
 		north.get_global_rect(),
 		south.get_global_rect(),
@@ -89,6 +119,9 @@ func _ready() -> void:
 	for first_index in range(seat_rects.size()):
 		for second_index in range(first_index + 1, seat_rects.size()):
 			assert(not seat_rects[first_index].intersects(seat_rects[second_index]))
+	assert((north.get_node("Layout/HeaderRow/Seat") as Label).text == tr(&"SEAT_NORTH"))
+	assert((north.get_node("Layout/HeaderRow/State") as Label).text == tr(&"LAN_MEMBER_NOT_READY"))
+	assert((north.get_node("Layout/Player") as Label).text == "North")
 	assert(not (panel.get_node("%RoomEndpoint") as Label).text.contains(","))
 	assert((panel.get_node("%HostActionRow") as HBoxContainer).visible)
 	(panel.get_node("%LobbyBackButton") as Button).pressed.emit()

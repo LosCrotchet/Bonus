@@ -357,22 +357,10 @@ func _populate_resume_details(payload: Dictionary) -> void:
 			rule_names.append(tr(&"RULE_JOKERS_WILD"))
 			if bool(rules.get("draw_two_on_wildcard_finish", true)):
 				rule_names.append(tr(&"RULE_WILDCARD_FINISH_DRAW"))
-			else:
-				rule_names.append(tr(&"RULE_WILDCARD_FINISH_NO_DRAW"))
-		else:
-			rule_names.append(tr(&"RULE_JOKERS_NATURAL"))
-	else:
-		rule_names.append(tr(&"RULE_EXCLUDE_JOKERS"))
-	rule_names.append(
-		tr(&"RULE_SEQUENCE_WITH_TWO")
-		if bool(rules.get("allow_two_in_sequences", false))
-		else tr(&"RULE_SEQUENCE_WITHOUT_TWO")
-	)
-	rule_names.append(
-		tr(&"RULE_VARIABLE_DRAW")
-		if bool(rules.get("draw_count_uses_dice", false))
-		else tr(&"RULE_FIXED_DRAW")
-	)
+	if bool(rules.get("allow_two_in_sequences", false)):
+		rule_names.append(tr(&"RULE_SEQUENCE_WITH_TWO"))
+	if bool(rules.get("draw_count_uses_dice", false)):
+		rule_names.append(tr(&"RULE_VARIABLE_DRAW"))
 	var seed_key := (
 		&"UI_SEED_SUMMARY_CUSTOM"
 		if bool(payload.get("custom_seed", false))

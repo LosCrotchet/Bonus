@@ -46,7 +46,7 @@ corner_radius_bottom_left = 5
 [sub_resource type="ButtonGroup" id="Group_timeout"]
 
 [node name="LanPanel" type="Control"]
-custom_minimum_size = Vector2(650, 720)
+custom_minimum_size = Vector2(700, 720)
 theme = ExtResource("2_theme")
 script = ExtResource("1_script")
 
@@ -54,7 +54,7 @@ script = ExtResource("1_script")
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_right = 252.0
+offset_right = 294.0
 grow_vertical = 2
 theme_override_styles/panel = SubResource("Style_secondary")
 
@@ -125,8 +125,8 @@ unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_left = 266.0
-offset_right = 642.0
+offset_left = 294.0
+offset_right = 700.0
 grow_vertical = 2
 theme_override_styles/panel = SubResource("Style_detail")
 
@@ -363,13 +363,14 @@ theme_override_constants/separation = 8
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
+vertical_scroll_mode = 3
 
 [node name="LobbyContent" type="VBoxContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 6
+theme_override_constants/separation = 5
 [node name="RoomInfoTitle" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.76, 0.27, 1)
@@ -385,24 +386,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "LAN_ENDPOINT_LABEL"
 [node name="RoomEndpoint" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/EndpointRow"]
-unique_name_in_owner = true
-layout_mode = 2
-[node name="PlayerCountRow" type="HBoxContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent"]
-layout_mode = 2
-[node name="Label" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/PlayerCountRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "UI_PLAYER_COUNT"
-[node name="RoomPlayerCount" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/PlayerCountRow"]
-unique_name_in_owner = true
-layout_mode = 2
-[node name="TimeoutRow" type="HBoxContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent"]
-layout_mode = 2
-[node name="Label" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/TimeoutRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "LAN_TURN_TIMER"
-[node name="RoomTimeout" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/TimeoutRow"]
 unique_name_in_owner = true
 layout_mode = 2
 [node name="SeedRow" type="HBoxContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent"]
@@ -424,6 +407,7 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 14
 autowrap_mode = 2
 [node name="MembersTitle" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.76, 0.27, 1)
 theme_override_font_sizes/font_size = 18
@@ -431,154 +415,165 @@ text = "LAN_MEMBERS"
 [node name="MembersRule" type="HSeparator" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent"]
 layout_mode = 2
 [node name="MembersBoard" type="GridContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent"]
-custom_minimum_size = Vector2(0, 206)
+custom_minimum_size = Vector2(0, 176)
 layout_mode = 2
-theme_override_constants/h_separation = 7
-theme_override_constants/v_separation = 7
-columns = 3
-
-[node name="TopLeftSpacer" type="Control" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 2
 
 [node name="NorthSlot" type="PanelContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(98, 64)
-layout_mode = 2
-theme_override_styles/panel = SubResource("Style_seat")
-
-[node name="TopRightSpacer" type="Control" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard"]
+custom_minimum_size = Vector2(174, 84)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-
-[node name="WestSlot" type="PanelContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(98, 64)
-layout_mode = 2
 theme_override_styles/panel = SubResource("Style_seat")
-
-[node name="CenterSpacer" type="Control" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
 
 [node name="EastSlot" type="PanelContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(98, 64)
-layout_mode = 2
-theme_override_styles/panel = SubResource("Style_seat")
-
-[node name="BottomLeftSpacer" type="Control" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard"]
+custom_minimum_size = Vector2(174, 84)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme_override_styles/panel = SubResource("Style_seat")
 
 [node name="SouthSlot" type="PanelContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(98, 64)
-layout_mode = 2
-theme_override_styles/panel = SubResource("Style_seat")
-
-[node name="BottomRightSpacer" type="Control" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard"]
+custom_minimum_size = Vector2(174, 84)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme_override_styles/panel = SubResource("Style_seat")
+
+[node name="WestSlot" type="PanelContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(174, 84)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("Style_seat")
 
 [node name="Layout" type="VBoxContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/NorthSlot"]
 layout_mode = 2
-theme_override_constants/separation = 0
-[node name="Seat" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/NorthSlot/Layout"]
+theme_override_constants/separation = 3
+[node name="HeaderRow" type="HBoxContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/NorthSlot/Layout"]
 layout_mode = 2
+theme_override_constants/separation = 5
+[node name="Seat" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/NorthSlot/Layout/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 0.76, 0.27, 1)
 theme_override_font_sizes/font_size = 15
+[node name="Divider" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/NorthSlot/Layout/HeaderRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.52, 0.6, 0.58, 1)
+text = "|"
+[node name="State" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/NorthSlot/Layout/HeaderRow"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text_overrun_behavior = 3
 [node name="Player" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/NorthSlot/Layout"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text_overrun_behavior = 3
-[node name="StateRow" type="HBoxContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/NorthSlot/Layout"]
+[node name="Kick" type="Button" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/NorthSlot/Layout"]
+custom_minimum_size = Vector2(58, 24)
 layout_mode = 2
-[node name="State" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/NorthSlot/Layout/StateRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
-text_overrun_behavior = 3
-[node name="Kick" type="Button" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/NorthSlot/Layout/StateRow"]
-custom_minimum_size = Vector2(42, 22)
-layout_mode = 2
+size_flags_horizontal = 0
 theme_type_variation = &"SquareButton"
 text = "LAN_KICK"
 
 [node name="Layout" type="VBoxContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/SouthSlot"]
 layout_mode = 2
-theme_override_constants/separation = 0
-[node name="Seat" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/SouthSlot/Layout"]
+theme_override_constants/separation = 3
+[node name="HeaderRow" type="HBoxContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/SouthSlot/Layout"]
 layout_mode = 2
+theme_override_constants/separation = 5
+[node name="Seat" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/SouthSlot/Layout/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 0.76, 0.27, 1)
 theme_override_font_sizes/font_size = 15
+[node name="Divider" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/SouthSlot/Layout/HeaderRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.52, 0.6, 0.58, 1)
+text = "|"
+[node name="State" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/SouthSlot/Layout/HeaderRow"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text_overrun_behavior = 3
 [node name="Player" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/SouthSlot/Layout"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text_overrun_behavior = 3
-[node name="StateRow" type="HBoxContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/SouthSlot/Layout"]
+[node name="Kick" type="Button" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/SouthSlot/Layout"]
+custom_minimum_size = Vector2(58, 24)
 layout_mode = 2
-[node name="State" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/SouthSlot/Layout/StateRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
-text_overrun_behavior = 3
-[node name="Kick" type="Button" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/SouthSlot/Layout/StateRow"]
-custom_minimum_size = Vector2(42, 22)
-layout_mode = 2
+size_flags_horizontal = 0
 theme_type_variation = &"SquareButton"
 text = "LAN_KICK"
 
 [node name="Layout" type="VBoxContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/WestSlot"]
 layout_mode = 2
-theme_override_constants/separation = 0
-[node name="Seat" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/WestSlot/Layout"]
+theme_override_constants/separation = 3
+[node name="HeaderRow" type="HBoxContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/WestSlot/Layout"]
 layout_mode = 2
+theme_override_constants/separation = 5
+[node name="Seat" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/WestSlot/Layout/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 0.76, 0.27, 1)
 theme_override_font_sizes/font_size = 15
+[node name="Divider" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/WestSlot/Layout/HeaderRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.52, 0.6, 0.58, 1)
+text = "|"
+[node name="State" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/WestSlot/Layout/HeaderRow"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text_overrun_behavior = 3
 [node name="Player" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/WestSlot/Layout"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text_overrun_behavior = 3
-[node name="StateRow" type="HBoxContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/WestSlot/Layout"]
+[node name="Kick" type="Button" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/WestSlot/Layout"]
+custom_minimum_size = Vector2(58, 24)
 layout_mode = 2
-[node name="State" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/WestSlot/Layout/StateRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
-text_overrun_behavior = 3
-[node name="Kick" type="Button" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/WestSlot/Layout/StateRow"]
-custom_minimum_size = Vector2(42, 22)
-layout_mode = 2
+size_flags_horizontal = 0
 theme_type_variation = &"SquareButton"
 text = "LAN_KICK"
 
 [node name="Layout" type="VBoxContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/EastSlot"]
 layout_mode = 2
-theme_override_constants/separation = 0
-[node name="Seat" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/EastSlot/Layout"]
+theme_override_constants/separation = 3
+[node name="HeaderRow" type="HBoxContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/EastSlot/Layout"]
 layout_mode = 2
+theme_override_constants/separation = 5
+[node name="Seat" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/EastSlot/Layout/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 0.76, 0.27, 1)
 theme_override_font_sizes/font_size = 15
+[node name="Divider" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/EastSlot/Layout/HeaderRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.52, 0.6, 0.58, 1)
+text = "|"
+[node name="State" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/EastSlot/Layout/HeaderRow"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text_overrun_behavior = 3
 [node name="Player" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/EastSlot/Layout"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text_overrun_behavior = 3
-[node name="StateRow" type="HBoxContainer" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/EastSlot/Layout"]
+[node name="Kick" type="Button" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/EastSlot/Layout"]
+custom_minimum_size = Vector2(58, 24)
 layout_mode = 2
-[node name="State" type="Label" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/EastSlot/Layout/StateRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
-text_overrun_behavior = 3
-[node name="Kick" type="Button" parent="DetailPanel/Layout/LobbyView/LobbyScroll/LobbyContent/MembersBoard/EastSlot/Layout/StateRow"]
-custom_minimum_size = Vector2(42, 22)
-layout_mode = 2
+size_flags_horizontal = 0
 theme_type_variation = &"SquareButton"
 text = "LAN_KICK"
 
