@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="TutorialScenario" load_steps=5 format=3 uid="uid://x6vm3y5ksjfj"]
+[gd_resource type="Resource" script_class="TutorialScenario" format=3 uid="uid://x6vm3y5ksjfj"]
 
 [ext_resource type="Script" uid="uid://dypfx4bvw47nb" path="res://features/tutorial/tutorial_scenario.gd" id="1_scenario"]
 [ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="2_np0kg"]

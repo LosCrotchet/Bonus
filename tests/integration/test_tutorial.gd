@@ -57,7 +57,12 @@ func _run_test() -> void:
 	assert(current_step.pointer_target_path == NodePath("SafeArea/MainLayout/HandPanel"))
 	assert((director.get_node("%Message") as Label).text == tr(&"TUTORIAL_INITIAL_HAND"))
 	assert((director.get_node("%Emoji") as TextureRect).texture != null)
-	assert((director.get_node("%PointerEmoji") as TextureRect).visible)
+	var pointer := director.get_node("%PointerEmoji") as TextureRect
+	var hand_panel := game.get_node("%HandPanel") as PanelContainer
+	assert(pointer.visible)
+	assert(pointer.texture != null)
+	assert(hand_panel.get_global_rect().has_point(pointer.get_global_rect().get_center()))
+	assert(pointer.get_global_rect().get_center().x > hand_panel.get_global_rect().get_center().x)
 	assert((director.get_node("%Highlight") as Panel).visible)
 	assert(bool(game.get("_tutorial_gameplay_locked")))
 	assert(not bool(game.get("_deal_animation_running")))

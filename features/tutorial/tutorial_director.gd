@@ -241,8 +241,8 @@ func _reposition_pointer() -> void:
 	var target_rect := target.get_global_rect()
 	var pointer_size := pointer_emoji_view.size
 	var desired_position := Vector2(
-		target_rect.end.x - pointer_size.x - 28.0,
-		target_rect.position.y + (target_rect.size.y - pointer_size.y) * 0.5,
+		target_rect.end.x - pointer_size.x - 42.0,
+		target_rect.position.y + 24.0,
 	)
 	var viewport_rect := get_viewport_rect().grow(-12.0)
 	pointer_emoji_view.global_position = Vector2(

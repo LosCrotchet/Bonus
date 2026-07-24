@@ -1,6 +1,18 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://bmd2h3a1qwnwd"]
 
-[ext_resource type="Script" path="res://features/tutorial/tutorial_director.gd" id="1_director"]
+[ext_resource type="Script" uid="uid://bvggla27vwbyq" path="res://features/tutorial/tutorial_director.gd" id="1_director"]
+
+[sub_resource type="StyleBoxFlat" id="Style_highlight"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.82, 0.3, 1)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
 
 [sub_resource type="StyleBoxFlat" id="Style_dialog"]
 content_margin_left = 18.0
@@ -20,19 +32,7 @@ corner_radius_bottom_left = 7
 shadow_color = Color(0, 0, 0, 0.4)
 shadow_size = 10
 
-[sub_resource type="StyleBoxFlat" id="Style_highlight"]
-bg_color = Color(0, 0, 0, 0)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(1, 0.82, 0.3, 1)
-corner_radius_top_left = 7
-corner_radius_top_right = 7
-corner_radius_bottom_right = 7
-corner_radius_bottom_left = 7
-
-[node name="TutorialDirector" type="Control"]
+[node name="TutorialDirector" type="Control" unique_id=143897347]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -42,7 +42,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_director")
 
-[node name="Blocker" type="ColorRect" parent="."]
+[node name="Blocker" type="ColorRect" parent="." unique_id=498460083]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -53,24 +53,24 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.01, 0.015, 0.015, 0.55)
 
-[node name="Highlight" type="Panel" parent="."]
+[node name="Highlight" type="Panel" parent="." unique_id=62758609]
 unique_name_in_owner = true
 z_index = 2
 layout_mode = 0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("Style_highlight")
 
-[node name="PointerEmoji" type="TextureRect" parent="."]
+[node name="PointerEmoji" type="TextureRect" parent="." unique_id=1920027542]
 unique_name_in_owner = true
 z_index = 4
+texture_filter = 4
 custom_minimum_size = Vector2(72, 72)
 layout_mode = 0
 mouse_filter = 2
-texture_filter = 4
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Dialog" type="PanelContainer" parent="."]
+[node name="Dialog" type="PanelContainer" parent="." unique_id=435746932]
 unique_name_in_owner = true
 z_index = 3
 custom_minimum_size = Vector2(560, 150)
@@ -88,24 +88,24 @@ grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("Style_dialog")
 
-[node name="Layout" type="HBoxContainer" parent="Dialog"]
+[node name="Layout" type="HBoxContainer" parent="Dialog" unique_id=2094680621]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Emoji" type="TextureRect" parent="Dialog/Layout"]
+[node name="Emoji" type="TextureRect" parent="Dialog/Layout" unique_id=2091311792]
 unique_name_in_owner = true
+texture_filter = 4
 custom_minimum_size = Vector2(104, 104)
 layout_mode = 2
-texture_filter = 4
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Copy" type="VBoxContainer" parent="Dialog/Layout"]
+[node name="Copy" type="VBoxContainer" parent="Dialog/Layout" unique_id=72713149]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="Message" type="Label" parent="Dialog/Layout/Copy"]
+[node name="Message" type="Label" parent="Dialog/Layout/Copy" unique_id=1016882887]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
@@ -113,7 +113,7 @@ theme_override_font_sizes/font_size = 18
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="ContinueButton" type="Button" parent="Dialog/Layout/Copy"]
+[node name="ContinueButton" type="Button" parent="Dialog/Layout/Copy" unique_id=1370135611]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(130, 40)
 layout_mode = 2
