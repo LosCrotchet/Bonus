@@ -16,6 +16,7 @@ var _current_step: TutorialStep
 var _dialog_tween: Tween
 var _pointer_tween: Tween
 var _continue_indicator_tween: Tween
+var _continue_float_tween: Tween
 var _continue_ready := false
 var _started := false
 
@@ -142,9 +143,13 @@ func _show_continue_indicator() -> void:
 	continue_indicator.visible = true
 	continue_indicator.modulate.a = 0.0
 	continue_indicator.scale = Vector2(0.82, 0.82)
+	continue_indicator.position = Vector2.ZERO
 	continue_indicator.pivot_offset = continue_indicator.size * 0.5
 	if _continue_indicator_tween != null:
 		_continue_indicator_tween.kill()
+	if _continue_float_tween != null:
+		_continue_float_tween.kill()
+		_continue_float_tween = null
 	_continue_indicator_tween = create_tween().set_parallel(true)
 	_continue_indicator_tween.tween_property(
 		continue_indicator,
@@ -158,6 +163,29 @@ func _show_continue_indicator() -> void:
 		Vector2.ONE,
 		0.24,
 	).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_continue_indicator_tween.chain().tween_callback(
+		_start_continue_indicator_float,
+	)
+
+
+func _start_continue_indicator_float() -> void:
+	if not _continue_ready or not continue_indicator.visible:
+		return
+	continue_indicator.position = Vector2.ZERO
+	_continue_float_tween = create_tween().set_loops()
+	_continue_float_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_continue_float_tween.tween_property(
+		continue_indicator,
+		"position:y",
+		-3.0,
+		0.55,
+	)
+	_continue_float_tween.tween_property(
+		continue_indicator,
+		"position:y",
+		2.0,
+		0.55,
+	)
 
 
 func _advance_button_step() -> void:
@@ -186,6 +214,10 @@ func _finish_current_step(unlock_gameplay := true) -> void:
 	if _continue_indicator_tween != null:
 		_continue_indicator_tween.kill()
 		_continue_indicator_tween = null
+	if _continue_float_tween != null:
+		_continue_float_tween.kill()
+		_continue_float_tween = null
+	continue_indicator.position = Vector2.ZERO
 	if _pointer_tween != null:
 		_pointer_tween.kill()
 		_pointer_tween = null

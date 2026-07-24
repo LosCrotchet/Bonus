@@ -46,7 +46,13 @@ func _run_test() -> void:
 	assert(current_step.blocks_gameplay)
 	assert((director.get_node("%Message") as Label).text == current_step.get_message(director))
 	assert((director.get_node("%Emoji") as TextureRect).texture != null)
-	assert((director.get_node("%ContinueIndicator") as TextureRect).visible)
+	var continue_indicator := director.get_node("%ContinueIndicator") as TextureRect
+	assert(continue_indicator.visible)
+	assert(director.get("_continue_float_tween") is Tween)
+	var hand_border := (game.get("_flow_borders") as Dictionary)[
+		game.get_node("%HandPanel")
+	] as ColorRect
+	assert(director.z_index > hand_border.z_index)
 	assert(bool(game.get("_tutorial_gameplay_locked")))
 	assert(bool(game.get("_dealing")))
 	assert(not bool(game.get_node("%HandView").get("_interaction_enabled")))
