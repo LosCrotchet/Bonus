@@ -30,12 +30,42 @@ func _run_test() -> void:
 	var game := content.get_child(0) as Control
 	assert(bool(game.get("_tutorial_mode")))
 	var session := game.get("_session") as GameSession
+	var scenario := load(
+		"res://features/tutorial/content/default_tutorial.tres",
+	) as TutorialScenario
 	assert(session.players.size() == 3)
-	assert(session.game_seed_text == "teach001")
-	assert(session.game_seed == SeedCodec.to_int("teach001"))
+	assert(session.game_seed_text == scenario.seed_text)
+	assert(session.game_seed == SeedCodec.to_int(scenario.seed_text))
 	assert((game.get_node("%HeaderTitle") as Label).text.contains(tr(&"UI_TUTORIAL")))
-	assert((game.get_node("%HeaderSeed") as Label).text.contains("teach001"))
-	assert(game.get("_tutorial_director") is TutorialDirector)
+	assert((game.get_node("%HeaderSeed") as Label).text.contains(scenario.seed_text))
+	var director := game.get("_tutorial_director") as TutorialDirector
+	assert(director != null)
+	var current_step := director.get("_current_step") as TutorialStep
+	assert(current_step.step_id == &"welcome")
+	assert(current_step.placement == TutorialStep.Placement.BOTTOM)
+	assert(current_step.blocks_gameplay)
+	assert((director.get_node("%Message") as Label).text == tr(&"TUTORIAL_WELCOME"))
+	assert((director.get_node("%Emoji") as TextureRect).texture != null)
+	assert(bool(game.get("_tutorial_gameplay_locked")))
+	assert(bool(game.get("_dealing")))
+
+	(director.get_node("%ContinueButton") as Button).pressed.emit()
+	await get_tree().process_frame
+	current_step = director.get("_current_step") as TutorialStep
+	assert(current_step.step_id == &"initial_hand")
+	assert(current_step.placement == TutorialStep.Placement.RIGHT)
+	assert(current_step.pointer_target_path == NodePath("SafeArea/MainLayout/HandPanel"))
+	assert((director.get_node("%Message") as Label).text == tr(&"TUTORIAL_INITIAL_HAND"))
+	assert((director.get_node("%Emoji") as TextureRect).texture != null)
+	assert((director.get_node("%PointerEmoji") as TextureRect).visible)
+	assert((director.get_node("%Highlight") as Panel).visible)
+	assert(bool(game.get("_tutorial_gameplay_locked")))
+	assert(not bool(game.get("_deal_animation_running")))
+
+	(director.get_node("%ContinueButton") as Button).pressed.emit()
+	await get_tree().process_frame
+	assert(director.get("_current_step") == null)
+	assert(not bool(game.get("_tutorial_gameplay_locked")))
 	for strategy in (game.get("_strategies") as Dictionary).values():
 		assert(strategy is TutorialStrategy)
 
@@ -54,10 +84,10 @@ func _run_test() -> void:
 	assert(bool(game.get("_tutorial_gameplay_locked")))
 	game.call("set_tutorial_gameplay_locked", false)
 
-	var scenario := TutorialScenario.new()
-	scenario.include_jokers = false
-	scenario.jokers_are_wild = true
-	var rules := scenario.build_rules()
+	var custom_scenario := TutorialScenario.new()
+	custom_scenario.include_jokers = false
+	custom_scenario.jokers_are_wild = true
+	var rules := custom_scenario.build_rules()
 	assert(not rules.include_jokers)
 	assert(not rules.jokers_are_wild)
 

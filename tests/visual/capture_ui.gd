@@ -34,6 +34,14 @@ func _capture() -> void:
 	await get_tree().process_frame
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
+	if state in ["tutorial_welcome", "tutorial_hand"]:
+		(menu.get_node("%TutorialButton") as Button).pressed.emit()
+		while bool(app.get("_transitioning")) or content.get_child(0).name != "GameScene":
+			await get_tree().process_frame
+		var tutorial_director := content.get_child(0).get("_tutorial_director") as TutorialDirector
+		if state == "tutorial_hand":
+			(tutorial_director.get_node("%ContinueButton") as Button).pressed.emit()
+		await get_tree().create_timer(0.3).timeout
 	if state in ["settings", "settings_applied"]:
 		(menu.get_node("%SettingsButton") as Button).pressed.emit()
 		await get_tree().create_timer(0.35).timeout

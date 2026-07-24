@@ -29,6 +29,9 @@
 | `message_key` | `strings.csv` 中的多语言键 |
 | `emoji` | 对话角色或手势图片；留空时文本自动占用该空间 |
 | `placement` | 对话框位于上、下、左或右；优先避开当前要观察的区域 |
+| `pointer_emoji` | 独立于对话角色的手势图片，用于指向牌桌控件 |
+| `pointer_target_path` | 手势指向的 `GameScene` 节点；导演会随目标移动，并把手势放在目标右侧 |
+| `pointer_size` | 手势显示尺寸，默认 72 像素 |
 | `blocks_gameplay` | 是否冻结玩家操作与 AI 调度；对话解释规则时通常启用 |
 | `continue_mode` | `BUTTON` 由玩家确认，`EVENT` 等待指定操作完成 |
 | `continue_event` | `EVENT` 模式所等待的事件 |
@@ -48,7 +51,26 @@
 - 需要阅读时设置 `blocks_gameplay = true`，导演只锁定牌局调度，不暂停整个 SceneTree，因此音乐、按钮和对话动画仍正常运行。
 - 要求玩家完成动作时，先用按钮关闭讲解，再用一个 `blocks_gameplay = false` 的 `EVENT` 步骤等待 `action_play`、`action_pass` 等事件；等待玩家操作的步骤不能同时锁住牌局。
 - AI 行动前先注入命令，再解除锁定。不要使用固定 `Timer` 猜测牌局是否已经完成。
-- 教程使用固定种子 `teach001`；更换种子后必须重新核对所有按点数选牌的 AI 指令。
+- 教程种子由 `default_tutorial.tres` 固定配置；更换种子后必须重新核对所有按点数选牌的 AI 指令。
+
+## 当前开场示例
+
+`default_tutorial.tres` 已按顺序引用两个独立步骤：
+
+1. `steps/welcome.tres`：收到 `tutorial_started` 后锁定牌局，在屏幕下方显示欢迎语和 `emoji_u1f970`。
+2. `steps/initial_hand.tres`：玩家点击继续后仍保持牌局锁定，在屏幕右侧说明初始手牌；`emoji_u1f600` 作为说话角色，`emoji_u1f448` 独立指向并高亮 `HandPanel`。
+
+同一事件下连续讲解时，让这些步骤使用相同的 `trigger` 并相邻排列。玩家关闭最后一个按钮步骤后，导演解除锁定，发牌流程才会继续。
+
+需要在发牌完成后继续讲解时，可以再添加一个 `trigger = &"initial_deal_finished"` 的步骤。需要玩家亲自操作时，则使用一段不锁定游戏的事件步骤，例如：
+
+```gdscript
+trigger = &"awaiting_roll"
+continue_mode = TutorialStep.ContinueMode.EVENT
+continue_event = &"action_roll"
+blocks_gameplay = false
+highlight_path = NodePath("SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DiceGroup/DiceArea/DiceButton")
+```
 
 ## AI 指令
 

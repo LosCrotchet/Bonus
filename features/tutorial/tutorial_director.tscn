@@ -60,6 +60,16 @@ layout_mode = 0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("Style_highlight")
 
+[node name="PointerEmoji" type="TextureRect" parent="."]
+unique_name_in_owner = true
+z_index = 4
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 0
+mouse_filter = 2
+texture_filter = 4
+expand_mode = 1
+stretch_mode = 5
+
 [node name="Dialog" type="PanelContainer" parent="."]
 unique_name_in_owner = true
 z_index = 3

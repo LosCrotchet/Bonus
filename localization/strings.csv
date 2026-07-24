@@ -4,8 +4,8 @@ UI_HAND_TYPES,牌型,Hand Types
 UI_CLOSE,关闭,Close
 UI_HAND_TYPES_POINT,点数,Count
 UI_HAND_TYPES_NAME,牌型名称,Hand Type
-UI_HAND_TYPES_DESCRIPTION,简易描述,Description
-UI_HAND_TYPES_EXAMPLE,牌型示例,Example
+UI_HAND_TYPES_DESCRIPTION,描述,Description
+UI_HAND_TYPES_EXAMPLE,示例,Example
 UI_GAME_SETTINGS,牌局设置,Game Settings
 UI_PLAYER_COUNT,玩家数量,Players
 UI_PLAYER_COUNT_OPTION,{count} 人,{count}P
@@ -22,7 +22,7 @@ UI_WINDOW_MODE,显示模式,Display Mode
 UI_WINDOWED,窗口,Windowed
 UI_FULLSCREEN,全屏,Fullscreen
 UI_LANGUAGE,语言,Language
-UI_LANGUAGE_ZH_CN,简体中文,Simplified Chinese
+UI_LANGUAGE_ZH_CN,简体中文,简体中文
 UI_LANGUAGE_EN,English,English
 UI_MASTER_VOLUME,总音量,Master Volume
 UI_SFX_VOLUME,音效音量,SFX Volume
@@ -54,7 +54,7 @@ UI_START_GAME,开始游戏,Start Game
 UI_CUSTOM_SEED,自定义种子,Custom Seed
 UI_SEED_PLACEHOLDER,8位小写字母或数字,8 lowercase letters or digits
 UI_SAVED_GAME_FOUND,发现未完成的牌局,Unfinished Game Found
-UI_SAVED_GAME_PROMPT,是否继续上次的单人牌局？选择新开将覆盖旧存档。,Continue your previous single-player game? Starting new will replace the old save.
+UI_SAVED_GAME_PROMPT,是否继续上次的单人牌局？选择开始新游戏将覆盖旧存档。,Continue your previous single-player game? Starting new game will replace the old save.
 UI_SAVED_GAME_META,{count} 人 · {seed},{count}P · {seed}
 UI_SAVED_GAME_RULES,规则：{rules},Rules: {rules}
 UI_SEED_SUMMARY_CUSTOM,自定义种子：{seed},Custom seed: {seed}
@@ -240,3 +240,5 @@ STEAM_MULTIPLAYER,Steam 联机,Steam Multiplayer
 STEAM_LOBBY_COMING,大厅（即将推出）,Lobby (Coming Soon)
 STEAM_ONLINE_COMING,在线游戏（即将推出）,Online Play (Coming Soon)
 UI_SEED,种子,Seed
+TUTORIAL_WELCOME,欢迎来到 Bonus！这是一款将斗地主和骰子结合起来的游戏。,Welcome to Bonus! It combines the card play of Dou Dizhu with the roll of a die.
+TUTORIAL_INITIAL_HAND,在每一局游戏中，每位玩家首先会抓 17 张扑克牌。,At the start of each game, every player is dealt 17 cards.

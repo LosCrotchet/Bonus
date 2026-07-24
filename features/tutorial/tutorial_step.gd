@@ -19,6 +19,11 @@ enum ContinueMode {
 @export_multiline var fallback_message := ""
 @export var emoji: Texture2D
 @export var placement := Placement.BOTTOM
+@export_category("Pointer")
+@export var pointer_emoji: Texture2D
+@export var pointer_target_path: NodePath
+@export_range(24.0, 160.0, 1.0) var pointer_size := 72.0
+@export_category("Flow")
 @export var continue_mode := ContinueMode.BUTTON
 @export var continue_event: StringName
 @export var blocks_gameplay := true

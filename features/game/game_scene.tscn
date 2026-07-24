@@ -16,8 +16,8 @@
 [ext_resource type="Texture2D" uid="uid://pion13bnj443" path="res://assets/icons/auto_dice.png" id="15_auto_dice"]
 [ext_resource type="Texture2D" uid="uid://nwxsxgqx4y5j" path="res://assets/icons/auto_skip.png" id="16_auto_skip"]
 [ext_resource type="Texture2D" uid="uid://c2sy5vsj67iwj" path="res://assets/icons/auto_play.png" id="17_auto_play"]
-[ext_resource type="Texture2D" path="res://assets/icons/mouse_left_click.png" id="18_mouse_left"]
-[ext_resource type="Texture2D" path="res://assets/icons/mouse_right_click.png" id="19_mouse_right"]
+[ext_resource type="Texture2D" uid="uid://c0joui15v1pj7" path="res://assets/icons/mouse_left_click.png" id="18_mouse_left"]
+[ext_resource type="Texture2D" uid="uid://codxagpqis44e" path="res://assets/icons/mouse_right_click.png" id="19_mouse_right"]
 
 [sub_resource type="FontVariation" id="Font_default"]
 base_font = ExtResource("12_font")
@@ -240,7 +240,7 @@ theme_override_font_sizes/font_size = 25
 text = "UI_GAME_HEADER"
 vertical_alignment = 1
 
-[node name="HeaderSeed" type="Label" parent="SafeArea/MainLayout/Header/HeaderRow"]
+[node name="HeaderSeed" type="Label" parent="SafeArea/MainLayout/Header/HeaderRow" unique_id=62475019]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.93, 0.92, 0.92)
@@ -450,10 +450,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -625.0
-offset_top = -216.0
-offset_right = 625.0
-offset_bottom = -60.0
+offset_left = -550.0
+offset_top = -217.0
+offset_right = 550.0
+offset_bottom = -61.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = 12
@@ -583,19 +583,19 @@ horizontal_alignment = 1
 [node name="InstructionHint" type="VBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow" unique_id=1416780474]
 unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0)
-custom_minimum_size = Vector2(290, 0)
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 7
 alignment = 1
 
-[node name="SelectHintRow" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint"]
+[node name="SelectHintRow" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint" unique_id=186576698]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 7
 alignment = 2
 
-[node name="Icon" type="TextureRect" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint/SelectHintRow"]
+[node name="Icon" type="TextureRect" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint/SelectHintRow" unique_id=1827039190]
 texture_filter = 4
 custom_minimum_size = Vector2(26, 26)
 layout_mode = 2
@@ -603,7 +603,7 @@ texture = ExtResource("18_mouse_left")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="SelectHintText" type="Label" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint/SelectHintRow"]
+[node name="SelectHintText" type="Label" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint/SelectHintRow" unique_id=1193298127]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.82, 0.88, 0.86, 1)
@@ -611,13 +611,13 @@ theme_override_font_sizes/font_size = 16
 text = "UI_CARD_SELECT_HINT"
 vertical_alignment = 1
 
-[node name="ClearHintRow" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint"]
+[node name="ClearHintRow" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint" unique_id=835446074]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 7
 alignment = 2
 
-[node name="Icon" type="TextureRect" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint/ClearHintRow"]
+[node name="Icon" type="TextureRect" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint/ClearHintRow" unique_id=668024935]
 texture_filter = 4
 custom_minimum_size = Vector2(26, 26)
 layout_mode = 2
@@ -625,7 +625,7 @@ texture = ExtResource("19_mouse_right")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ClearHintText" type="Label" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint/ClearHintRow"]
+[node name="ClearHintText" type="Label" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint/ClearHintRow" unique_id=1007475337]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.82, 0.88, 0.86, 1)

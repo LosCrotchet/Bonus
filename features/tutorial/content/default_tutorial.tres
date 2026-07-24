@@ -1,8 +1,11 @@
-[gd_resource type="Resource" script_class="TutorialScenario" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="TutorialScenario" load_steps=5 format=3 uid="uid://x6vm3y5ksjfj"]
 
-[ext_resource type="Script" path="res://features/tutorial/tutorial_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" uid="uid://dypfx4bvw47nb" path="res://features/tutorial/tutorial_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="2_np0kg"]
+[ext_resource type="Resource" path="res://features/tutorial/content/steps/welcome.tres" id="3_welcome"]
+[ext_resource type="Resource" path="res://features/tutorial/content/steps/initial_hand.tres" id="4_initial_hand"]
 
 [resource]
 script = ExtResource("1_scenario")
-player_count = 3
-seed_text = "teach001"
+seed_text = "tut0ria1"
+steps = Array[ExtResource("2_np0kg")]([ExtResource("3_welcome"), ExtResource("4_initial_hand")])

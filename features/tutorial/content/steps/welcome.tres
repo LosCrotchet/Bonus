@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="TutorialStep" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1_step"]
+[ext_resource type="Texture2D" path="res://assets/tutorial/emoji/emoji_u1f970.png" id="2_emoji"]
+
+[resource]
+script = ExtResource("1_step")
+step_id = &"welcome"
+message_key = &"TUTORIAL_WELCOME"
+emoji = ExtResource("2_emoji")
+placement = 0
+blocks_gameplay = true
+dim_background = true
+
