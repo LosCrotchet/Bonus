@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bmd2h3a1qwnwd"]
 
 [ext_resource type="Script" uid="uid://bvggla27vwbyq" path="res://features/tutorial/tutorial_director.gd" id="1_director"]
+[ext_resource type="Texture2D" uid="uid://cgd6xr87ygqsu" path="res://assets/icons/tutorial_continue.png" id="2_continue"]
 
 [sub_resource type="StyleBoxFlat" id="Style_highlight"]
 bg_color = Color(0, 0, 0, 0)
@@ -73,7 +74,7 @@ stretch_mode = 5
 [node name="Dialog" type="PanelContainer" parent="." unique_id=435746932]
 unique_name_in_owner = true
 z_index = 3
-custom_minimum_size = Vector2(560, 150)
+custom_maximum_size = Vector2(900, 650)
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -107,15 +108,28 @@ theme_override_constants/separation = 10
 
 [node name="Message" type="Label" parent="Dialog/Layout/Copy" unique_id=1016882887]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 18
 vertical_alignment = 1
 autowrap_mode = 2
+clip_text = true
 
-[node name="ContinueButton" type="Button" parent="Dialog/Layout/Copy" unique_id=1370135611]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(130, 40)
+[node name="BottomRow" type="HBoxContainer" parent="Dialog/Layout/Copy"]
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
-size_flags_horizontal = 8
-text = "UI_CONTINUE"
+
+[node name="Spacer" type="Control" parent="Dialog/Layout/Copy/BottomRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ContinueIndicator" type="TextureRect" parent="Dialog/Layout/Copy/BottomRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+mouse_filter = 2
+texture_filter = 4
+texture = ExtResource("2_continue")
+expand_mode = 1
+stretch_mode = 5

@@ -240,5 +240,10 @@ STEAM_MULTIPLAYER,Steam 联机,Steam Multiplayer
 STEAM_LOBBY_COMING,大厅（即将推出）,Lobby (Coming Soon)
 STEAM_ONLINE_COMING,在线游戏（即将推出）,Online Play (Coming Soon)
 UI_SEED,种子,Seed
-TUTORIAL_WELCOME,欢迎来到 Bonus！这是一款将斗地主和骰子结合起来的游戏。,Welcome to Bonus! It combines the card play of Dou Dizhu with the roll of a die.
-TUTORIAL_INITIAL_HAND,在每一局游戏中，每位玩家首先会抓 17 张扑克牌。,At the start of each game, every player is dealt 17 cards.
+TUTORIAL_WELCOME_1,嗯...你好...我在打牌。,NULL
+TUTORIAL_WELCOME_2,你来得正好，我有点玩累了，这一把给你打。,NULL
+TUTORIAL_WELCOME_3,什么？你说你不会？,NULL
+TUTORIAL_WELCOME_4,......你不知道Bonus吗？,NULL
+TUTORIAL_WELCOME_5,那也好，我来教你吧！,NULL
+TUTORIAL_WELCOME_6,Bonus是一款将“斗地主”和“骰子”结合起来的扑克游戏，玩法是在斗地主的基础上根据骰子的点数打出对应数量的牌，谁先把手里的牌打完谁就赢啦。,NULL
+TUTORIAL_INITIAL_HAND,在一局游戏中，每位玩家首先会抓 17 张扑克牌。,NULL

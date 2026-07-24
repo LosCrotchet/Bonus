@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="TutorialStep" load_steps=4 format=3 uid="uid://cw5g6smvk34ua"]
+[gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://cw5g6smvk34ua"]
 
 [ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="1_step"]
 [ext_resource type="Texture2D" uid="uid://02ohent4f5hg" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="2_emoji"]
@@ -12,5 +12,4 @@ emoji = ExtResource("2_emoji")
 placement = 3
 pointer_emoji = ExtResource("3_pointer")
 pointer_target_path = NodePath("SafeArea/MainLayout/HandPanel")
-pointer_size = 72.0
 highlight_path = NodePath("SafeArea/MainLayout/HandPanel")

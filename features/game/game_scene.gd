@@ -591,10 +591,23 @@ func set_tutorial_gameplay_locked(locked: bool) -> void:
 	if locked:
 		_automation_generation += 1
 		_automation_pending = false
+		hand_view.set_interaction_enabled(false)
+		_stop_dice_prompt()
 	else:
 		_automation_checked_revision = -1
 		tutorial_gameplay_unlocked.emit()
+	for button in [auto_roll_button, auto_skip_button, auto_play_button]:
+		button.disabled = locked
 	_refresh.call_deferred()
+
+
+func is_tutorial_input_passthrough_point(point: Vector2) -> bool:
+	if settings_overlay.visible or hand_types_overlay.visible:
+		return true
+	return (
+		settings_button.get_global_rect().has_point(point)
+		or hand_types_button.get_global_rect().has_point(point)
+	)
 
 
 func queue_tutorial_ai_command(player_index: int, command: Dictionary) -> void:
@@ -654,7 +667,7 @@ func _notify_tutorial_event(
 
 
 func skip_initial_deal() -> void:
-	if not _dealing:
+	if not _dealing or _tutorial_gameplay_locked:
 		return
 	_finish_initial_deal()
 
@@ -1268,6 +1281,8 @@ func _input(event: InputEvent) -> void:
 		return
 	if %Header.get_global_rect().has_point(event.position):
 		return
+	if _tutorial_gameplay_locked:
+		return
 	if _dealing:
 		if event.double_click and event.button_index == MOUSE_BUTTON_LEFT:
 			skip_initial_deal()
@@ -1585,6 +1600,9 @@ func _run_ai_until_human(serial: int) -> void:
 		var decision := strategy.choose_action(context)
 		await get_tree().create_timer(SettingsService.get_ai_think_delay()).timeout
 		if serial != _game_serial or player_index != _session.current_player_index:
+			return
+		if _tutorial_gameplay_locked:
+			_ai_task_running = false
 			return
 
 		match decision.action:
@@ -2137,6 +2155,10 @@ func _setup_automation_controls() -> void:
 
 
 func _on_automation_toggled(enabled: bool, button: TextureButton) -> void:
+	if _tutorial_gameplay_locked:
+		button.set_pressed_no_signal(not enabled)
+		_sync_automation_checks()
+		return
 	AudioService.play(&"ui_confirm")
 	if button == auto_roll_button:
 		_auto_roll_enabled = enabled
@@ -2158,6 +2180,8 @@ func _sync_automation_checks() -> void:
 
 
 func _on_automation_mouse_entered(button: TextureButton) -> void:
+	if _tutorial_gameplay_locked:
+		return
 	AudioService.play(&"ui_hover")
 	_kill_automation_hover(button)
 	button.pivot_offset = button.size * 0.5
@@ -2194,6 +2218,8 @@ func _setup_button_motion() -> void:
 
 
 func _on_dice_mouse_entered() -> void:
+	if _tutorial_gameplay_locked:
+		return
 	_dice_hovered = true
 	if not _rolling:
 		_start_dice_hover()
@@ -2205,6 +2231,8 @@ func _on_dice_mouse_exited() -> void:
 
 
 func _on_draw_pile_mouse_entered() -> void:
+	if _tutorial_gameplay_locked:
+		return
 	if _draw_pile_tween != null:
 		_draw_pile_tween.kill()
 	draw_pile_view.pivot_offset = draw_pile_view.size * 0.5

@@ -40,35 +40,53 @@ func _run_test() -> void:
 	assert((game.get_node("%HeaderSeed") as Label).text.contains(scenario.seed_text))
 	var director := game.get("_tutorial_director") as TutorialDirector
 	assert(director != null)
+	assert(scenario.steps.size() >= 2)
 	var current_step := director.get("_current_step") as TutorialStep
-	assert(current_step.step_id == &"welcome")
-	assert(current_step.placement == TutorialStep.Placement.BOTTOM)
+	assert(current_step == scenario.steps[0])
 	assert(current_step.blocks_gameplay)
-	assert((director.get_node("%Message") as Label).text == tr(&"TUTORIAL_WELCOME"))
+	assert((director.get_node("%Message") as Label).text == current_step.get_message(director))
 	assert((director.get_node("%Emoji") as TextureRect).texture != null)
+	assert((director.get_node("%ContinueIndicator") as TextureRect).visible)
 	assert(bool(game.get("_tutorial_gameplay_locked")))
 	assert(bool(game.get("_dealing")))
+	assert(not bool(game.get_node("%HandView").get("_interaction_enabled")))
+	for automation_button_name in [
+		"%AutoRollButton",
+		"%AutoSkipButton",
+		"%AutoPlayButton",
+	]:
+		assert((game.get_node(automation_button_name) as TextureButton).disabled)
+	assert(not (game.get_node("%SettingsButton") as Button).disabled)
+	assert(not (game.get_node("%HandTypesButton") as Button).disabled)
 
-	(director.get_node("%ContinueButton") as Button).pressed.emit()
+	var blocked_skip := _double_click(
+		game.get_node("%PlayedPanel").get_global_rect().get_center(),
+	)
+	game.call("_input", blocked_skip)
+	game.call("skip_initial_deal")
+	await get_tree().process_frame
+	assert(bool(game.get("_dealing")))
+	assert(not bool(game.get("_deal_animation_running")))
+	assert(director.get("_current_step") == scenario.steps[0])
+	director.call("_input", blocked_skip)
+	assert(director.get("_current_step") == scenario.steps[0])
+
+	var settings_point := (game.get_node("%SettingsButton") as Control).get_global_rect().get_center()
+	director.call("_input", _left_click(settings_point))
+	assert(director.get("_current_step") == scenario.steps[0])
+
+	director.call("_input", _left_click(Vector2(640.0, 360.0)))
 	await get_tree().process_frame
 	current_step = director.get("_current_step") as TutorialStep
-	assert(current_step.step_id == &"initial_hand")
-	assert(current_step.placement == TutorialStep.Placement.RIGHT)
-	assert(current_step.pointer_target_path == NodePath("SafeArea/MainLayout/HandPanel"))
-	assert((director.get_node("%Message") as Label).text == tr(&"TUTORIAL_INITIAL_HAND"))
-	assert((director.get_node("%Emoji") as TextureRect).texture != null)
-	var pointer := director.get_node("%PointerEmoji") as TextureRect
-	var hand_panel := game.get_node("%HandPanel") as PanelContainer
-	assert(pointer.visible)
-	assert(pointer.texture != null)
-	assert(hand_panel.get_global_rect().has_point(pointer.get_global_rect().get_center()))
-	assert(pointer.get_global_rect().get_center().x > hand_panel.get_global_rect().get_center().x)
-	assert((director.get_node("%Highlight") as Panel).visible)
+	assert(current_step == scenario.steps[1])
 	assert(bool(game.get("_tutorial_gameplay_locked")))
 	assert(not bool(game.get("_deal_animation_running")))
 
-	(director.get_node("%ContinueButton") as Button).pressed.emit()
-	await get_tree().process_frame
+	while director.get("_current_step") != null:
+		current_step = director.get("_current_step") as TutorialStep
+		assert(current_step.continue_mode == TutorialStep.ContinueMode.BUTTON)
+		director.call("_input", _left_click(Vector2(640.0, 360.0)))
+		await get_tree().process_frame
 	assert(director.get("_current_step") == null)
 	assert(not bool(game.get("_tutorial_gameplay_locked")))
 	for strategy in (game.get("_strategies") as Dictionary).values():
@@ -110,3 +128,17 @@ func _wait_until(predicate: Callable, timeout: float) -> bool:
 		await get_tree().process_frame
 		elapsed += get_process_delta_time()
 	return predicate.call()
+
+
+func _left_click(position: Vector2) -> InputEventMouseButton:
+	var event := InputEventMouseButton.new()
+	event.position = position
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.pressed = true
+	return event
+
+
+func _double_click(position: Vector2) -> InputEventMouseButton:
+	var event := _left_click(position)
+	event.double_click = true
+	return event

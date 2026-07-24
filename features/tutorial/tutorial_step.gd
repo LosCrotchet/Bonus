@@ -19,6 +19,8 @@ enum ContinueMode {
 @export_multiline var fallback_message := ""
 @export var emoji: Texture2D
 @export var placement := Placement.BOTTOM
+@export_range(420.0, 900.0, 10.0) var dialog_width := 760.0
+@export_range(160.0, 400.0, 10.0) var dialog_height := 210.0
 @export_category("Pointer")
 @export var pointer_emoji: Texture2D
 @export var pointer_target_path: NodePath

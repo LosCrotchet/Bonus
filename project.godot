@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Bonus"
-config/version="0.5.22"
+config/version="0.5.23"
 run/main_scene="res://app/app.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
@@ -44,6 +44,7 @@ timers/tooltip_delay_sec=0.05
 
 [internationalization]
 
+locale/translation_remaps={}
 locale/translations=PackedStringArray("res://localization/strings.en.translation", "res://localization/strings.zh_CN.translation")
 locale/fallback="zh_CN"
 

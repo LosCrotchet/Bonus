@@ -29,13 +29,15 @@
 | `message_key` | `strings.csv` 中的多语言键 |
 | `emoji` | 对话角色或手势图片；留空时文本自动占用该空间 |
 | `placement` | 对话框位于上、下、左或右；优先避开当前要观察的区域 |
+| `dialog_width` | 对话框目标宽度，默认 760；运行时会按当前分辨率限制在安全范围内 |
+| `dialog_height` | 对话框目标高度，默认 210；长文本步骤可以单独调高 |
 | `pointer_emoji` | 独立于对话角色的手势图片，用于指向牌桌控件 |
 | `pointer_target_path` | 手势指向的 `GameScene` 节点；导演会随目标移动，并把手势放在目标右侧 |
 | `pointer_size` | 手势显示尺寸，默认 72 像素 |
 | `blocks_gameplay` | 是否冻结玩家操作与 AI 调度；对话解释规则时通常启用 |
-| `continue_mode` | `BUTTON` 由玩家确认，`EVENT` 等待指定操作完成 |
+| `continue_mode` | `BUTTON` 表示点击屏幕继续（名称为兼容旧资源而保留），`EVENT` 表示等待指定操作完成 |
 | `continue_event` | `EVENT` 模式所等待的事件 |
-| `minimum_display_time` | “继续”按钮可用前的最短时间，不要用它代替事件同步 |
+| `minimum_display_time` | 允许点击继续前的最短时间；时间到后右下角的三角提示才会渐显 |
 | `highlight_path` | 相对于 `GameScene` 的节点路径，导演会持续跟随该控件的位置和尺寸 |
 | `ai_commands` | 进入该步骤时注入教程 AI 的指令 |
 
@@ -48,21 +50,22 @@
 
 ## 节奏控制
 
-- 需要阅读时设置 `blocks_gameplay = true`，导演只锁定牌局调度，不暂停整个 SceneTree，因此音乐、按钮和对话动画仍正常运行。
-- 要求玩家完成动作时，先用按钮关闭讲解，再用一个 `blocks_gameplay = false` 的 `EVENT` 步骤等待 `action_play`、`action_pass` 等事件；等待玩家操作的步骤不能同时锁住牌局。
+- 需要阅读时设置 `blocks_gameplay = true`。此时牌局输入、发牌跳过、手牌、自动操作和 AI 调度全部锁定，仅保留右上角的牌型与设置；音乐和对话动画仍正常运行。
+- 要求玩家完成动作时，先点击屏幕关闭讲解，再用一个 `blocks_gameplay = false` 的 `EVENT` 步骤等待 `action_play`、`action_pass` 等事件；等待玩家操作的步骤不能同时锁住牌局。
 - AI 行动前先注入命令，再解除锁定。不要使用固定 `Timer` 猜测牌局是否已经完成。
 - 教程种子由 `default_tutorial.tres` 固定配置；更换种子后必须重新核对所有按点数选牌的 AI 指令。
 
-## 当前开场示例
+## `continue_event` 的用法
 
-`default_tutorial.tres` 已按顺序引用两个独立步骤：
+通常不需要自己定义事件。`continue_event` 只是填写一个已有事件的名称，只有 `continue_mode = EVENT` 时才会读取。导演显示该步骤后会一直等待；当 `GameScene` 报告同名事件时，步骤自动结束。
 
-1. `steps/welcome.tres`：收到 `tutorial_started` 后锁定牌局，在屏幕下方显示欢迎语和 `emoji_u1f970`。
-2. `steps/initial_hand.tres`：玩家点击继续后仍保持牌局锁定，在屏幕右侧说明初始手牌；`emoji_u1f600` 作为说话角色，`emoji_u1f448` 独立指向并高亮 `HandPanel`。
+目前可以直接使用的事件包括：
 
-同一事件下连续讲解时，让这些步骤使用相同的 `trigger` 并相邻排列。玩家关闭最后一个按钮步骤后，导演解除锁定，发牌流程才会继续。
+- 阶段事件：`initial_deal_finished`、`awaiting_roll`、`awaiting_action`、`bonus_started`、`game_finished`。
+- 玩家动作：`action_roll`、`action_play`、`action_pass`。
+- 通用动作：`action_resolved`，任何掷骰、出牌或过牌都会触发。
 
-需要在发牌完成后继续讲解时，可以再添加一个 `trigger = &"initial_deal_finished"` 的步骤。需要玩家亲自操作时，则使用一段不锁定游戏的事件步骤，例如：
+例如，要求玩家亲自掷骰：
 
 ```gdscript
 trigger = &"awaiting_roll"
@@ -71,6 +74,17 @@ continue_event = &"action_roll"
 blocks_gameplay = false
 highlight_path = NodePath("SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DiceGroup/DiceArea/DiceButton")
 ```
+
+这里不能启用 `blocks_gameplay`，否则玩家无法掷骰，`action_roll` 也就永远不会发生。只有现有事件无法表达新的教程检查点时，才需要在 `GameScene` 的状态提交位置调用 `_notify_tutorial_event(&"你的事件名")` 增加事件；不要在 `_process()` 中轮询。
+
+## 开场示例
+
+`welcome.tres` 和 `initial_hand.tres` 展示了两个独立步骤的基础配置：
+
+1. `steps/welcome.tres`：收到 `tutorial_started` 后锁定牌局，在屏幕下方显示欢迎语和 `emoji_u1f970`。
+2. `steps/initial_hand.tres`：玩家点击继续后仍保持牌局锁定，在屏幕右侧说明初始手牌；`emoji_u1f600` 作为说话角色，`emoji_u1f448` 独立指向并高亮 `HandPanel`。
+
+同一事件下连续讲解时，让这些步骤使用相同的 `trigger` 并相邻排列。玩家关闭最后一个点击步骤后，导演解除锁定，牌局流程才会继续。当前 `default_tutorial.tres` 中的 `welcome_1` 至 `welcome_6` 就采用这种方式串联。
 
 ## AI 指令
 

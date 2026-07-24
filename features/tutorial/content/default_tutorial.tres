@@ -2,10 +2,14 @@
 
 [ext_resource type="Script" uid="uid://dypfx4bvw47nb" path="res://features/tutorial/tutorial_scenario.gd" id="1_scenario"]
 [ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="2_np0kg"]
-[ext_resource type="Resource" path="res://features/tutorial/content/steps/welcome.tres" id="3_welcome"]
-[ext_resource type="Resource" path="res://features/tutorial/content/steps/initial_hand.tres" id="4_initial_hand"]
+[ext_resource type="Resource" uid="uid://3bhw6v14mn53" path="res://features/tutorial/content/steps/welcome_1.tres" id="3_8vo40"]
+[ext_resource type="Resource" uid="uid://bpj44ejlj28mn" path="res://features/tutorial/content/steps/welcome_2.tres" id="4_rrt5p"]
+[ext_resource type="Resource" uid="uid://b3xju80sk0qw6" path="res://features/tutorial/content/steps/welcome_3.tres" id="5_yecwq"]
+[ext_resource type="Resource" uid="uid://dirjnsi6drr0g" path="res://features/tutorial/content/steps/welcome_4.tres" id="6_chhce"]
+[ext_resource type="Resource" uid="uid://cumy3lruoqt4q" path="res://features/tutorial/content/steps/welcome_5.tres" id="7_6arsu"]
+[ext_resource type="Resource" uid="uid://cqokj6t5d6t0s" path="res://features/tutorial/content/steps/welcome_6.tres" id="8_j5jou"]
 
 [resource]
 script = ExtResource("1_scenario")
 seed_text = "tut0ria1"
-steps = Array[ExtResource("2_np0kg")]([ExtResource("3_welcome"), ExtResource("4_initial_hand")])
+steps = Array[ExtResource("2_np0kg")]([ExtResource("3_8vo40"), ExtResource("4_rrt5p"), ExtResource("5_yecwq"), ExtResource("6_chhce"), ExtResource("7_6arsu"), ExtResource("8_j5jou")])
