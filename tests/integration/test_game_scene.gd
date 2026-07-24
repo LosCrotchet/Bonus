@@ -43,7 +43,6 @@ func _run_test() -> void:
 	var settings_dismiss := game_scene.get_node("%SettingsDismissButton") as Button
 	var pass_button := game_scene.get_node("%PassButton") as Button
 	var played_panel := game_scene.get_node("%PlayedPanel") as PanelContainer
-	var roll_panel := game_scene.get_node("%RollPanel") as PanelContainer
 	var table_band := game_scene.get_node("%TableBand") as PanelContainer
 	var table_bonus := game_scene.get_node("%TableBonusEffect") as ColorRect
 	var hand_bonus := game_scene.get_node("%BonusEffect") as ColorRect
@@ -57,9 +56,39 @@ func _run_test() -> void:
 	var header_title := game_scene.get_node("%HeaderTitle") as Label
 	var hand_types_button := game_scene.get_node("%HandTypesButton") as Button
 	assert(hand_types_button.icon != null)
-	assert(hand_types_button.custom_minimum_size.x >= 140.0)
+	assert(not hand_types_button.expand_icon)
+	assert(hand_types_button.icon.get_size() == Vector2(32.0, 32.0))
+	assert(hand_types_button.custom_minimum_size.x >= 170.0)
 	assert(settings_button.icon != null)
-	assert(settings_button.custom_minimum_size.x >= 120.0)
+	assert(not settings_button.expand_icon)
+	assert(settings_button.icon.get_size() == Vector2(32.0, 32.0))
+	assert(settings_button.custom_minimum_size.x >= 140.0)
+	var instruction_hint := game_scene.get_node("%InstructionHint") as Control
+	assert(instruction_hint.visible)
+	assert((game_scene.get_node("%SelectHintText") as Label).text == tr(&"UI_CARD_SELECT_HINT"))
+	assert((game_scene.get_node("%ClearHintText") as Label).text == tr(&"UI_CARD_CLEAR_HINT"))
+	var auto_roll_button := game_scene.get_node("%AutoRollButton") as TextureButton
+	var auto_skip_button := game_scene.get_node("%AutoSkipButton") as TextureButton
+	var auto_play_button := game_scene.get_node("%AutoPlayButton") as TextureButton
+	for automation_button in [auto_roll_button, auto_skip_button, auto_play_button]:
+		assert(automation_button.custom_minimum_size == Vector2(32.0, 32.0))
+		assert(automation_button.texture_normal is AtlasTexture)
+	var auto_controls := game_scene.get_node("%AutoControls") as VBoxContainer
+	assert(is_equal_approx(
+		auto_controls.get_global_rect().end.x,
+		(game_scene.get_node("%HandPanel") as Control).get_global_rect().end.x,
+	))
+	assert(auto_controls.global_position.y >= table_band.get_global_rect().end.y)
+	assert(auto_controls.get_global_rect().end.y <= (game_scene.get_node("%HandPanel") as Control).global_position.y)
+	assert(not (game_scene.get_node("%AutoRollCheck") as Label).visible)
+	assert(not (game_scene.get_node("%AutoSkipCheck") as Label).visible)
+	assert(not (game_scene.get_node("%AutoPlayCheck") as Label).visible)
+	auto_roll_button.mouse_entered.emit()
+	await get_tree().create_timer(0.1).timeout
+	assert(auto_roll_button.scale.x > 1.0)
+	auto_roll_button.mouse_exited.emit()
+	await get_tree().create_timer(0.12).timeout
+	assert(auto_roll_button.scale.is_equal_approx(Vector2.ONE))
 	var hand_types_overlay := game_scene.get_node("%HandTypesOverlay") as Control
 	var hand_types_dialog := game_scene.get_node("%HandTypesDialog") as HandTypesDialog
 	assert(session.players.size() == 3)
@@ -197,6 +226,7 @@ func _run_test() -> void:
 		settings_panel,
 		settings_dismiss,
 		status_label,
+		instruction_hint,
 	)
 	assert(_is_hand_sorted(session.players[0].hand))
 
@@ -266,6 +296,8 @@ func _run_test() -> void:
 	assert(game_scene.get_node("%InterpretationOptions").get_child_count() == 3)
 	interpretation_popup.hide()
 	await _test_conservative_auto_pass(game_scene, session)
+	await _test_auto_play(game_scene)
+	await _test_auto_roll(game_scene)
 	await _test_global_double_clicks(game_scene)
 
 	SettingsService.apply_settings(original_settings)
@@ -285,9 +317,12 @@ func _test_transactional_settings(
 	settings_panel: AppSettingsPanel,
 	settings_dismiss: Button,
 	status_label: Label,
+	instruction_hint: Control,
 ) -> void:
 	var original_speed := SettingsService.game_speed
 	var original_master := SettingsService.master_volume
+	var original_simplified := SettingsService.use_simplified_cards
+	var instruction_rect := instruction_hint.get_global_rect()
 	settings_button.pressed.emit()
 	await get_tree().process_frame
 	assert(settings_overlay.visible)
@@ -316,10 +351,19 @@ func _test_transactional_settings(
 	settings_button.pressed.emit()
 	await get_tree().process_frame
 	(settings_panel.get_node("%StatusTextToggle") as CheckBox).button_pressed = false
+	(settings_panel.get_node("%SimplifiedCardsToggle") as CheckBox).button_pressed = true
 	(settings_panel.get_node("%ApplyButton") as Button).pressed.emit()
-	await get_tree().process_frame
+	await get_tree().create_timer(0.25).timeout
 	assert(settings_overlay.visible)
 	assert(not status_label.visible)
+	assert(SettingsService.use_simplified_cards)
+	assert(instruction_hint.visible)
+	assert(instruction_hint.modulate.a < 0.01)
+	assert(instruction_hint.get_global_rect().is_equal_approx(instruction_rect))
+	var sample_card := CardData.new(9998, CardData.Rank.ACE, CardData.Suit.CLUBS)
+	assert(CardTextureCatalog.get_texture_path(sample_card).ends_with(
+		"simple/simplecard_club_1.png",
+	))
 	var apply_status := settings_panel.get_node("%ApplyStatus") as Label
 	assert(apply_status.visible)
 	assert(not settings_panel.get_node("Layout").is_ancestor_of(apply_status))
@@ -337,10 +381,12 @@ func _test_transactional_settings(
 	(settings_panel.get_node("%ExitMenuNo") as Button).pressed.emit()
 	assert(exit_menu_button.visible and not confirmation.visible)
 	(settings_panel.get_node("%StatusTextToggle") as CheckBox).button_pressed = true
+	(settings_panel.get_node("%SimplifiedCardsToggle") as CheckBox).button_pressed = original_simplified
 	(settings_panel.get_node("%ApplyButton") as Button).pressed.emit()
-	await get_tree().process_frame
+	await get_tree().create_timer(0.25).timeout
 	assert(settings_overlay.visible)
 	assert(status_label.visible)
+	assert(instruction_hint.modulate.a > 0.99)
 	settings_dismiss.pressed.emit()
 	assert(await _wait_until(func() -> bool: return not settings_overlay.visible, 1.0))
 
@@ -425,9 +471,10 @@ func _test_interpretation_popup(game_scene: Control, session: GameSession) -> vo
 
 
 func _test_conservative_auto_pass(game_scene: Control, session: GameSession) -> void:
-	var snapshot := SettingsService.get_snapshot()
-	snapshot["auto_pass"] = true
-	assert(SettingsService.apply_settings(snapshot))
+	var auto_skip_button := game_scene.get_node("%AutoSkipButton") as TextureButton
+	auto_skip_button.button_pressed = true
+	assert(bool(game_scene.get("_auto_skip_enabled")))
+	assert((game_scene.get_node("%AutoSkipCheck") as Label).visible)
 	session.players[0].hand = [
 		CardData.new(9100, CardData.Rank.THREE, CardData.Suit.CLUBS),
 	]
@@ -436,6 +483,8 @@ func _test_conservative_auto_pass(game_scene: Control, session: GameSession) -> 
 	session.phase = GameSession.Phase.AWAITING_ACTION
 	session.current_player_index = 0
 	game_scene.call("_refresh")
+	await get_tree().create_timer(0.22).timeout
+	assert((game_scene.get_node("%InstructionHint") as Control).visible)
 	var auto_pass_wait := SettingsService.get_gameplay_duration(
 		SettingsService.GameplayTiming.ACTION_PAUSE,
 	) + 0.35
@@ -453,11 +502,61 @@ func _test_conservative_auto_pass(game_scene: Control, session: GameSession) -> 
 	assert(not action_bar.visible or play_button.disabled)
 	await get_tree().create_timer(auto_pass_wait).timeout
 	assert(session.current_player_index == 1)
+	auto_skip_button.button_pressed = false
+	assert(not bool(game_scene.get("_auto_skip_enabled")))
+
+
+func _test_auto_play(game_scene: Control) -> void:
+	game_scene.call("_start_new_game")
+	await get_tree().process_frame
+	game_scene.call("skip_initial_deal")
+	await get_tree().process_frame
+	var session := game_scene.get("_session") as GameSession
+	var card := CardData.new(9150, CardData.Rank.THREE, CardData.Suit.CLUBS)
+	session.players[0].hand = [card]
+	session.phase = GameSession.Phase.AWAITING_ACTION
+	session.current_player_index = 0
+	session.roller_index = 0
+	session.dice_value = 1
+	session.last_play_pattern = null
+	var auto_play_button := game_scene.get_node("%AutoPlayButton") as TextureButton
+	auto_play_button.button_pressed = true
+	game_scene.call("_refresh")
+	assert(await _wait_until(
+		func() -> bool: return session.phase == GameSession.Phase.FINISHED,
+		5.0,
+	))
+	assert(session.winner_index == 0)
+	auto_play_button.button_pressed = false
+
+
+func _test_auto_roll(game_scene: Control) -> void:
+	game_scene.call("_start_new_game")
+	await get_tree().process_frame
+	game_scene.call("skip_initial_deal")
+	await get_tree().process_frame
+	var session := game_scene.get("_session") as GameSession
+	assert(session.phase == GameSession.Phase.AWAITING_ROLL)
+	var auto_roll_button := game_scene.get_node("%AutoRollButton") as TextureButton
+	auto_roll_button.button_pressed = true
+	game_scene.call("_refresh")
+	assert(await _wait_until(
+		func() -> bool: return bool(game_scene.get("_rolling")),
+		1.0,
+	))
+	assert(await _wait_until(
+		func() -> bool: return session.phase != GameSession.Phase.AWAITING_ROLL,
+		4.0,
+	))
+	auto_roll_button.button_pressed = false
+	assert(await _wait_until(
+		func() -> bool: return not bool(game_scene.get("_presentation_busy")),
+		3.0,
+	))
 
 
 func _test_global_double_clicks(game_scene: Control) -> void:
 	var snapshot := SettingsService.get_snapshot()
-	snapshot["auto_pass"] = false
 	snapshot["double_click_actions"] = true
 	assert(SettingsService.apply_settings(snapshot))
 	game_scene.call("_start_new_game")

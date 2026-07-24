@@ -21,8 +21,8 @@ signal return_to_menu_requested
 ]
 @onready var language_option: OptionButton = %LanguageOption
 @onready var status_text_toggle: CheckBox = %StatusTextToggle
-@onready var auto_pass_toggle: CheckBox = %AutoPassToggle
 @onready var double_click_toggle: CheckBox = %DoubleClickToggle
+@onready var simplified_cards_toggle: CheckBox = %SimplifiedCardsToggle
 @onready var master_volume_slider: HSlider = %MasterVolumeSlider
 @onready var sfx_volume_slider: HSlider = %SfxVolumeSlider
 @onready var music_volume_slider: HSlider = %MusicVolumeSlider
@@ -77,8 +77,8 @@ func _on_apply_pressed() -> void:
 		"window_mode": _selected_button_index(window_mode_buttons),
 		"locale": language_option.get_item_metadata(language_option.selected),
 		"show_status_text": status_text_toggle.button_pressed,
-		"auto_pass": auto_pass_toggle.button_pressed,
 		"double_click_actions": double_click_toggle.button_pressed,
+		"use_simplified_cards": simplified_cards_toggle.button_pressed,
 	}
 	if SettingsService.apply_settings(snapshot):
 		AudioService.play(&"settings_applied")
@@ -112,8 +112,8 @@ func _sync_from_snapshot(snapshot: Dictionary) -> void:
 			language_option.select(index)
 			break
 	status_text_toggle.button_pressed = bool(snapshot["show_status_text"])
-	auto_pass_toggle.button_pressed = bool(snapshot["auto_pass"])
 	double_click_toggle.button_pressed = bool(snapshot["double_click_actions"])
+	simplified_cards_toggle.button_pressed = bool(snapshot["use_simplified_cards"])
 	master_volume_slider.set_value_no_signal(float(snapshot["master_volume"]))
 	sfx_volume_slider.set_value_no_signal(float(snapshot["sfx_volume"]))
 	music_volume_slider.set_value_no_signal(float(snapshot["music_volume"]))

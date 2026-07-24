@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Bonus"
-config/version="0.5.18"
+config/version="0.5.20"
 run/main_scene="res://app/app.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
@@ -37,6 +37,10 @@ window/stretch/aspect="expand"
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/godotsteam/plugin.cfg", "res://addons/landetector/plugin.cfg")
+
+[gui]
+
+timers/tooltip_delay_sec=0.05
 
 [internationalization]
 

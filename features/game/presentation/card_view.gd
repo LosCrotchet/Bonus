@@ -36,10 +36,18 @@ func _ready() -> void:
 
 func configure(card: CardData, enabled: bool) -> void:
 	card_id = card.card_id
-	texture_normal = CardTextureCatalog.get_texture(card)
+	set_meta(&"card_data", card)
+	refresh_texture()
 	tooltip_text = ""
-	_update_shadow_textures()
 	set_interaction_enabled(enabled)
+
+
+func refresh_texture() -> void:
+	var card := get_meta(&"card_data") as CardData
+	if card == null:
+		return
+	texture_normal = CardTextureCatalog.get_texture(card)
+	_update_shadow_textures()
 
 
 func set_base_transform(value: Vector2, angle: float, instant: bool = false) -> void:

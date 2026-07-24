@@ -2,7 +2,9 @@ class_name CardTextureCatalog
 extends RefCounted
 
 const CARD_ROOT := "res://assets/art/cards/"
+const SIMPLE_CARD_ROOT := CARD_ROOT + "simple/"
 const SUIT_FILE_NAMES := ["clubs", "diamond", "heart", "spade"]
+const SIMPLE_SUIT_FILE_NAMES := ["club", "diamond", "heart", "spade"]
 
 static var _texture_cache: Dictionary = {}
 static var _warmup_requested := false
@@ -19,6 +21,13 @@ static func warm_up() -> void:
 	for suit_name in SUIT_FILE_NAMES:
 		for rank in range(1, 14):
 			_request_texture("%scard_%s_%d.png" % [CARD_ROOT, suit_name, rank])
+	_request_texture(SIMPLE_CARD_ROOT + "simplecard_joker_black.png")
+	_request_texture(SIMPLE_CARD_ROOT + "simplecard_joker_red.png")
+	for suit_name in SIMPLE_SUIT_FILE_NAMES:
+		for rank in range(1, 14):
+			_request_texture(
+				"%ssimplecard_%s_%d.png" % [SIMPLE_CARD_ROOT, suit_name, rank],
+			)
 
 
 static func get_texture(card: CardData) -> Texture2D:
@@ -74,6 +83,8 @@ static func _load_texture(path: String) -> Texture2D:
 
 
 static func get_texture_path(card: CardData) -> String:
+	if SettingsService.use_simplified_cards:
+		return _get_simple_texture_path(card)
 	if card.joker_kind == CardData.JokerKind.SMALL:
 		return CARD_ROOT + "card_joker_black.png"
 	if card.joker_kind == CardData.JokerKind.BIG:
@@ -91,3 +102,26 @@ static func get_texture_path(card: CardData) -> String:
 	elif card.rank == CardData.Rank.TWO:
 		asset_rank = 2
 	return "%scard_%s_%d.png" % [CARD_ROOT, suit_names[card.suit], asset_rank]
+
+
+static func _get_simple_texture_path(card: CardData) -> String:
+	if card.joker_kind == CardData.JokerKind.SMALL:
+		return SIMPLE_CARD_ROOT + "simplecard_joker_black.png"
+	if card.joker_kind == CardData.JokerKind.BIG:
+		return SIMPLE_CARD_ROOT + "simplecard_joker_red.png"
+	var suit_names := {
+		CardData.Suit.CLUBS: "club",
+		CardData.Suit.DIAMONDS: "diamond",
+		CardData.Suit.HEARTS: "heart",
+		CardData.Suit.SPADES: "spade",
+	}
+	var asset_rank := card.rank
+	if card.rank == CardData.Rank.ACE:
+		asset_rank = 1
+	elif card.rank == CardData.Rank.TWO:
+		asset_rank = 2
+	return "%ssimplecard_%s_%d.png" % [
+		SIMPLE_CARD_ROOT,
+		suit_names[card.suit],
+		asset_rank,
+	]

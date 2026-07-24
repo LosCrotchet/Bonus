@@ -6,13 +6,18 @@
 [ext_resource type="Texture2D" uid="uid://dhgiexcj863h4" path="res://assets/art/dice/die_white_1.png" id="4_die"]
 [ext_resource type="PackedScene" path="res://shared/ui/settings_panel.tscn" id="5_settings"]
 [ext_resource type="Script" uid="uid://bdymxs3audlmt" path="res://features/game/presentation/turn_indicator.gd" id="6_indicator"]
-[ext_resource type="Texture2D" uid="uid://f0n8ynnrfqs8" path="res://assets/icons/settings.png" id="8_settings_icon"]
+[ext_resource type="Texture2D" uid="uid://chse21233sfey" path="res://assets/icons/settings_32.png" id="8_settings_icon"]
 [ext_resource type="Texture2D" uid="uid://cfp8iupc6q5ix" path="res://assets/icons/restart_left.png" id="9_restart_icon"]
 [ext_resource type="Texture2D" uid="uid://b63m3i6ycb48e" path="res://assets/icons/button_home.png" id="10_home_icon"]
 [ext_resource type="PackedScene" path="res://features/game/ui/hand_types_dialog.tscn" id="11_hand_types"]
 [ext_resource type="FontFile" uid="uid://bobda3iv4j3mt" path="res://assets/fonts/SourceHanSans-VF.otf.ttc" id="12_font"]
-[ext_resource type="Texture2D" uid="uid://c6sd1a1dhgscu" path="res://assets/icons/list_menu.png" id="13_list_icon"]
-[ext_resource type="Texture2D" path="res://assets/icons/clock_icon.png" id="14_clock_icon"]
+[ext_resource type="Texture2D" uid="uid://b4h3mfmcminm2" path="res://assets/icons/list_menu_32.png" id="13_list_icon"]
+[ext_resource type="Texture2D" uid="uid://bdttkw2mgnlec" path="res://assets/icons/clock_icon.png" id="14_clock_icon"]
+[ext_resource type="Texture2D" uid="uid://pion13bnj443" path="res://assets/icons/auto_dice.png" id="15_auto_dice"]
+[ext_resource type="Texture2D" uid="uid://nwxsxgqx4y5j" path="res://assets/icons/auto_skip.png" id="16_auto_skip"]
+[ext_resource type="Texture2D" uid="uid://c2sy5vsj67iwj" path="res://assets/icons/auto_play.png" id="17_auto_play"]
+[ext_resource type="Texture2D" path="res://assets/icons/mouse_left_click.png" id="18_mouse_left"]
+[ext_resource type="Texture2D" path="res://assets/icons/mouse_right_click.png" id="19_mouse_right"]
 
 [sub_resource type="FontVariation" id="Font_default"]
 base_font = ExtResource("12_font")
@@ -45,28 +50,6 @@ base_font = ExtResource("12_font")
 variation_opentype = {
 2003265652: 650.0
 }
-
-[sub_resource type="StyleBoxFlat" id="Style_button_neutral"]
-content_margin_left = 18.0
-content_margin_top = 8.0
-content_margin_right = 18.0
-content_margin_bottom = 8.0
-bg_color = Color(0.18, 0.24, 0.24, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="Style_button_neutral_hover"]
-content_margin_left = 18.0
-content_margin_top = 8.0
-content_margin_right = 18.0
-content_margin_bottom = 8.0
-bg_color = Color(0.28, 0.37, 0.35, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="Style_seat"]
 content_margin_left = 11.0
@@ -117,50 +100,6 @@ shader_parameter/wipe_right = 1.0
 [sub_resource type="StyleBoxFlat" id="Style_table_section"]
 bg_color = Color(0, 0, 0, 0)
 
-[sub_resource type="StyleBoxFlat" id="Style_button_disabled"]
-content_margin_left = 18.0
-content_margin_top = 8.0
-content_margin_right = 18.0
-content_margin_bottom = 8.0
-bg_color = Color(0.11, 0.14, 0.14, 0.7)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="Style_button_pass"]
-content_margin_left = 20.0
-content_margin_top = 8.0
-content_margin_right = 20.0
-content_margin_bottom = 8.0
-bg_color = Color(0.62, 0.22, 0.23, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="Style_button_play"]
-content_margin_left = 24.0
-content_margin_top = 8.0
-content_margin_right = 24.0
-content_margin_bottom = 8.0
-bg_color = Color(0.12, 0.48, 0.7, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="Style_button_play_hover"]
-content_margin_left = 24.0
-content_margin_top = 8.0
-content_margin_right = 24.0
-content_margin_bottom = 8.0
-bg_color = Color(0.18, 0.61, 0.84, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
 [sub_resource type="StyleBoxFlat" id="Style_hand"]
 content_margin_left = 0.0
 content_margin_top = 0.0
@@ -183,6 +122,21 @@ shader_parameter/opacity = 0.28
 shader_parameter/darken = 0.0
 shader_parameter/wipe_left = 0.0
 shader_parameter/wipe_right = 1.0
+
+[sub_resource type="AtlasTexture" id="Atlas_auto_dice"]
+atlas = ExtResource("15_auto_dice")
+region = Rect2(8, 6, 84, 88)
+
+[sub_resource type="AtlasTexture" id="Atlas_auto_skip"]
+atlas = ExtResource("16_auto_skip")
+region = Rect2(15, 15, 70, 70)
+
+[sub_resource type="AtlasTexture" id="Atlas_auto_play"]
+atlas = ExtResource("17_auto_play")
+region = Rect2(1, 1, 98, 98)
+
+[sub_resource type="StyleBoxEmpty" id="Style_turn_timer"]
+content_margin_left = 8.0
 
 [sub_resource type="StyleBoxFlat" id="Style_popup"]
 content_margin_left = 20.0
@@ -215,9 +169,6 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxEmpty" id="Style_turn_timer"]
-content_margin_left = 8.0
 
 [node name="GameScene" type="Control" unique_id=1803065421]
 layout_mode = 3
@@ -289,6 +240,14 @@ theme_override_font_sizes/font_size = 25
 text = "UI_GAME_HEADER"
 vertical_alignment = 1
 
+[node name="HeaderSeed" type="Label" parent="SafeArea/MainLayout/Header/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.93, 0.92, 0.92)
+theme_override_font_sizes/font_size = 14
+text = "UI_SEED"
+vertical_alignment = 1
+
 [node name="HeaderSpacer" type="Control" parent="SafeArea/MainLayout/Header/HeaderRow" unique_id=885260335]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -296,22 +255,18 @@ size_flags_horizontal = 3
 [node name="HandTypesButton" type="Button" parent="SafeArea/MainLayout/Header/HeaderRow" unique_id=666370902]
 unique_name_in_owner = true
 texture_filter = 4
-custom_minimum_size = Vector2(142, 40)
+custom_minimum_size = Vector2(176, 40)
 layout_mode = 2
 text = "UI_HAND_TYPES"
 icon = ExtResource("13_list_icon")
-expand_icon = true
-icon_max_width = 27
 
 [node name="SettingsButton" type="Button" parent="SafeArea/MainLayout/Header/HeaderRow" unique_id=733284581]
 unique_name_in_owner = true
 texture_filter = 4
-custom_minimum_size = Vector2(122, 40)
+custom_minimum_size = Vector2(142, 40)
 layout_mode = 2
 text = "UI_SETTINGS"
 icon = ExtResource("8_settings_icon")
-expand_icon = true
-icon_max_width = 27
 
 [node name="MainArea" type="Control" parent="SafeArea/MainLayout" unique_id=248286084]
 custom_minimum_size = Vector2(0, 246)
@@ -327,9 +282,9 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -460.0
-offset_top = -52.0
+offset_top = -36.0
 offset_right = 460.0
-offset_bottom = -18.0
+offset_bottom = -2.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
@@ -348,9 +303,9 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -530.0
-offset_top = 25.0
+offset_top = 10.0
 offset_right = -300.0
-offset_bottom = 108.0
+offset_bottom = 93.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("Style_seat")
 
@@ -430,9 +385,9 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = 300.0
-offset_top = 25.0
+offset_top = 10.0
 offset_right = 530.0
-offset_bottom = 108.0
+offset_bottom = 93.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("Style_seat")
 
@@ -495,9 +450,9 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -390.0
+offset_left = -625.0
 offset_top = -216.0
-offset_right = 390.0
+offset_right = 625.0
 offset_bottom = -60.0
 grow_horizontal = 2
 grow_vertical = 0
@@ -593,32 +548,90 @@ horizontal_alignment = 1
 
 [node name="PlayedPanel" type="PanelContainer" parent="SafeArea/MainLayout/MainArea/TableRow" unique_id=413718912]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(488, 156)
+custom_minimum_size = Vector2(520, 156)
 layout_mode = 2
 theme_override_styles/panel = SubResource("Style_table_section")
 
-[node name="PlayedLayout" type="VBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/PlayedPanel" unique_id=154818461]
+[node name="PlayedContent" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/PlayedPanel" unique_id=762597153]
 layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="PlayedLayout" type="VBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/PlayedPanel/PlayedContent" unique_id=154818461]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 2
 
-[node name="PlayedCardsCenter" type="CenterContainer" parent="SafeArea/MainLayout/MainArea/TableRow/PlayedPanel/PlayedLayout" unique_id=1028007480]
-custom_minimum_size = Vector2(464, 112)
+[node name="PlayedCardsCenter" type="CenterContainer" parent="SafeArea/MainLayout/MainArea/TableRow/PlayedPanel/PlayedContent/PlayedLayout" unique_id=1028007480]
+custom_minimum_size = Vector2(302, 112)
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="PlayedCards" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/PlayedPanel/PlayedLayout/PlayedCardsCenter" unique_id=1891483472]
+[node name="PlayedCards" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/PlayedPanel/PlayedContent/PlayedLayout/PlayedCardsCenter" unique_id=1891483472]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = -13
 alignment = 1
 
-[node name="PlayedCaption" type="Label" parent="SafeArea/MainLayout/MainArea/TableRow/PlayedPanel/PlayedLayout" unique_id=2117103078]
+[node name="PlayedCaption" type="Label" parent="SafeArea/MainLayout/MainArea/TableRow/PlayedPanel/PlayedContent/PlayedLayout" unique_id=2117103078]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.73, 0.83, 0.79, 1)
 theme_override_font_sizes/font_size = 14
 text = "UI_PLAY_AREA_EMPTY"
 horizontal_alignment = 1
+
+[node name="InstructionHint" type="VBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow" unique_id=1416780474]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0)
+custom_minimum_size = Vector2(290, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 7
+alignment = 1
+
+[node name="SelectHintRow" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 7
+alignment = 2
+
+[node name="Icon" type="TextureRect" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint/SelectHintRow"]
+texture_filter = 4
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 2
+texture = ExtResource("18_mouse_left")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SelectHintText" type="Label" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint/SelectHintRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.88, 0.86, 1)
+theme_override_font_sizes/font_size = 16
+text = "UI_CARD_SELECT_HINT"
+vertical_alignment = 1
+
+[node name="ClearHintRow" type="HBoxContainer" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 7
+alignment = 2
+
+[node name="Icon" type="TextureRect" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint/ClearHintRow"]
+texture_filter = 4
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 2
+texture = ExtResource("19_mouse_right")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ClearHintText" type="Label" parent="SafeArea/MainLayout/MainArea/TableRow/InstructionHint/ClearHintRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.88, 0.86, 1)
+theme_override_font_sizes/font_size = 16
+text = "UI_CARD_CLEAR_HINT"
+vertical_alignment = 1
 
 [node name="ActionSlot" type="Control" parent="SafeArea/MainLayout" unique_id=1460016385]
 unique_name_in_owner = true
@@ -633,9 +646,9 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = 226.0
-offset_top = 18.0
+offset_top = 10.0
 offset_right = 586.0
-offset_bottom = 60.0
+offset_bottom = 52.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.82, 0.9, 0.87, 1)
 theme_override_font_sizes/font_size = 19
@@ -648,8 +661,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 16.0
-offset_bottom = -10.0
+offset_top = 8.0
+offset_bottom = -18.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 18
@@ -726,6 +739,134 @@ layout_mode = 2
 size_flags_vertical = 3
 script = ExtResource("2_hand")
 
+[node name="AutoControls" type="VBoxContainer" parent="." unique_id=36276758]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -56.0
+offset_top = -351.0
+offset_right = -12.0
+offset_bottom = -219.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/separation = 9
+alignment = 1
+
+[node name="AutoRollButton" type="TextureButton" parent="AutoControls" unique_id=102685908]
+unique_name_in_owner = true
+texture_filter = 4
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "UI_AUTO_ROLL"
+mouse_default_cursor_shape = 2
+toggle_mode = true
+texture_normal = SubResource("Atlas_auto_dice")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="AutoRollCheck" type="Label" parent="AutoControls/AutoRollButton" unique_id=518363663]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -17.0
+offset_right = 2.0
+offset_bottom = 2.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.35, 1, 0.43, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.08, 0.03, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = SubResource("Font_bold")
+theme_override_font_sizes/font_size = 20
+text = "✓"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AutoSkipButton" type="TextureButton" parent="AutoControls" unique_id=1977236037]
+unique_name_in_owner = true
+texture_filter = 4
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "UI_AUTO_SKIP"
+mouse_default_cursor_shape = 2
+toggle_mode = true
+texture_normal = SubResource("Atlas_auto_skip")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="AutoSkipCheck" type="Label" parent="AutoControls/AutoSkipButton" unique_id=1498590484]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -17.0
+offset_right = 2.0
+offset_bottom = 2.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.35, 1, 0.43, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.08, 0.03, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = SubResource("Font_bold")
+theme_override_font_sizes/font_size = 20
+text = "✓"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AutoPlayButton" type="TextureButton" parent="AutoControls" unique_id=1236755043]
+unique_name_in_owner = true
+texture_filter = 4
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "UI_AUTO_PLAY"
+mouse_default_cursor_shape = 2
+toggle_mode = true
+texture_normal = SubResource("Atlas_auto_play")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="AutoPlayCheck" type="Label" parent="AutoControls/AutoPlayButton" unique_id=913093804]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -17.0
+offset_right = 2.0
+offset_bottom = 2.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.35, 1, 0.43, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.08, 0.03, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = SubResource("Font_bold")
+theme_override_font_sizes/font_size = 20
+text = "✓"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="TurnIndicator" type="Control" parent="." unique_id=1164763022]
 unique_name_in_owner = true
 z_index = 32
@@ -735,20 +876,21 @@ offset_bottom = 48.0
 mouse_filter = 2
 script = ExtResource("6_indicator")
 
-[node name="TurnTimer" type="PanelContainer" parent="."]
+[node name="TurnTimer" type="PanelContainer" parent="." unique_id=781369267]
 unique_name_in_owner = true
 visible = false
 z_index = 31
+layout_mode = 0
 offset_right = 90.0
 offset_bottom = 34.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("Style_turn_timer")
 
-[node name="Layout" type="HBoxContainer" parent="TurnTimer"]
+[node name="Layout" type="HBoxContainer" parent="TurnTimer" unique_id=1596617504]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="ClockIcon" type="TextureRect" parent="TurnTimer/Layout"]
+[node name="ClockIcon" type="TextureRect" parent="TurnTimer/Layout" unique_id=668453017]
 texture_filter = 4
 custom_minimum_size = Vector2(26, 26)
 layout_mode = 2
@@ -756,7 +898,7 @@ texture = ExtResource("14_clock_icon")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="TurnSeconds" type="Label" parent="TurnTimer/Layout"]
+[node name="TurnSeconds" type="Label" parent="TurnTimer/Layout" unique_id=739361503]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(34, 0)
 layout_mode = 2

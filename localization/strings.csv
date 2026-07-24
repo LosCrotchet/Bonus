@@ -28,9 +28,14 @@ UI_MASTER_VOLUME,总音量,Master Volume
 UI_SFX_VOLUME,音效音量,SFX Volume
 UI_MUSIC_VOLUME,音乐音量,Music Volume
 UI_SHOW_STATUS_TEXT,显示提示文本,Show Status Text
-UI_AUTO_PASS,自动跳过,Auto Pass
 UI_DOUBLE_CLICK_ACTIONS,双击出牌与过牌,Double-click Play and Pass
+UI_DOUBLE_CLICK_HINT,左键双击除手牌之外的空白处出牌，右键双击空白处过牌,Double-click empty space with the left mouse button to play; double-click with the right mouse button to pass
+UI_USE_SIMPLIFIED_CARDS,使用简化牌面,Use Simplified Cards
+UI_AUTO_ROLL,自动掷骰子,Auto Roll
+UI_AUTO_SKIP,自动跳过,Auto Skip
+UI_AUTO_PLAY,自动打牌,Auto Play
 UI_APPLY,应用,Apply
+UI_CONTINUE,继续,Continue
 UI_APPLY_SUCCESS,应用成功,Applied
 UI_CANCEL,取消,Cancel
 UI_EXIT_TO_MENU,退出到主界面,Exit to Main Menu
@@ -40,8 +45,10 @@ UI_YES,是,Yes
 UI_NO,否,No
 UI_NEW_GAME,新牌局,New Game
 UI_EXIT_GAME,退出游戏,Exit Game
+UI_TUTORIAL,教程,Tutorial
 UI_SINGLE_PLAYER,单人游戏,Single Player
 UI_GAME_HEADER,BONUS | {mode}（{count}）,BONUS | {mode} ({count})
+UI_GAME_SEED,种子 {seed},Seed {seed}
 UI_MULTIPLAYER,多人游戏,Multiplayer
 UI_START_GAME,开始游戏,Start Game
 UI_CUSTOM_SEED,自定义种子,Custom Seed
@@ -106,6 +113,8 @@ STATUS_BONUS,{player}获得 BONUS，必须打出至少一张合法牌,{player} h
 STATUS_MUST_COVER,{player}需要盖过{hand_type}，或选择不出,{player} must beat {hand_type} or pass
 STATUS_MUST_PLAY,{player}需要打出 {count} 张合法牌，或选择不出,{player} must play {count} legal cards or pass
 STATUS_NO_LEGAL_PLAY,当前没有可出的合法牌，请选择不出,No legal play is available. Choose Pass.
+UI_CARD_SELECT_HINT,选择 / 取消选择 / 连选,Select / Deselect / Multi-select
+UI_CARD_CLEAR_HINT,取消所有选择,Clear Selection
 ERROR_PLAYER_COUNT,玩家人数必须为 2 至 4 人,Player count must be between 2 and 4
 ERROR_CANNOT_ROLL,当前阶段不能掷骰子,The die cannot be rolled now
 ERROR_DICE_RANGE,骰子点数必须为 1 至 6,Die value must be between 1 and 6
@@ -175,6 +184,7 @@ CARD_SUIT_HEARTS,红心,Hearts
 CARD_SUIT_SPADES,黑桃,Spades
 AI_STRATEGY_BASE,基础策略,Base Strategy
 AI_STRATEGY_DEFAULT,默认策略,Default Strategy
+AI_STRATEGY_TUTORIAL,教程策略,Tutorial Strategy
 LAN_TITLE,局域网联机,LAN Multiplayer
 LAN_PLAYER_ID,玩家 ID,Player ID
 LAN_CREATE_ROOM,创建房间,Host Room
@@ -195,7 +205,6 @@ LAN_SECONDS_SHORT,{seconds}秒,{seconds}s
 LAN_ROOM_SUMMARY,{count} 人 · 每回合 {timeout} 秒 · 种子 {seed},{count} players · {timeout}s turns · Seed {seed}
 LAN_MEMBER_READY,已准备,Ready
 LAN_MEMBER_NOT_READY,未准备,Not Ready
-LAN_MEMBER_AI,AI · 已准备,AI · Ready
 LAN_STATUS_CONNECTING,正在连接房主……,Connecting to host...
 LAN_STATUS_DISCONNECTED,连接已断开,Disconnected
 LAN_ERROR_PLAYER_ID_REQUIRED,请输入有效的玩家 ID,Enter a valid player ID

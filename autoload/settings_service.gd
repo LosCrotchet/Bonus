@@ -58,8 +58,8 @@ var resolution := Vector2i(1280, 720)
 var window_mode := WindowMode.WINDOWED
 var locale := "zh_CN"
 var show_status_text := true
-var auto_pass := false
 var double_click_actions := false
+var use_simplified_cards := false
 var player_id := ""
 var master_volume := 0.8
 var sfx_volume := 0.75
@@ -90,8 +90,8 @@ func get_snapshot() -> Dictionary:
 		"window_mode": window_mode,
 		"locale": locale,
 		"show_status_text": show_status_text,
-		"auto_pass": auto_pass,
 		"double_click_actions": double_click_actions,
+		"use_simplified_cards": use_simplified_cards,
 		"player_id": player_id,
 		"master_volume": master_volume,
 		"sfx_volume": sfx_volume,
@@ -123,8 +123,11 @@ func apply_settings(candidate: Dictionary) -> bool:
 	window_mode = next_window_mode as WindowMode
 	locale = next_locale
 	show_status_text = bool(candidate.get("show_status_text", show_status_text))
-	auto_pass = bool(candidate.get("auto_pass", auto_pass))
 	double_click_actions = bool(candidate.get("double_click_actions", double_click_actions))
+	use_simplified_cards = bool(candidate.get(
+		"use_simplified_cards",
+		use_simplified_cards,
+	))
 	_save_settings()
 
 	if locale_has_changed:
@@ -276,8 +279,12 @@ func _load_settings() -> void:
 		GameSpeed.FAST,
 	) as GameSpeed
 	show_status_text = bool(config.get_value("gameplay", "show_status_text", true))
-	auto_pass = bool(config.get_value("gameplay", "auto_pass", false))
 	double_click_actions = bool(config.get_value("gameplay", "double_click_actions", false))
+	use_simplified_cards = bool(config.get_value(
+		"gameplay",
+		"use_simplified_cards",
+		false,
+	))
 	player_id = str(config.get_value("network", "player_id", "")).strip_edges().left(24)
 	master_volume = clampf(config.get_value("audio", "master_volume", master_volume), 0.0, 1.0)
 	sfx_volume = clampf(config.get_value("audio", "sfx_volume", sfx_volume), 0.0, 1.0)
@@ -299,8 +306,8 @@ func _save_settings() -> void:
 	var config := ConfigFile.new()
 	config.set_value("gameplay", "speed", game_speed)
 	config.set_value("gameplay", "show_status_text", show_status_text)
-	config.set_value("gameplay", "auto_pass", auto_pass)
 	config.set_value("gameplay", "double_click_actions", double_click_actions)
+	config.set_value("gameplay", "use_simplified_cards", use_simplified_cards)
 	config.set_value("display", "resolution", resolution)
 	config.set_value("display", "window_mode", window_mode)
 	config.set_value("language", "locale", locale)

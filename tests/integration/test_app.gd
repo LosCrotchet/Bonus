@@ -14,7 +14,7 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	assert((app.get_node("Version") as Label).text == "v0.5.18")
+	assert((app.get_node("Version") as Label).text == "v0.5.20")
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
 	assert(menu != null)
@@ -68,6 +68,7 @@ func _run_test() -> void:
 	assert(hover_button.position.is_equal_approx(hover_rest_position))
 	assert(AudioService.get("_music_track") == &"menu")
 	assert((menu.get_node("%SinglePlayerButton") as Button).icon != null)
+	assert((menu.get_node("%TutorialButton") as Button).icon != null)
 	assert((menu.get_node("%MenuPanel") as PanelContainer).size.y >= 700.0)
 	assert(not (menu.get_node("%SinglePlayerPanel") as PanelContainer).visible)
 
@@ -77,6 +78,8 @@ func _run_test() -> void:
 	assert(single_panel.visible)
 	assert((menu.get_node("%PlayerCount3") as Button).button_pressed)
 	assert(not (menu.get_node("%PlayerCount2") as Button).button_pressed)
+	assert((menu.get_node("%StartGameButton") as Button).icon == null)
+	assert((menu.get_node("%SinglePlayerBackButton") as Button).icon == null)
 	var original_locale := TranslationServer.get_locale()
 	TranslationServer.set_locale("en")
 	menu.call("_on_language_changed", "en")
@@ -122,6 +125,10 @@ func _run_test() -> void:
 	var menu_settings := menu.get_node("%SettingsSidePanel") as AppSettingsPanel
 	assert(await _wait_until(func() -> bool: return menu_settings.visible, 1.0))
 	await get_tree().create_timer(0.35).timeout
+	assert(not menu_settings.has_node(^"%AutoPassToggle"))
+	var double_click_info := menu_settings.get_node("%DoubleClickInfo") as Button
+	assert(double_click_info.tooltip_text == "UI_DOUBLE_CLICK_HINT")
+	assert(bool(double_click_info.get_meta(&"control_motion_disabled", false)))
 	assert(
 		menu_settings.position.is_equal_approx(secondary_position),
 		"Secondary panel positions differ: %s vs %s" % [menu_settings.position, secondary_position],

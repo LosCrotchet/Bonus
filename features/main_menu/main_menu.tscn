@@ -7,10 +7,9 @@
 [ext_resource type="Texture2D" uid="uid://cytp8wxofr3ew" path="res://assets/icons/multiplayer_2.png" id="5_multi"]
 [ext_resource type="Texture2D" uid="uid://f0n8ynnrfqs8" path="res://assets/icons/settings.png" id="6_settings"]
 [ext_resource type="Texture2D" uid="uid://d22npo0xli4xf" path="res://assets/icons/button_power.png" id="7_power"]
-[ext_resource type="Texture2D" uid="uid://c6m6wcaed7ns6" path="res://assets/icons/arrow_right.png" id="8_forward"]
-[ext_resource type="Texture2D" uid="uid://b7w7tougd7x4l" path="res://assets/icons/arrow_left.png" id="9_back"]
 [ext_resource type="FontFile" uid="uid://bobda3iv4j3mt" path="res://assets/fonts/SourceHanSans-VF.otf.ttc" id="10_font"]
 [ext_resource type="Theme" uid="uid://cbc4n3ejioec4" path="res://assets/themes/cartoon_ui/controls.tres" id="11_controls"]
+[ext_resource type="Texture2D" path="res://assets/icons/tutorial.png" id="12_tutorial"]
 
 [sub_resource type="FontVariation" id="Font_default"]
 base_font = ExtResource("10_font")
@@ -139,6 +138,20 @@ layout_mode = 2
 [node name="MenuButtons" type="VBoxContainer" parent="MenuPanel/Layout" unique_id=713179494]
 layout_mode = 2
 theme_override_constants/separation = 16
+
+[node name="TutorialButton" type="Button" parent="MenuPanel/Layout/MenuButtons"]
+unique_name_in_owner = true
+texture_filter = 4
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 21
+theme_override_styles/normal = SubResource("Style_menu_button")
+theme_override_styles/pressed = SubResource("Style_menu_hover")
+theme_override_styles/hover = SubResource("Style_menu_hover")
+text = "UI_TUTORIAL"
+icon = ExtResource("12_tutorial")
+alignment = 0
+expand_icon = true
 
 [node name="SinglePlayerButton" type="Button" parent="MenuPanel/Layout/MenuButtons" unique_id=1608354475]
 unique_name_in_owner = true
@@ -458,8 +471,6 @@ custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 theme_type_variation = &"GreenButton"
 text = "UI_START_GAME"
-icon = ExtResource("8_forward")
-expand_icon = true
 
 [node name="SinglePlayerBackButton" type="Button" parent="SinglePlayerPanel/Layout" unique_id=786910912]
 unique_name_in_owner = true
@@ -468,8 +479,6 @@ custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 theme_type_variation = &"RedButton"
 text = "UI_BACK"
-icon = ExtResource("9_back")
-expand_icon = true
 
 [node name="SettingsSidePanel" parent="." unique_id=1002949335 instance=ExtResource("2_settings")]
 unique_name_in_owner = true

@@ -71,6 +71,11 @@ func set_selection(selected_ids: Array[int]) -> void:
 		card_view.set_selected(_selected_ids.has(card_view.card_id))
 
 
+func refresh_card_textures() -> void:
+	for card_view in _card_views:
+		card_view.refresh_texture()
+
+
 func clear_selection() -> void:
 	if _selected_ids.is_empty():
 		return

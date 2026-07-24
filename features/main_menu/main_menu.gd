@@ -10,6 +10,7 @@ signal single_player_requested(
 )
 signal resume_game_requested
 signal lan_game_requested(snapshot: Dictionary)
+signal tutorial_requested
 signal quit_requested
 
 @onready var menu_panel: PanelContainer = %MenuPanel
@@ -46,6 +47,7 @@ var _menu_target_position := Vector2.ZERO
 
 func _ready() -> void:
 	AudioService.play_music(&"menu")
+	%TutorialButton.pressed.connect(_start_tutorial)
 	%SinglePlayerButton.pressed.connect(_open_single_player)
 	%MultiplayerButton.pressed.connect(_open_multiplayer)
 	%SettingsButton.pressed.connect(_open_settings)
@@ -311,6 +313,13 @@ func _start_single_player() -> void:
 		use_custom_seed,
 		seed_text,
 	)
+
+
+func _start_tutorial() -> void:
+	if _transitioning:
+		return
+	AudioService.play(&"ui_confirm")
+	tutorial_requested.emit()
 
 
 func _continue_saved_game() -> void:

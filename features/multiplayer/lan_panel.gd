@@ -16,6 +16,7 @@ enum DetailMode {
 @onready var detail_panel: PanelContainer = %DetailPanel
 @onready var setup_scroll: ScrollContainer = %SetupScroll
 @onready var setup_content: VBoxContainer = %SetupContent
+@onready var setup_actions: VBoxContainer = %SetupActions
 @onready var lobby_content: VBoxContainer = %LobbyView
 @onready var host_settings: VBoxContainer = %HostSettings
 @onready var join_settings: VBoxContainer = %JoinSettings
@@ -23,7 +24,8 @@ enum DetailMode {
 @onready var address_input: LineEdit = %AddressInput
 @onready var host_port: SpinBox = %HostPort
 @onready var join_port: SpinBox = %JoinPort
-@onready var status_label: Label = %StatusLabel
+@onready var status_label: Label = %SetupStatusLabel
+@onready var lobby_status_label: Label = %LobbyStatusLabel
 @onready var ready_button: Button = %ReadyButton
 @onready var add_ai_button: Button = %AddAiButton
 @onready var start_button: Button = %StartButton
@@ -129,13 +131,17 @@ func _show_setup(hosting: bool) -> void:
 	_detail_mode = DetailMode.HOST if hosting else DetailMode.JOIN
 	setup_scroll.visible = true
 	setup_content.visible = true
+	setup_actions.visible = true
 	lobby_content.visible = false
 	host_settings.visible = hosting
 	join_settings.visible = not hosting
+	%CreateButton.visible = hosting
+	%JoinButton.visible = not hosting
 	%DetailTitle.text = tr(&"LAN_CREATE_ROOM") if hosting else tr(&"LAN_JOIN_ROOM")
 	%CreateButton.text = tr(&"LAN_APPLY_ROOM") if _editing_room else tr(&"LAN_CREATE")
 	status_label.text = ""
 	status_label.visible = true
+	lobby_status_label.visible = false
 	_show_detail()
 
 
@@ -144,10 +150,13 @@ func _show_lobby() -> void:
 	_detail_mode = DetailMode.LOBBY
 	setup_scroll.visible = false
 	setup_content.visible = false
+	setup_actions.visible = false
 	lobby_content.visible = true
 	%DetailTitle.text = tr(&"LAN_ROOM_TITLE")
 	status_label.text = ""
 	status_label.visible = false
+	lobby_status_label.text = ""
+	lobby_status_label.visible = false
 	if not already_visible:
 		_show_detail()
 
@@ -297,9 +306,9 @@ func _clear_seat_slots() -> void:
 		slot.visible = true
 		slot.modulate.a = 0.0
 		slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		(slot.get_node("Layout/Player") as Label).text = ""
+		(slot.get_node("Layout/PlayerRow/Player") as Label).text = ""
 		(slot.get_node("Layout/HeaderRow/State") as Label).text = ""
-		(slot.get_node("Layout/Kick") as Button).visible = false
+		(slot.get_node("Layout/PlayerRow/Kick") as TextureButton).visible = false
 
 
 func _update_seat_slot(member: Dictionary) -> void:
@@ -310,13 +319,15 @@ func _update_seat_slot(member: Dictionary) -> void:
 	slot.visible = true
 	slot.modulate.a = 1.0
 	slot.mouse_filter = Control.MOUSE_FILTER_PASS
-	(slot.get_node("Layout/HeaderRow/Seat") as Label).text = tr(StringName(seat_key))
-	(slot.get_node("Layout/Player") as Label).text = str(member.get("player_id", ""))
+	var is_ai := bool(member.get("is_ai", false))
+	var seat_text := tr(StringName(seat_key))
+	if is_ai:
+		seat_text += " · AI"
+	(slot.get_node("Layout/HeaderRow/Seat") as Label).text = seat_text
+	(slot.get_node("Layout/PlayerRow/Player") as Label).text = str(member.get("player_id", ""))
 	var state_key := &"LAN_MEMBER_READY" if bool(member.get("ready", false)) else &"LAN_MEMBER_NOT_READY"
-	if bool(member.get("is_ai", false)):
-		state_key = &"LAN_MEMBER_AI"
 	(slot.get_node("Layout/HeaderRow/State") as Label).text = tr(state_key)
-	var kick := slot.get_node("Layout/Kick") as Button
+	var kick := slot.get_node("Layout/PlayerRow/Kick") as TextureButton
 	kick.visible = LanMultiplayerService.is_host and not bool(member.get("is_host", false))
 	for connection in kick.pressed.get_connections():
 		kick.pressed.disconnect(connection.callable)
@@ -431,5 +442,6 @@ func _leave_room() -> void:
 
 
 func _show_error(error_key: StringName) -> void:
-	status_label.text = tr(error_key)
-	status_label.visible = true
+	var target := lobby_status_label if _detail_mode == DetailMode.LOBBY else status_label
+	target.text = tr(error_key)
+	target.visible = true

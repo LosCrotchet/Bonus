@@ -28,6 +28,10 @@ func _build_rows() -> void:
 		rows.add_child(_create_point_group(group_data))
 
 
+func refresh_card_style() -> void:
+	_build_rows()
+
+
 func _create_point_group(group_data: Dictionary) -> HBoxContainer:
 	var group := HBoxContainer.new()
 	group.add_theme_constant_override("separation", 0)

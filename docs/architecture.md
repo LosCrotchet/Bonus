@@ -152,6 +152,10 @@ SETUP -> DEALING -> WAITING_FOR_ROLL -> WAITING_FOR_ACTION -> RESOLVING -> FINIS
 
 游戏场景持有当前 `GameSession`；跨场景保存由 `SaveGameService` 接收纯数据快照完成，场景节点本身不会进入存档。
 
+### 教程
+
+`features/tutorial/` 通过固定种子的普通单人牌局工作，不复制规则状态机。`TutorialScenario` 保存教程步骤，`TutorialDirector` 负责对话、emoji、高亮和节奏门控，`TutorialStrategy` 执行脚本指定的 AI 动作并在缺少指令时回退到默认策略。教程不覆盖玩家的未完成单人存档。具体内容制作流程见 [教程制作指南](tutorial_authoring.md)。
+
 ### 存档
 
 - 未完成牌局保存到 `user://bonus_save.json`，不写入项目目录。

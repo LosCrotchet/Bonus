@@ -1,6 +1,8 @@
 extends Control
 
 signal return_to_menu_requested
+signal tutorial_event(event_key: StringName, payload: Dictionary)
+signal tutorial_gameplay_unlocked
 
 const DEFAULT_PLAYER_COUNT := 3
 const DICE_ROOT := "res://assets/art/dice/"
@@ -10,6 +12,12 @@ const DISCONNECTED_SHADER := preload("res://assets/shaders/disconnected_grayscal
 const DISCONNECT_ICON := preload("res://assets/icons/disconnect_icon.png")
 const CARTOON_CONTROLS := preload("res://assets/themes/cartoon_ui/controls.tres")
 const NETWORK_GAME_VIEW = preload("res://multiplayer/session/network_game_view.gd")
+const TUTORIAL_DIRECTOR_SCENE := preload(
+	"res://features/tutorial/tutorial_director.tscn"
+)
+const DEFAULT_TUTORIAL_SCENARIO := preload(
+	"res://features/tutorial/content/default_tutorial.tres"
+)
 const PLAYED_CARD_REVEAL_DURATION := 0.22
 const FLYING_CARD_FADE_DURATION := 0.06
 const SCENE_TRANSITION_DURATION := 0.38
@@ -18,6 +26,7 @@ const BONUS_DICE_FRAME_INTERVAL := 0.14
 @onready var settings_button: Button = %SettingsButton
 @onready var hand_types_button: Button = %HandTypesButton
 @onready var header_title: Label = %HeaderTitle
+@onready var header_seed: Label = %HeaderSeed
 @onready var hand_types_overlay: Control = %HandTypesOverlay
 @onready var hand_types_dialog: HandTypesDialog = %HandTypesDialog
 @onready var hand_types_dismiss_button: Button = %HandTypesDismissButton
@@ -35,6 +44,15 @@ const BONUS_DICE_FRAME_INTERVAL := 0.14
 @onready var table_bonus_effect: ColorRect = %TableBonusEffect
 @onready var played_cards: HBoxContainer = %PlayedCards
 @onready var played_caption: Label = %PlayedCaption
+@onready var instruction_hint: Control = %InstructionHint
+@onready var select_hint_text: Label = %SelectHintText
+@onready var clear_hint_text: Label = %ClearHintText
+@onready var auto_roll_button: TextureButton = %AutoRollButton
+@onready var auto_skip_button: TextureButton = %AutoSkipButton
+@onready var auto_play_button: TextureButton = %AutoPlayButton
+@onready var auto_roll_check: Label = %AutoRollCheck
+@onready var auto_skip_check: Label = %AutoSkipCheck
+@onready var auto_play_check: Label = %AutoPlayCheck
 @onready var action_bar: HBoxContainer = %ActionBar
 @onready var hint_button: Button = %HintButton
 @onready var pass_button: Button = %PassButton
@@ -58,6 +76,12 @@ const BONUS_DICE_FRAME_INTERVAL := 0.14
 var _session: GameSession
 var _human_player_index := 0
 var _network_mode := false
+var _tutorial_mode := false
+var _tutorial_scenario: TutorialScenario
+var _tutorial_director: TutorialDirector
+var _tutorial_gameplay_locked := false
+var _tutorial_state_signature := ""
+var _pending_tutorial_ai_commands: Dictionary = {}
 var _network_initial_snapshot: Dictionary = {}
 var _network_player_meta: Dictionary = {}
 var _selected_card_ids: Array[int] = []
@@ -96,7 +120,7 @@ var _seat_card_counts: Dictionary = {}
 var _panel_active_states: Dictionary = {}
 var _bonus_dice_elapsed := 0.0
 var _bonus_dice_frame := 0
-var _auto_pass_pending := false
+var _automation_pending := false
 var _last_status_message := ""
 var _indicator_player_index := -1
 var _presentation_busy := false
@@ -107,7 +131,12 @@ var _deal_animation_running := false
 var _deal_visible_counts := PackedInt32Array()
 var _deal_flying_cards: Array[TextureRect] = []
 var _session_revision := 0
-var _auto_pass_checked_revision := -1
+var _automation_checked_revision := -1
+var _automation_generation := 0
+var _auto_roll_enabled := false
+var _auto_skip_enabled := false
+var _auto_play_enabled := false
+var _human_auto_strategy: PlayerStrategy
 var _bonus_sound_step := 0
 var _round_start_sound_played := false
 var _presentation_random := RandomNumberGenerator.new()
@@ -117,6 +146,8 @@ var _disconnect_icons: Dictionary = {}
 var _turn_timer_tween: Tween
 var _played_reveal_tween: Tween
 var _indicator_update_suspended := false
+var _instruction_tween: Tween
+var _instruction_should_show := false
 var _disconnected_material := ShaderMaterial.new()
 
 
@@ -149,6 +180,21 @@ func configure_network(snapshot: Dictionary, embedded_in_app: bool = false) -> v
 	_embedded_in_app = embedded_in_app
 
 
+func configure_tutorial(
+	embedded_in_app: bool = false,
+	scenario: TutorialScenario = null,
+) -> void:
+	_tutorial_mode = true
+	_tutorial_scenario = scenario if scenario != null else DEFAULT_TUTORIAL_SCENARIO
+	_player_count = clampi(_tutorial_scenario.player_count, 2, 4)
+	_game_rules = _tutorial_scenario.build_rules()
+	_configured_seed_text = SeedCodec.sanitize(_tutorial_scenario.seed_text)
+	_configured_seed = SeedCodec.to_int(_configured_seed_text)
+	_use_custom_seed = false
+	_embedded_in_app = embedded_in_app
+	_resume_payload.clear()
+
+
 func _ready() -> void:
 	theme = CARTOON_CONTROLS
 	_disconnected_material.shader = DISCONNECTED_SHADER
@@ -173,6 +219,7 @@ func _ready() -> void:
 	hint_button.pressed.connect(_on_hint_pressed)
 	pass_button.pressed.connect(_on_pass_pressed)
 	play_button.pressed.connect(_on_play_pressed)
+	_setup_automation_controls()
 	restart_button.pressed.connect(_on_restart_pressed)
 	result_menu_button.pressed.connect(_on_return_to_menu_requested)
 	hand_view.selection_changed.connect(_on_hand_selection_changed)
@@ -210,6 +257,7 @@ func _ready() -> void:
 	settings_overlay.visible = false
 	hand_types_overlay.visible = false
 	_setup_flow_borders()
+	_setup_tutorial_director()
 	if _embedded_in_app:
 		%Background.visible = false
 	if _network_mode:
@@ -219,6 +267,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_action_bar_rest_position = action_bar.position
 	_action_bar_layout_ready = true
+	_update_instruction_text()
 	_dice_rest_position = dice_button.position
 	dice_button.pivot_offset = dice_button.size * 0.5
 	_draw_pile_rest_position = draw_pile_view.position
@@ -261,7 +310,7 @@ func _start_new_game(start_deal_animation: bool = true) -> void:
 	_reset_table_bonus_effect()
 	_pending_interpretations.clear()
 	_selected_card_ids.clear()
-	_auto_pass_pending = false
+	_automation_pending = false
 	_presentation_busy = false
 	_indicator_player_index = -1
 	_last_play_signature = ""
@@ -272,7 +321,9 @@ func _start_new_game(start_deal_animation: bool = true) -> void:
 	_panel_active_states.clear()
 	played_panel.modulate.a = 1.0
 	_session_revision = 0
-	_auto_pass_checked_revision = -1
+	_automation_checked_revision = -1
+	_tutorial_state_signature = ""
+	_pending_tutorial_ai_commands.clear()
 	_dealing = true
 	_deal_animation_running = false
 	_deal_visible_counts = PackedInt32Array()
@@ -296,6 +347,8 @@ func _start_new_game(start_deal_animation: bool = true) -> void:
 	_deal_visible_counts.fill(0)
 	result_overlay.visible = false
 	_refresh()
+	if _tutorial_director != null:
+		_tutorial_director.restart()
 	if start_deal_animation:
 		_run_initial_deal.call_deferred(_game_serial)
 
@@ -308,7 +361,7 @@ func _start_network_game(snapshot: Dictionary) -> void:
 	_reset_table_bonus_effect()
 	_pending_interpretations.clear()
 	_selected_card_ids.clear()
-	_auto_pass_pending = false
+	_automation_pending = false
 	_presentation_busy = false
 	_indicator_player_index = -1
 	_last_play_signature = ""
@@ -319,7 +372,7 @@ func _start_network_game(snapshot: Dictionary) -> void:
 	_panel_active_states.clear()
 	_session_revision = int(snapshot.get("revision", 0))
 	_last_network_revision = _session_revision
-	_auto_pass_checked_revision = -1
+	_automation_checked_revision = -1
 	_dealing = false
 	_deal_animation_running = false
 	_clear_transient()
@@ -335,6 +388,7 @@ func _start_network_game(snapshot: Dictionary) -> void:
 	_player_count = _session.players.size()
 	_game_rules = _session.rules.clone()
 	_configured_seed_text = _session.game_seed_text
+	_initialize_human_auto_strategy()
 	_update_network_player_meta(snapshot)
 	_deal_visible_counts.resize(_player_count)
 	for player_index in range(_player_count):
@@ -444,7 +498,7 @@ func _restore_saved_game() -> bool:
 	_reset_table_bonus_effect()
 	_pending_interpretations.clear()
 	_selected_card_ids.clear()
-	_auto_pass_pending = false
+	_automation_pending = false
 	_presentation_busy = false
 	_indicator_player_index = -1
 	_last_play_signature = ""
@@ -454,7 +508,7 @@ func _restore_saved_game() -> bool:
 	_seat_card_counts.clear()
 	_panel_active_states.clear()
 	_session_revision = 0
-	_auto_pass_checked_revision = -1
+	_automation_checked_revision = -1
 	_dealing = false
 	_deal_animation_running = false
 	_clear_transient()
@@ -507,10 +561,96 @@ func _player_names_for_count(count: int) -> Array[String]:
 
 func _initialize_strategies() -> void:
 	_strategies.clear()
+	_initialize_human_auto_strategy()
 	for player_index in range(1, _session.players.size()):
-		var strategy := StrategyRegistry.create(&"default")
+		var strategy := StrategyRegistry.create(
+			&"tutorial" if _tutorial_mode else &"default",
+		)
 		strategy.setup(player_index, _session.players.size())
 		_strategies[player_index] = strategy
+		_flush_tutorial_ai_commands(player_index)
+
+
+func _initialize_human_auto_strategy() -> void:
+	_human_auto_strategy = StrategyRegistry.create(&"default")
+	_human_auto_strategy.setup(_human_player_index, _session.players.size())
+
+
+func _setup_tutorial_director() -> void:
+	if not _tutorial_mode or _tutorial_scenario == null:
+		return
+	_tutorial_director = TUTORIAL_DIRECTOR_SCENE.instantiate() as TutorialDirector
+	add_child(_tutorial_director)
+	_tutorial_director.setup(self, _tutorial_scenario)
+
+
+func set_tutorial_gameplay_locked(locked: bool) -> void:
+	if not _tutorial_mode or _tutorial_gameplay_locked == locked:
+		return
+	_tutorial_gameplay_locked = locked
+	if locked:
+		_automation_generation += 1
+		_automation_pending = false
+	else:
+		_automation_checked_revision = -1
+		tutorial_gameplay_unlocked.emit()
+	_refresh.call_deferred()
+
+
+func queue_tutorial_ai_command(player_index: int, command: Dictionary) -> void:
+	if not _tutorial_mode or player_index <= 0:
+		return
+	var strategy := _strategies.get(player_index) as TutorialStrategy
+	if strategy != null:
+		strategy.queue_command(command)
+		return
+	var pending := _pending_tutorial_ai_commands.get(player_index, []) as Array
+	pending.append(command.duplicate(true))
+	_pending_tutorial_ai_commands[player_index] = pending
+
+
+func _flush_tutorial_ai_commands(player_index: int) -> void:
+	var strategy := _strategies.get(player_index) as TutorialStrategy
+	if strategy == null:
+		return
+	for command in _pending_tutorial_ai_commands.get(player_index, []) as Array:
+		strategy.queue_command(command as Dictionary)
+	_pending_tutorial_ai_commands.erase(player_index)
+
+
+func _refresh_tutorial_state() -> void:
+	if not _tutorial_mode or _tutorial_director == null or _session == null:
+		return
+	var signature := "%d:%d:%d:%s" % [
+		_session.phase,
+		_session.current_player_index,
+		_session.dice_value,
+		str(_session.is_bonus),
+	]
+	if signature == _tutorial_state_signature:
+		return
+	_tutorial_state_signature = signature
+	var payload := {
+		"player_index": _session.current_player_index,
+		"dice_value": _session.dice_value,
+		"is_bonus": _session.is_bonus,
+	}
+	_notify_tutorial_event(&"turn_changed", payload)
+	if _session.phase == GameSession.Phase.AWAITING_ROLL:
+		_notify_tutorial_event(&"awaiting_roll", payload)
+	elif _session.phase == GameSession.Phase.AWAITING_ACTION:
+		_notify_tutorial_event(&"awaiting_action", payload)
+
+
+func _notify_tutorial_event(
+	event_key: StringName,
+	payload: Dictionary = {},
+) -> void:
+	if not _tutorial_mode:
+		return
+	tutorial_event.emit(event_key, payload.duplicate(true))
+	if _tutorial_director != null:
+		_tutorial_director.notify_event(event_key, payload)
 
 
 func skip_initial_deal() -> void:
@@ -522,6 +662,10 @@ func skip_initial_deal() -> void:
 func _run_initial_deal(serial: int) -> void:
 	if _deal_animation_running or not _dealing or serial != _game_serial:
 		return
+	if _tutorial_gameplay_locked:
+		await tutorial_gameplay_unlocked
+		if not _dealing or serial != _game_serial:
+			return
 	_deal_animation_running = true
 	_presentation_busy = true
 	await get_tree().process_frame
@@ -598,6 +742,7 @@ func _finish_initial_deal() -> void:
 			card.queue_free()
 	_deal_flying_cards.clear()
 	_reset_draw_pile_activity()
+	_notify_tutorial_event(&"initial_deal_finished")
 	_refresh()
 	_play_round_start_if_needed()
 
@@ -697,20 +842,24 @@ func _refresh() -> void:
 	_refresh_seats()
 	_refresh_center_table()
 	if not _dealing:
-		_schedule_auto_pass_if_needed()
+		_schedule_human_automation_if_needed()
 	_refresh_hand()
 	_refresh_actions()
 	_refresh_status()
+	_refresh_instruction_hint()
 	_refresh_bonus_effect()
 	_refresh_turn_indicator()
 	_refresh_dice_prompt()
+	_refresh_tutorial_state()
 	if not _dealing:
 		_schedule_ai_if_needed()
 
 
 func _on_session_state_changed() -> void:
 	_session_revision += 1
-	if _session.phase == GameSession.Phase.FINISHED:
+	if _tutorial_mode:
+		pass
+	elif _session.phase == GameSession.Phase.FINISHED:
 		SaveGameService.clear_save()
 	else:
 		SaveGameService.save_session(_session, _use_custom_seed)
@@ -722,9 +871,17 @@ func _refresh_seats() -> void:
 	header_title.text = _translated(
 		&"UI_GAME_HEADER",
 		{
-			"mode": tr(&"UI_MULTIPLAYER") if _network_mode else tr(&"UI_SINGLE_PLAYER"),
+			"mode": (
+				tr(&"UI_TUTORIAL")
+				if _tutorial_mode
+				else tr(&"UI_MULTIPLAYER") if _network_mode else tr(&"UI_SINGLE_PLAYER")
+			),
 			"count": _player_count,
 		},
+	)
+	header_seed.text = _translated(
+		&"UI_GAME_SEED",
+		{"seed": _session.game_seed_text},
 	)
 	for seat_key in _seat_views:
 		var view: Dictionary = _seat_views[seat_key]
@@ -829,6 +986,7 @@ func _refresh_hand() -> void:
 	var visible_hand := _get_visible_human_hand()
 	var can_select := (
 		not _dealing
+		and not _tutorial_gameplay_locked
 		and _session.phase != GameSession.Phase.FINISHED
 	)
 	hand_view.set_hand(
@@ -843,7 +1001,7 @@ func _refresh_actions() -> void:
 	var awaiting_action := (
 		_can_human_act()
 		and not _rolling
-		and not _auto_pass_pending
+		and not _automation_pending
 		and not _dealing
 	)
 	var must_play_bonus := (
@@ -854,7 +1012,12 @@ func _refresh_actions() -> void:
 	hint_button.disabled = not awaiting_action
 	pass_button.disabled = not awaiting_action
 	play_button.disabled = not awaiting_action
-	dice_button.disabled = not _can_human_roll() or _rolling or _dealing
+	dice_button.disabled = (
+		not _can_human_roll()
+		or _rolling
+		or _dealing
+		or _automation_pending
+	)
 	dice_button.mouse_default_cursor_shape = (
 		Control.CURSOR_POINTING_HAND if not dice_button.disabled else Control.CURSOR_ARROW
 	)
@@ -907,6 +1070,41 @@ func _refresh_status() -> void:
 				{"player": current_name, "count": _session.dice_value},
 			)
 	_set_status_message(message)
+
+
+func _update_instruction_text() -> void:
+	select_hint_text.text = tr(&"UI_CARD_SELECT_HINT")
+	clear_hint_text.text = tr(&"UI_CARD_CLEAR_HINT")
+
+
+func _refresh_instruction_hint() -> void:
+	var should_show := SettingsService.show_status_text
+	if should_show == _instruction_should_show:
+		return
+	_instruction_should_show = should_show
+	if _instruction_tween != null and _instruction_tween.is_valid():
+		_instruction_tween.kill()
+	_instruction_tween = create_tween()
+	if should_show:
+		instruction_hint.modulate.a = 0.0
+		_instruction_tween.tween_property(
+			instruction_hint,
+			"modulate:a",
+			1.0,
+			0.18,
+		)
+	else:
+		_instruction_tween.tween_property(
+			instruction_hint,
+			"modulate:a",
+			0.0,
+			0.14,
+		)
+		_instruction_tween.tween_callback(_finish_instruction_fade)
+
+
+func _finish_instruction_fade() -> void:
+	_instruction_tween = null
 
 
 func _set_status_message(message: String) -> void:
@@ -991,6 +1189,9 @@ func _refresh_bonus_effect() -> void:
 	if _session.is_bonus and not _last_bonus_state:
 		AudioService.play_bonus_step(_bonus_sound_step)
 		_bonus_sound_step = (_bonus_sound_step + 1) % maxi(1, AudioService.get_bonus_step_count())
+		_notify_tutorial_event(&"bonus_started", {
+			"player_index": bonus_owner,
+		})
 		_show_center_feedback(&"UI_BONUS_FEEDBACK", Color(1.0, 0.76, 0.25))
 	if _session.is_bonus != _last_bonus_state:
 		_animate_table_bonus(_session.is_bonus)
@@ -1072,7 +1273,11 @@ func _input(event: InputEvent) -> void:
 			skip_initial_deal()
 			get_viewport().set_input_as_handled()
 		return
-	if event.button_index == MOUSE_BUTTON_LEFT and _can_human_roll():
+	if (
+		event.button_index == MOUSE_BUTTON_LEFT
+		and _can_human_roll()
+		and not _automation_pending
+	):
 		_on_dice_pressed()
 		get_viewport().set_input_as_handled()
 		return
@@ -1080,6 +1285,7 @@ func _input(event: InputEvent) -> void:
 		event.double_click
 		and SettingsService.double_click_actions
 		and _can_human_act()
+		and not _automation_pending
 		and event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]
 		and not _is_card_point(event.position)
 	):
@@ -1095,7 +1301,11 @@ func _is_card_point(point: Vector2) -> bool:
 
 
 func _handle_gameplay_double_click(button_index: int) -> void:
-	if not SettingsService.double_click_actions or not _can_human_act():
+	if (
+		not SettingsService.double_click_actions
+		or not _can_human_act()
+		or _automation_pending
+	):
 		return
 	if button_index == MOUSE_BUTTON_RIGHT:
 		_on_pass_pressed()
@@ -1161,7 +1371,7 @@ func _on_hint_pressed() -> void:
 
 
 func _on_pass_pressed() -> void:
-	if not _can_human_act() or _auto_pass_pending:
+	if not _can_human_act():
 		return
 	_clear_transient()
 	_selected_card_ids.clear()
@@ -1186,7 +1396,7 @@ func _on_pass_pressed() -> void:
 
 
 func _on_play_pressed() -> void:
-	if not _can_human_act() or _auto_pass_pending or _selected_card_ids.is_empty():
+	if not _can_human_act() or _selected_card_ids.is_empty():
 		return
 	_clear_transient()
 	var interpretations := _session.get_legal_interpretations(
@@ -1274,57 +1484,85 @@ func _on_hand_selection_changed(selected_ids: Array[int]) -> void:
 	_refresh_status()
 
 
-func _schedule_auto_pass_if_needed() -> void:
-	if (
-		_auto_pass_pending
-		or not SettingsService.auto_pass
-		or not _can_human_act()
-		or (_session.is_bonus and _session.last_play_pattern == null)
-	):
+func _schedule_human_automation_if_needed() -> void:
+	if _automation_pending or _automation_checked_revision == _session_revision:
 		return
-	if _auto_pass_checked_revision == _session_revision:
+	var should_schedule := false
+	if _auto_play_enabled:
+		should_schedule = _can_human_roll() or _can_human_act()
+	elif _auto_roll_enabled and _can_human_roll():
+		should_schedule = true
+	elif _auto_skip_enabled:
+		should_schedule = _can_auto_skip_now()
+	if not should_schedule:
 		return
-	_auto_pass_checked_revision = _session_revision
-	# An empty recommendation is conclusive: the exhaustive finder checked every
-	# combination of the required size against the current public target.
-	if not _session.get_recommended_play(_human_player_index).is_empty():
-		return
-	_auto_pass_pending = true
-	_run_auto_pass.call_deferred(_game_serial, _session.current_player_index)
+	_automation_checked_revision = _session_revision
+	_automation_pending = true
+	_run_human_automation.call_deferred(
+		_game_serial,
+		_session.current_player_index,
+		_automation_generation,
+	)
 
 
-func _run_auto_pass(serial: int, player_index: int) -> void:
+func _run_human_automation(
+	serial: int,
+	player_index: int,
+	generation: int,
+) -> void:
 	await get_tree().create_timer(SettingsService.get_ui_animation_duration()).timeout
-	_auto_pass_pending = false
 	if (
 		serial != _game_serial
+		or generation != _automation_generation
 		or player_index != _human_player_index
-		or not SettingsService.auto_pass
-		or not _can_human_act()
-		or (_session.is_bonus and _session.last_play_pattern == null)
-		or not _session.get_recommended_play(_human_player_index).is_empty()
 	):
-		_refresh()
 		return
-	_show_pass_feedback(_human_player_index)
-	_presentation_busy = true
-	_refresh_actions()
-	await get_tree().create_timer(SettingsService.get_gameplay_duration(
-		SettingsService.GameplayTiming.ACTION_PAUSE,
-	)).timeout
-	if serial != _game_serial:
+	_automation_pending = false
+	if _auto_play_enabled and (_can_human_roll() or _can_human_act()):
+		var context := _session.create_strategy_context(_human_player_index)
+		var decision := _human_auto_strategy.choose_action(context)
+		_execute_human_auto_decision(decision)
 		return
-	var hand_counts := _snapshot_hand_counts()
-	if _network_mode:
-		LanMultiplayerService.request_pass()
-	elif _session.pass_turn(_human_player_index):
-		await _animate_non_human_draws(hand_counts)
-	_presentation_busy = false
+	if _auto_roll_enabled and _can_human_roll():
+		_on_dice_pressed()
+		return
+	if _auto_skip_enabled and _can_auto_skip_now():
+		_on_pass_pressed()
+		return
 	_refresh()
+
+
+func _execute_human_auto_decision(decision: PlayerDecision) -> void:
+	match decision.action:
+		PlayerDecision.Action.ROLL:
+			if _can_human_roll():
+				_on_dice_pressed()
+		PlayerDecision.Action.PLAY:
+			if not _can_human_act() or decision.card_ids.is_empty():
+				return
+			_selected_card_ids.assign(decision.card_ids)
+			hand_view.set_selection(_selected_card_ids)
+			_refresh_selection_labels()
+			_commit_play(decision.interpretation_key)
+		PlayerDecision.Action.PASS:
+			if _can_auto_skip_now():
+				_on_pass_pressed()
+
+
+func _can_auto_skip_now() -> bool:
+	if (
+		not _can_human_act()
+		or (_session.is_bonus and _session.last_play_pattern == null)
+	):
+		return false
+	# The recommendation search is exhaustive for the required card count.
+	return _session.get_recommended_play(_human_player_index).is_empty()
 
 
 func _schedule_ai_if_needed() -> void:
 	if _network_mode:
+		return
+	if _tutorial_gameplay_locked:
 		return
 	if _ai_task_running or _presentation_busy or _session.phase == GameSession.Phase.FINISHED:
 		return
@@ -1339,6 +1577,7 @@ func _run_ai_until_human(serial: int) -> void:
 		serial == _game_serial
 		and _session.phase != GameSession.Phase.FINISHED
 		and _session.current_player_index != _human_player_index
+		and not _tutorial_gameplay_locked
 	):
 		var player_index := _session.current_player_index
 		var strategy := _strategies[player_index] as PlayerStrategy
@@ -1810,18 +2049,25 @@ func _on_settings_applied() -> void:
 
 
 func _on_settings_changed(_snapshot: Dictionary) -> void:
-	_auto_pass_checked_revision = -1
+	hand_view.refresh_card_textures()
+	hand_types_dialog.refresh_card_style()
+	_last_play_signature = ""
 	_refresh()
 
 
 func _on_language_changed(_locale: String) -> void:
+	_update_instruction_text()
 	_refresh()
 
 
 func _on_return_to_menu_requested() -> void:
 	if _network_mode:
 		LanMultiplayerService.close_connection()
-	elif _session != null and _session.phase != GameSession.Phase.FINISHED:
+	elif (
+		not _tutorial_mode
+		and _session != null
+		and _session.phase != GameSession.Phase.FINISHED
+	):
 		SaveGameService.save_session(_session, _use_custom_seed)
 	settings_overlay.visible = false
 	result_overlay.visible = false
@@ -1829,8 +2075,9 @@ func _on_return_to_menu_requested() -> void:
 
 
 func _on_game_finished(player_index: int) -> void:
-	if not _network_mode:
+	if not _network_mode and not _tutorial_mode:
 		SaveGameService.clear_save()
+	_notify_tutorial_event(&"game_finished", {"player_index": player_index})
 	AudioService.play(&"game_win" if player_index == _human_player_index else &"game_lose")
 	winner_label.text = _translated(&"STATUS_WINNER", {"player": _player_name(player_index)})
 	result_overlay.visible = true
@@ -1840,6 +2087,10 @@ func _on_game_finished(player_index: int) -> void:
 func _on_public_action_resolved(public_action: Dictionary) -> void:
 	for strategy in _strategies.values():
 		(strategy as PlayerStrategy).observe_action(public_action.duplicate(true))
+	_notify_tutorial_event(&"action_resolved", public_action)
+	var action_type := StringName(str(public_action.get("type", "")))
+	if not action_type.is_empty():
+		_notify_tutorial_event(StringName("action_%s" % action_type), public_action)
 
 
 func _set_action_bar_visible(should_show: bool) -> void:
@@ -1874,6 +2125,68 @@ func _set_action_bar_visible(should_show: bool) -> void:
 				if not _actions_should_show:
 					action_bar.visible = false
 		)
+
+
+func _setup_automation_controls() -> void:
+	for button in [auto_roll_button, auto_skip_button, auto_play_button]:
+		button.pivot_offset = button.size * 0.5
+		button.toggled.connect(_on_automation_toggled.bind(button))
+		button.mouse_entered.connect(_on_automation_mouse_entered.bind(button))
+		button.mouse_exited.connect(_on_automation_mouse_exited.bind(button))
+	_sync_automation_checks()
+
+
+func _on_automation_toggled(enabled: bool, button: TextureButton) -> void:
+	AudioService.play(&"ui_confirm")
+	if button == auto_roll_button:
+		_auto_roll_enabled = enabled
+	elif button == auto_skip_button:
+		_auto_skip_enabled = enabled
+	elif button == auto_play_button:
+		_auto_play_enabled = enabled
+	_automation_generation += 1
+	_automation_pending = false
+	_automation_checked_revision = -1
+	_sync_automation_checks()
+	_refresh()
+
+
+func _sync_automation_checks() -> void:
+	auto_roll_check.visible = _auto_roll_enabled
+	auto_skip_check.visible = _auto_skip_enabled
+	auto_play_check.visible = _auto_play_enabled
+
+
+func _on_automation_mouse_entered(button: TextureButton) -> void:
+	AudioService.play(&"ui_hover")
+	_kill_automation_hover(button)
+	button.pivot_offset = button.size * 0.5
+	var tween := button.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(button, "scale", Vector2(1.06, 1.06), 0.08)
+	tween.tween_property(button, "modulate", Color(1.15, 1.15, 1.15, 1.0), 0.08)
+	tween.tween_property(button, "rotation", -0.055, 0.07)
+	tween.set_parallel(false)
+	tween.tween_property(button, "rotation", 0.055, 0.08)
+	tween.tween_property(button, "rotation", 0.0, 0.08)
+	button.set_meta(&"automation_hover_tween", tween)
+
+
+func _on_automation_mouse_exited(button: TextureButton) -> void:
+	_kill_automation_hover(button)
+	var tween := button.create_tween().set_parallel(true)
+	tween.tween_property(button, "scale", Vector2.ONE, 0.1)
+	tween.tween_property(button, "modulate", Color.WHITE, 0.1)
+	tween.tween_property(button, "rotation", 0.0, 0.1)
+	button.set_meta(&"automation_hover_tween", tween)
+
+
+func _kill_automation_hover(button: TextureButton) -> void:
+	if not button.has_meta(&"automation_hover_tween"):
+		return
+	var tween := button.get_meta(&"automation_hover_tween") as Tween
+	if tween != null and tween.is_valid():
+		tween.kill()
 
 
 func _setup_button_motion() -> void:
@@ -1920,7 +2233,7 @@ func _refresh_dice_prompt() -> void:
 		return
 	if _dice_hovered:
 		_start_dice_hover()
-	elif _can_human_roll():
+	elif _can_human_roll() and not _automation_pending:
 		_start_dice_prompt()
 	else:
 		_stop_dice_prompt()
@@ -2310,6 +2623,7 @@ func _get_selected_cards() -> Array[CardData]:
 func _can_human_roll() -> bool:
 	return (
 		_session != null
+		and not _tutorial_gameplay_locked
 		and not _dealing
 		and _session.current_player_index == _human_player_index
 		and _session.phase == GameSession.Phase.AWAITING_ROLL
@@ -2319,6 +2633,7 @@ func _can_human_roll() -> bool:
 func _can_human_act() -> bool:
 	return (
 		_session != null
+		and not _tutorial_gameplay_locked
 		and not _dealing
 		and _session.current_player_index == _human_player_index
 		and _session.phase == GameSession.Phase.AWAITING_ACTION

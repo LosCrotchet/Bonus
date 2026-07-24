@@ -43,6 +43,13 @@ func _ready() -> void:
 	assert(int((panel.get_node("%HostPort") as SpinBox).value) == 9077)
 	assert((panel.get_node("%PlayerCount3") as Button).button_pressed)
 	assert((panel.get_node("%Timeout30") as Button).button_pressed)
+	panel.call("_show_error", &"LAN_ERROR_ROOM_FULL")
+	var setup_status := panel.get_node("%SetupStatusLabel") as Label
+	var create_button := panel.get_node("%CreateButton") as Button
+	assert(setup_status.visible)
+	assert(setup_status.text == tr(&"LAN_ERROR_ROOM_FULL"))
+	assert(setup_status.global_position.y < create_button.global_position.y)
+	assert(setup_status.global_position.y > (panel.get_node("%DetailTitle") as Label).global_position.y + 100.0)
 	(panel.get_node("%CreateRoomButton") as Button).pressed.emit()
 	await get_tree().create_timer(0.25).timeout
 	assert(not detail_panel.visible)
@@ -50,6 +57,9 @@ func _ready() -> void:
 	await get_tree().create_timer(0.3).timeout
 	assert(detail_panel.visible)
 	assert((panel.get_node("%JoinSettings") as VBoxContainer).visible)
+	panel.call("_show_error", &"LAN_ERROR_ROOM_FULL")
+	var join_button := panel.get_node("%JoinButton") as Button
+	assert(setup_status.global_position.y < join_button.global_position.y)
 	(panel.get_node("%DetailBackButton") as Button).pressed.emit()
 	await get_tree().create_timer(0.25).timeout
 	assert(not detail_panel.visible)
@@ -103,11 +113,11 @@ func _ready() -> void:
 	var west := panel.get_node("%WestSlot") as PanelContainer
 	var east := panel.get_node("%EastSlot") as PanelContainer
 	assert(north.visible and south.visible and west.visible and east.visible)
-	assert(is_equal_approx(north.global_position.y, east.global_position.y))
-	assert(is_equal_approx(south.global_position.y, west.global_position.y))
-	assert(north.global_position.x < east.global_position.x)
-	assert(south.global_position.x < west.global_position.x)
-	assert(north.global_position.y < south.global_position.y)
+	assert(is_equal_approx(south.global_position.y, north.global_position.y))
+	assert(is_equal_approx(west.global_position.y, east.global_position.y))
+	assert(south.global_position.x < north.global_position.x)
+	assert(west.global_position.x < east.global_position.x)
+	assert(south.global_position.y < west.global_position.y)
 	for seat in [north, east, south, west]:
 		assert(seat.size.is_equal_approx(north.size))
 	var seat_rects: Array[Rect2] = [
@@ -121,7 +131,29 @@ func _ready() -> void:
 			assert(not seat_rects[first_index].intersects(seat_rects[second_index]))
 	assert((north.get_node("Layout/HeaderRow/Seat") as Label).text == tr(&"SEAT_NORTH"))
 	assert((north.get_node("Layout/HeaderRow/State") as Label).text == tr(&"LAN_MEMBER_NOT_READY"))
-	assert((north.get_node("Layout/Player") as Label).text == "North")
+	assert((north.get_node("Layout/PlayerRow/Player") as Label).text == "North")
+	assert((west.get_node("Layout/HeaderRow/Seat") as Label).text == "%s · AI" % tr(&"SEAT_WEST"))
+	assert((west.get_node("Layout/HeaderRow/State") as Label).text == tr(&"LAN_MEMBER_READY"))
+	var north_kick := north.get_node("Layout/PlayerRow/Kick") as TextureButton
+	assert(north_kick.visible)
+	assert(north_kick.texture_normal != null)
+	panel.call("_show_error", &"LAN_ERROR_ROOM_FULL")
+	var lobby_status := panel.get_node("%LobbyStatusLabel") as Label
+	assert(lobby_status.visible)
+	assert(lobby_status.text == tr(&"LAN_ERROR_ROOM_FULL"))
+	assert(lobby_status.global_position.y < (panel.get_node("%ReadyButton") as Button).global_position.y)
+	var compact_snapshot := lobby_snapshot.duplicate(true)
+	compact_snapshot["config"]["player_count"] = 2
+	compact_snapshot["members"] = [
+		_member("SEAT_SOUTH", 0, "Host", true, true),
+		_member("SEAT_NORTH", 1, "North", false, false),
+	]
+	panel.call("_on_lobby_updated", compact_snapshot)
+	await get_tree().process_frame
+	for seat in [south, north, west, east]:
+		assert(seat.size.is_equal_approx(south.size))
+	assert(is_equal_approx(west.modulate.a, 0.0))
+	assert(is_equal_approx(east.modulate.a, 0.0))
 	assert(not (panel.get_node("%RoomEndpoint") as Label).text.contains(","))
 	assert((panel.get_node("%HostActionRow") as HBoxContainer).visible)
 	(panel.get_node("%LobbyBackButton") as Button).pressed.emit()
