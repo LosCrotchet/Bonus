@@ -21,6 +21,7 @@ func _run() -> void:
 	assert(scenario != null)
 	assert(step != null)
 	assert(preview != null)
+	_test_graph_connection(editor, scenario)
 	preview.size = Vector2(960.0, 540.0)
 	preview.set_step(step)
 	await process_frame
@@ -48,6 +49,34 @@ func _run() -> void:
 	editor.queue_free()
 	await process_frame
 	quit()
+
+
+func _test_graph_connection(editor: Control, scenario: TutorialScenario) -> void:
+	assert(scenario.steps.size() >= 2)
+	var source := scenario.steps[0]
+	var target := scenario.steps[1]
+	var original_transitions := source.transitions.duplicate()
+	editor.call(
+		"_on_graph_connection_requested",
+		source.step_id,
+		0,
+		target.step_id,
+		0,
+	)
+	var graph := editor.get("_graph") as GraphEdit
+	assert(graph.has_node(NodePath(str(source.step_id))))
+	assert(graph.has_node(NodePath(str(target.step_id))))
+	assert(graph.is_node_connected(source.step_id, 0, target.step_id, 0))
+	editor.call(
+		"_on_graph_disconnection_requested",
+		source.step_id,
+		0,
+		target.step_id,
+		0,
+	)
+	assert(not graph.is_node_connected(source.step_id, 0, target.step_id, 0))
+	source.transitions.assign(original_transitions)
+	editor.call("_rebuild_graph")
 
 
 func _test_resize(

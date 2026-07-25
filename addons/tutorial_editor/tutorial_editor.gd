@@ -223,9 +223,17 @@ func _build_center_panel() -> Control:
 	_graph.name = "Flow Graph"
 	_graph.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_graph.show_arrange_button = true
+	_graph.right_disconnects = true
+	_graph.add_valid_right_disconnect_type(0)
+	_graph.add_theme_constant_override(&"port_hotzone_inner_extent", 34)
+	_graph.add_theme_constant_override(&"port_hotzone_outer_extent", 34)
 	_graph.connection_request.connect(_on_graph_connection_requested)
 	_graph.disconnection_request.connect(_on_graph_disconnection_requested)
 	_graph.delete_nodes_request.connect(_on_graph_delete_requested)
+	var graph_hint := Label.new()
+	graph_hint.text = "Drag yellow output -> blue input"
+	graph_hint.add_theme_color_override(&"font_color", Color(0.75, 0.8, 0.8))
+	_graph.get_menu_hbox().add_child(graph_hint)
 	tabs.add_child(_graph)
 	return tabs
 
@@ -671,6 +679,7 @@ func _rebuild_graph() -> void:
 	_graph.clear_connections()
 	for child in _graph.get_children():
 		if child is GraphNode:
+			_graph.remove_child(child)
 			child.queue_free()
 	if _scenario == null:
 		return
@@ -701,7 +710,17 @@ func _rebuild_graph() -> void:
 		for transition in step.transitions:
 			if transition != null and _graph.has_node(NodePath(str(transition.target_step_id))):
 				if not _graph.is_node_connected(step.step_id, 0, transition.target_step_id, 0):
-					_graph.connect_node(step.step_id, 0, transition.target_step_id, 0)
+					var error := _graph.connect_node(
+						step.step_id,
+						0,
+						transition.target_step_id,
+						0,
+					)
+					if error != OK:
+						push_error(
+							"Could not draw tutorial transition %s -> %s (error %d)"
+							% [step.step_id, transition.target_step_id, error],
+						)
 
 
 func _on_graph_connection_requested(from: StringName, _from_port: int, to: StringName, _to_port: int) -> void:
@@ -711,9 +730,14 @@ func _on_graph_connection_requested(from: StringName, _from_port: int, to: Strin
 	var transition := TutorialTransition.new()
 	transition.target_step_id = to
 	source.transitions.append(transition)
-	_rebuild_graph()
+	var error := _graph.connect_node(from, 0, to, 0)
+	if error != OK:
+		source.transitions.erase(transition)
+		_set_status("Could not create graph connection (error %d)" % error, true)
+		return
 	_set_step(source)
 	_select_transition(source.transitions.size() - 1)
+	_set_status("Connected %s -> %s" % [from, to])
 
 
 func _has_transition_to(source: TutorialStep, target_id: StringName) -> bool:
@@ -730,8 +754,10 @@ func _on_graph_disconnection_requested(from: StringName, _from_port: int, to: St
 	for transition in source.transitions.duplicate():
 		if transition != null and transition.target_step_id == to:
 			source.transitions.erase(transition)
-	_rebuild_graph()
+	if _graph.is_node_connected(from, 0, to, 0):
+		_graph.disconnect_node(from, 0, to, 0)
 	_refresh_transitions()
+	_set_status("Disconnected %s -> %s" % [from, to])
 
 
 func _on_graph_delete_requested(nodes: Array[StringName]) -> void:
