@@ -6,7 +6,9 @@ signal dialog_rect_changed(normalized_rect: Rect2)
 signal target_sampled(kind: StringName, path: NodePath)
 
 const BASE_SIZE := Vector2(1280.0, 720.0)
-const GAME_SCENE := preload("res://features/game/game_scene.tscn")
+const GAME_SCENE_PATH := "res://features/game/game_scene.tscn"
+
+static var use_test_scene := false
 
 var step: TutorialStep
 var sample_kind: StringName
@@ -50,8 +52,27 @@ func _build_game_preview() -> void:
 	_viewport.disable_3d = true
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	add_child(_viewport)
-	_game_root = GAME_SCENE.instantiate() as Control
+	if use_test_scene:
+		_game_root = _build_test_game_scene()
+	else:
+		var packed := load(GAME_SCENE_PATH) as PackedScene
+		if packed == null:
+			push_error("Tutorial preview could not load %s" % GAME_SCENE_PATH)
+			return
+		_game_root = packed.instantiate() as Control
 	_viewport.add_child(_game_root)
+
+
+func _build_test_game_scene() -> Control:
+	var game := Control.new()
+	game.name = "GameScene"
+	game.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var target := Panel.new()
+	target.name = "SampleTarget"
+	target.position = Vector2(500.0, 280.0)
+	target.size = Vector2(280.0, 160.0)
+	game.add_child(target)
+	return game
 
 
 func _draw() -> void:

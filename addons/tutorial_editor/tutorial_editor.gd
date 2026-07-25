@@ -706,13 +706,7 @@ func _rebuild_graph() -> void:
 
 func _on_graph_connection_requested(from: StringName, _from_port: int, to: StringName, _to_port: int) -> void:
 	var source := _scenario.get_step(from)
-	if (
-		source == null
-		or source.transitions.any(
-			func(item: TutorialTransition) -> bool:
-				return item != null and item.target_step_id == to
-		)
-	):
+	if source == null or _has_transition_to(source, to):
 		return
 	var transition := TutorialTransition.new()
 	transition.target_step_id = to
@@ -720,6 +714,13 @@ func _on_graph_connection_requested(from: StringName, _from_port: int, to: Strin
 	_rebuild_graph()
 	_set_step(source)
 	_select_transition(source.transitions.size() - 1)
+
+
+func _has_transition_to(source: TutorialStep, target_id: StringName) -> bool:
+	for transition in source.transitions:
+		if transition != null and transition.target_step_id == target_id:
+			return true
+	return false
 
 
 func _on_graph_disconnection_requested(from: StringName, _from_port: int, to: StringName, _to_port: int) -> void:
