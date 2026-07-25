@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://b5bi3y5bbjexy"]
+
+[ext_resource type="Texture2D" uid="uid://ba1w0qyc3r7bi" path="res://assets/tutorial/emoji/emoji_u1f615.png" id="1_g4hqp"]
+[ext_resource type="Texture2D" uid="uid://u8umocnenq5w" path="res://assets/tutorial/emoji/emoji_u1f448.png" id="2_vy5r7"]
+[ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="3_eruy6"]
+
+[resource]
+script = ExtResource("3_eruy6")
+step_id = &"dice_end"
+trigger = &"action_roll"
+message_key = &"TUTORIAL_DICE_END"
+emoji = ExtResource("1_g4hqp")
+placement = 1
+pointer_emoji = ExtResource("2_vy5r7")
+pointer_target_path = NodePath("SafeArea/MainLayout/HandPanel/ContentMargin/HandLayout/HandHeader/HandTitle")
+continue_mode = 1
+continue_event = &"action_play"
+blocks_gameplay = false
+dim_background = false

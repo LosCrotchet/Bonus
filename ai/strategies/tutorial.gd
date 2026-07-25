@@ -2,6 +2,7 @@ class_name TutorialStrategy
 extends DefaultStrategy
 
 var _commands: Array[Dictionary] = []
+var _forced_dice_value := 0
 
 
 func get_strategy_id() -> StringName:
@@ -26,6 +27,7 @@ func choose_action(context: StrategyContext) -> PlayerDecision:
 	_commands.pop_front()
 	match StringName(str(command.get("action", ""))):
 		&"roll":
+			_forced_dice_value = clampi(int(command.get("forced_dice_value", 0)), 0, 6)
 			return PlayerDecision.create_roll()
 		&"pass":
 			return PlayerDecision.create_pass()
@@ -41,6 +43,13 @@ func choose_action(context: StrategyContext) -> PlayerDecision:
 
 func reset() -> void:
 	_commands.clear()
+	_forced_dice_value = 0
+
+
+func take_forced_dice_value() -> int:
+	var value := _forced_dice_value
+	_forced_dice_value = 0
+	return value
 
 
 func _resolve_card_ids(command: Dictionary, hand: Array[CardData]) -> Array[int]:

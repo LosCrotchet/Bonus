@@ -1,5 +1,7 @@
 # BONUS 教程制作指南
 
+可视化制作请优先使用 Godot 顶部的 **Tutorial** 工作区。完整工具说明见 [`tutorial_visual_editor.md`](tutorial_visual_editor.md)；本文保留运行时字段与手工资源编写约定。
+
 教程系统把对局、演出和内容分开。普通牌局仍由 `GameSession` 执行规则；教程资源描述何时说什么、指向哪里以及 AI 下一步做什么；`TutorialDirector` 只负责节奏和展示，不改牌型判定。
 
 ## 文件职责

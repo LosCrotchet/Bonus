@@ -245,5 +245,13 @@ TUTORIAL_WELCOME_2,你来得正好，我有点玩累了，这一把给你打。,
 TUTORIAL_WELCOME_3,什么？你说你不会？,NULL
 TUTORIAL_WELCOME_4,......你不知道Bonus吗？,NULL
 TUTORIAL_WELCOME_5,那也好，我来教你吧！,NULL
-TUTORIAL_WELCOME_6,Bonus是一款将“斗地主”和“骰子”结合起来的扑克游戏，玩法是在斗地主的基础上根据骰子的点数打出对应数量的牌，谁先把手里的牌打完谁就赢啦。,NULL
-TUTORIAL_INITIAL_HAND,在一局游戏中，每位玩家首先会抓 17 张扑克牌。,NULL
+TUTORIAL_WELCOME_6,Bonus是一款将扑克和骰子结合起来的扑克游戏；\n简单来说，就是根据骰子的点数打出对应数量的牌，谁先把手里的牌打完谁就赢啦。,NULL
+TUTORIAL_WELCOME_7,“斗地主是什么？”......没事，这不重要。,NULL
+TUTORIAL_INITIAL_HAND_1,在一局游戏中，我们一共会用两副牌，每位玩家首先会抓 17 张扑克牌。,NULL
+TUTORIAL_INITIAL_HAND_2,这两位是你的对手。这一把会从你开始，然后逆时针进行。\n......我们先等牌抓完。（双击可以跳过）,NULL
+TUTORIAL_INITIAL_HAND_3,嗯，我帮你把牌理好了......很好的牌！\n在Bonus里，3最小，2最大。\n最后的大小王是万能牌，可以在特定情况下比2还大。,NULL
+TUTORIAL_INITIAL_HAND_4,一个回合开始首先要投一枚骰子，点击屏幕任意地方就能投。\n看看你能投出多少！,NULL
+TUTORIAL_DICE_END,哦，是1。那你打出一张牌就行，比如最左边那张小小的3——,NULL
+TUTORIAL_ROUND_1,然后其它人会跟着你出同样牌型的牌，并尝试用更大的牌盖过你。,NULL
+TUTORIAL_ROUND_2,我们再打一张2，这样别人就盖不过我们了。\n（除非用大小王...）,NULL
+TUTORIAL_ROUND_3,一旦没有人出牌，那么就由最后一个出牌的人开始下一回合——也就是继续投骰子。,NULL

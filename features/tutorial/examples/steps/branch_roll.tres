@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="TutorialStep" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1_step"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2_transition"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_condition.gd" id="3_condition"]
+
+[sub_resource type="Resource" id="Condition_high"]
+script = ExtResource("3_condition")
+property_path = "dice_value"
+operator = 3
+compare_value = "4"
+
+[sub_resource type="Resource" id="Transition_high"]
+script = ExtResource("2_transition")
+target_step_id = &"branch_high"
+trigger_mode = 1
+event_key = &"action_roll"
+label = "Roll >= 4"
+conditions = Array[ExtResource("3_condition")]([SubResource("Condition_high")])
+
+[sub_resource type="Resource" id="Transition_low"]
+script = ExtResource("2_transition")
+target_step_id = &"branch_low"
+trigger_mode = 1
+event_key = &"action_roll"
+label = "Fallback"
+
+[resource]
+script = ExtResource("1_step")
+step_id = &"branch_roll"
+fallback_message = "Roll the dice. The action_roll payload chooses the next node."
+continue_mode = 1
+blocks_gameplay = false
+dim_background = false
+transitions = Array[ExtResource("2_transition")]([SubResource("Transition_high"), SubResource("Transition_low")])
+editor_graph_position = Vector2(350, 120)

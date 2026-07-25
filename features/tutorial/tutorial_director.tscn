@@ -117,26 +117,26 @@ vertical_alignment = 1
 autowrap_mode = 2
 clip_text = true
 
-[node name="BottomRow" type="HBoxContainer" parent="Dialog/Layout/Copy"]
+[node name="BottomRow" type="HBoxContainer" parent="Dialog/Layout/Copy" unique_id=1866266463]
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 
-[node name="Spacer" type="Control" parent="Dialog/Layout/Copy/BottomRow"]
+[node name="Spacer" type="Control" parent="Dialog/Layout/Copy/BottomRow" unique_id=196599803]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ContinueIndicatorSlot" type="Control" parent="Dialog/Layout/Copy/BottomRow"]
+[node name="ContinueIndicatorSlot" type="Control" parent="Dialog/Layout/Copy/BottomRow" unique_id=1076859018]
 custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="ContinueIndicator" type="TextureRect" parent="Dialog/Layout/Copy/BottomRow/ContinueIndicatorSlot"]
+[node name="ContinueIndicator" type="TextureRect" parent="Dialog/Layout/Copy/BottomRow/ContinueIndicatorSlot" unique_id=1803925239]
 unique_name_in_owner = true
+texture_filter = 4
 layout_mode = 0
 offset_right = 30.0
 offset_bottom = 30.0
 mouse_filter = 2
-texture_filter = 4
 texture = ExtResource("2_continue")
 expand_mode = 1
 stretch_mode = 5

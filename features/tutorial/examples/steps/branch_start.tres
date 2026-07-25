@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="TutorialStep" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1_step"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2_transition"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_control_directive.gd" id="3_directive"]
+
+[sub_resource type="Resource" id="Directive_hint"]
+script = ExtResource("3_directive")
+target_path = NodePath("SafeArea/MainLayout/ActionSlot/ActionBar/HintButton")
+mode = 1
+
+[sub_resource type="Resource" id="Transition_roll"]
+script = ExtResource("2_transition")
+target_step_id = &"branch_roll"
+
+[resource]
+script = ExtResource("1_step")
+step_id = &"branch_start"
+fallback_message = "This example starts a graph and hides the Hint button for one step."
+input_locks = 2
+control_directives = Array[ExtResource("3_directive")]([SubResource("Directive_hint")])
+transitions = Array[ExtResource("2_transition")]([SubResource("Transition_roll")])
+editor_graph_position = Vector2(80, 120)

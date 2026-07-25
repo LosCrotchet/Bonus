@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://cw5g6smvk34ua"]
+
+[ext_resource type="Texture2D" uid="uid://02ohent4f5hg" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="1_2pqfc"]
+[ext_resource type="Texture2D" uid="uid://u8umocnenq5w" path="res://assets/tutorial/emoji/emoji_u1f448.png" id="2_gr27h"]
+[ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="3_a13fg"]
+
+[resource]
+script = ExtResource("3_a13fg")
+step_id = &"initial_hand_1"
+message_key = &"TUTORIAL_INITIAL_HAND_1"
+emoji = ExtResource("1_2pqfc")
+placement = 3
+pointer_emoji = ExtResource("2_gr27h")
+pointer_target_path = NodePath("SafeArea/MainLayout/HandPanel")
+blocks_gameplay = false
+dim_background = false
+highlight_path = NodePath("SafeArea/MainLayout/HandPanel")

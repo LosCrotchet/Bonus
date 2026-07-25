@@ -80,6 +80,7 @@ var _tutorial_mode := false
 var _tutorial_scenario: TutorialScenario
 var _tutorial_director: TutorialDirector
 var _tutorial_gameplay_locked := false
+var _tutorial_input_locks := 0
 var _tutorial_state_signature := ""
 var _pending_tutorial_ai_commands: Dictionary = {}
 var _network_initial_snapshot: Dictionary = {}
@@ -601,6 +602,25 @@ func set_tutorial_gameplay_locked(locked: bool) -> void:
 	_refresh.call_deferred()
 
 
+func set_tutorial_input_locks(input_locks: int) -> void:
+	if not _tutorial_mode:
+		return
+	_tutorial_input_locks = input_locks
+	if _has_tutorial_input_lock(TutorialStep.InputLock.AUTOMATION):
+		_automation_generation += 1
+		_automation_pending = false
+	for button in [auto_roll_button, auto_skip_button, auto_play_button]:
+		button.disabled = (
+			_tutorial_gameplay_locked
+			or _has_tutorial_input_lock(TutorialStep.InputLock.AUTOMATION)
+		)
+	_refresh.call_deferred()
+
+
+func _has_tutorial_input_lock(input_lock: int) -> bool:
+	return _tutorial_mode and (_tutorial_input_locks & input_lock) != 0
+
+
 func is_tutorial_input_passthrough_point(point: Vector2) -> bool:
 	if settings_overlay.visible or hand_types_overlay.visible:
 		return true
@@ -667,7 +687,11 @@ func _notify_tutorial_event(
 
 
 func skip_initial_deal() -> void:
-	if not _dealing or _tutorial_gameplay_locked:
+	if (
+		not _dealing
+		or _tutorial_gameplay_locked
+		or _has_tutorial_input_lock(TutorialStep.InputLock.DEAL_SKIP)
+	):
 		return
 	_finish_initial_deal()
 
@@ -1000,6 +1024,7 @@ func _refresh_hand() -> void:
 	var can_select := (
 		not _dealing
 		and not _tutorial_gameplay_locked
+		and not _has_tutorial_input_lock(TutorialStep.InputLock.HAND)
 		and _session.phase != GameSession.Phase.FINISHED
 	)
 	hand_view.set_hand(
@@ -1022,9 +1047,9 @@ func _refresh_actions() -> void:
 		and _session.last_play_pattern == null
 	)
 	pass_button.visible = not must_play_bonus
-	hint_button.disabled = not awaiting_action
-	pass_button.disabled = not awaiting_action
-	play_button.disabled = not awaiting_action
+	hint_button.disabled = not awaiting_action or _has_tutorial_input_lock(TutorialStep.InputLock.HINT)
+	pass_button.disabled = not awaiting_action or _has_tutorial_input_lock(TutorialStep.InputLock.PASS)
+	play_button.disabled = not awaiting_action or _has_tutorial_input_lock(TutorialStep.InputLock.PLAY)
 	dice_button.disabled = (
 		not _can_human_roll()
 		or _rolling
@@ -1284,7 +1309,11 @@ func _input(event: InputEvent) -> void:
 	if _tutorial_gameplay_locked:
 		return
 	if _dealing:
-		if event.double_click and event.button_index == MOUSE_BUTTON_LEFT:
+		if (
+			event.double_click
+			and event.button_index == MOUSE_BUTTON_LEFT
+			and not _has_tutorial_input_lock(TutorialStep.InputLock.DEAL_SKIP)
+		):
 			skip_initial_deal()
 			get_viewport().set_input_as_handled()
 		return
@@ -1298,6 +1327,7 @@ func _input(event: InputEvent) -> void:
 		return
 	if (
 		event.double_click
+		and not _has_tutorial_input_lock(TutorialStep.InputLock.DOUBLE_CLICK)
 		and SettingsService.double_click_actions
 		and _can_human_act()
 		and not _automation_pending
@@ -1335,6 +1365,11 @@ func _on_dice_pressed() -> void:
 
 
 func _animate_roll_and_commit(player_index: int, serial: int) -> void:
+	var forced_value := 0
+	if _tutorial_mode and player_index != _human_player_index:
+		var tutorial_strategy := _strategies.get(player_index) as TutorialStrategy
+		if tutorial_strategy != null:
+			forced_value = tutorial_strategy.take_forced_dice_value()
 	_rolling = true
 	_presentation_busy = true
 	AudioService.play(&"dice_shake")
@@ -1356,6 +1391,8 @@ func _animate_roll_and_commit(player_index: int, serial: int) -> void:
 		return
 	if _network_mode:
 		LanMultiplayerService.request_roll()
+	elif forced_value > 0:
+		_session.accept_dice_result(player_index, forced_value)
 	else:
 		_session.roll_dice(player_index)
 	AudioService.play(&"dice_land")
@@ -1372,6 +1409,8 @@ func _animate_roll_and_commit(player_index: int, serial: int) -> void:
 
 
 func _on_hint_pressed() -> void:
+	if _has_tutorial_input_lock(TutorialStep.InputLock.HINT):
+		return
 	_clear_transient()
 	var recommendation := _session.get_recommended_play(_human_player_index)
 	if recommendation.is_empty():
@@ -1386,7 +1425,7 @@ func _on_hint_pressed() -> void:
 
 
 func _on_pass_pressed() -> void:
-	if not _can_human_act():
+	if not _can_human_act() or _has_tutorial_input_lock(TutorialStep.InputLock.PASS):
 		return
 	_clear_transient()
 	_selected_card_ids.clear()
@@ -1411,7 +1450,11 @@ func _on_pass_pressed() -> void:
 
 
 func _on_play_pressed() -> void:
-	if not _can_human_act() or _selected_card_ids.is_empty():
+	if (
+		not _can_human_act()
+		or _has_tutorial_input_lock(TutorialStep.InputLock.PLAY)
+		or _selected_card_ids.is_empty()
+	):
 		return
 	_clear_transient()
 	var interpretations := _session.get_legal_interpretations(
@@ -1500,7 +1543,11 @@ func _on_hand_selection_changed(selected_ids: Array[int]) -> void:
 
 
 func _schedule_human_automation_if_needed() -> void:
-	if _automation_pending or _automation_checked_revision == _session_revision:
+	if (
+		_has_tutorial_input_lock(TutorialStep.InputLock.AUTOMATION)
+		or _automation_pending
+		or _automation_checked_revision == _session_revision
+	):
 		return
 	var should_schedule := false
 	if _auto_play_enabled:
@@ -1579,6 +1626,8 @@ func _schedule_ai_if_needed() -> void:
 		return
 	if _tutorial_gameplay_locked:
 		return
+	if _has_tutorial_input_lock(TutorialStep.InputLock.AI):
+		return
 	if _ai_task_running or _presentation_busy or _session.phase == GameSession.Phase.FINISHED:
 		return
 	if _session.current_player_index == _human_player_index:
@@ -1593,6 +1642,7 @@ func _run_ai_until_human(serial: int) -> void:
 		and _session.phase != GameSession.Phase.FINISHED
 		and _session.current_player_index != _human_player_index
 		and not _tutorial_gameplay_locked
+		and not _has_tutorial_input_lock(TutorialStep.InputLock.AI)
 	):
 		var player_index := _session.current_player_index
 		var strategy := _strategies[player_index] as PlayerStrategy
@@ -1601,7 +1651,10 @@ func _run_ai_until_human(serial: int) -> void:
 		await get_tree().create_timer(SettingsService.get_ai_think_delay()).timeout
 		if serial != _game_serial or player_index != _session.current_player_index:
 			return
-		if _tutorial_gameplay_locked:
+		if (
+			_tutorial_gameplay_locked
+			or _has_tutorial_input_lock(TutorialStep.InputLock.AI)
+		):
 			_ai_task_running = false
 			return
 
@@ -2155,7 +2208,10 @@ func _setup_automation_controls() -> void:
 
 
 func _on_automation_toggled(enabled: bool, button: TextureButton) -> void:
-	if _tutorial_gameplay_locked:
+	if (
+		_tutorial_gameplay_locked
+		or _has_tutorial_input_lock(TutorialStep.InputLock.AUTOMATION)
+	):
 		button.set_pressed_no_signal(not enabled)
 		_sync_automation_checks()
 		return
@@ -2652,6 +2708,7 @@ func _can_human_roll() -> bool:
 	return (
 		_session != null
 		and not _tutorial_gameplay_locked
+		and not _has_tutorial_input_lock(TutorialStep.InputLock.ROLL)
 		and not _dealing
 		and _session.current_player_index == _human_player_index
 		and _session.phase == GameSession.Phase.AWAITING_ROLL

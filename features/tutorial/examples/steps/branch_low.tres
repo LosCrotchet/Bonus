@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="TutorialStep" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1_step"]
+
+[resource]
+script = ExtResource("1_step")
+step_id = &"branch_low"
+fallback_message = "Low branch. A transition with no conditions is the fallback."
+editor_graph_position = Vector2(650, 230)

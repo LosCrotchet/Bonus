@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TutorialStep" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1_step"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_ai_command.gd" id="2_ai"]
+
+[sub_resource type="Resource" id="AI_roll"]
+script = ExtResource("2_ai")
+player_index = 1
+phase = 1
+action = 0
+forced_dice_value = 5
+
+[resource]
+script = ExtResource("1_step")
+step_id = &"branch_high"
+fallback_message = "High branch. The next AI roll is forced to 5."
+scripted_ai_actions = Array[ExtResource("2_ai")]([SubResource("AI_roll")])
+editor_graph_position = Vector2(650, 40)

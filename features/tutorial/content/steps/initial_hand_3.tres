@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://cctl6kuggherd"]
+
+[ext_resource type="Texture2D" uid="uid://02ohent4f5hg" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="1_6f3ul"]
+[ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="3_mu3cl"]
+
+[resource]
+script = ExtResource("3_mu3cl")
+step_id = &"initial_hand_3"
+trigger = &"initial_deal_finished"
+message_key = &"TUTORIAL_INITIAL_HAND_3"
+emoji = ExtResource("1_6f3ul")
+placement = 3
+dim_background = false

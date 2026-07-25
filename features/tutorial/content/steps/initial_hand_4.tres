@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://8q488hxth17l"]
+
+[ext_resource type="Texture2D" uid="uid://bhyngfymapktb" path="res://assets/tutorial/emoji/emoji_u1f9d0.png" id="1_70dma"]
+[ext_resource type="Texture2D" uid="uid://u8umocnenq5w" path="res://assets/tutorial/emoji/emoji_u1f448.png" id="2_tk51u"]
+[ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="3_mu3cl"]
+
+[resource]
+script = ExtResource("3_mu3cl")
+step_id = &"initial_hand_4"
+trigger = &"initial_deal_finished"
+message_key = &"TUTORIAL_INITIAL_HAND_4"
+emoji = ExtResource("1_70dma")
+placement = 3
+pointer_emoji = ExtResource("2_tk51u")
+pointer_target_path = NodePath("SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DiceGroup/DiceArea/DiceButton")
+continue_mode = 1
+continue_event = &"action_roll"
+blocks_gameplay = false
+dim_background = false

@@ -88,11 +88,17 @@ func _run_test() -> void:
 	assert(bool(game.get("_tutorial_gameplay_locked")))
 	assert(not bool(game.get("_deal_animation_running")))
 
-	while director.get("_current_step") != null:
+	var advance_guard := 0
+	while director.get("_current_step") != null and advance_guard < 32:
 		current_step = director.get("_current_step") as TutorialStep
-		assert(current_step.continue_mode == TutorialStep.ContinueMode.BUTTON)
-		director.call("_input", _left_click(Vector2(640.0, 360.0)))
+		if current_step.continue_mode == TutorialStep.ContinueMode.BUTTON:
+			director.call("_input", _left_click(Vector2(640.0, 360.0)))
+		else:
+			assert(not current_step.continue_event.is_empty())
+			director.notify_event(current_step.continue_event)
 		await get_tree().process_frame
+		advance_guard += 1
+	assert(advance_guard < 32)
 	assert(director.get("_current_step") == null)
 	assert(not bool(game.get("_tutorial_gameplay_locked")))
 	for strategy in (game.get("_strategies") as Dictionary).values():
@@ -119,6 +125,53 @@ func _run_test() -> void:
 	var rules := custom_scenario.build_rules()
 	assert(not rules.include_jokers)
 	assert(not rules.jokers_are_wild)
+
+	var graph_scenario := TutorialScenario.new()
+	var graph_a := TutorialStep.new()
+	graph_a.step_id = &"graph_a"
+	graph_a.fallback_message = "Graph A"
+	graph_a.input_locks = TutorialStep.InputLock.DOUBLE_CLICK
+	var hide_pass := TutorialControlDirective.new()
+	hide_pass.target_path = game.get_path_to(game.get_node("%PassButton"))
+	hide_pass.mode = TutorialControlDirective.Mode.HIDE
+	graph_a.control_directives.append(hide_pass)
+	var to_b := TutorialTransition.new()
+	to_b.target_step_id = &"graph_b"
+	graph_a.transitions.append(to_b)
+	var graph_b := TutorialStep.new()
+	graph_b.step_id = &"graph_b"
+	graph_b.continue_mode = TutorialStep.ContinueMode.EVENT
+	var to_c := TutorialTransition.new()
+	to_c.trigger_mode = TutorialTransition.TriggerMode.EVENT
+	to_c.event_key = &"branch_event"
+	to_c.target_step_id = &"graph_c"
+	var branch_condition := TutorialCondition.new()
+	branch_condition.property_path = "choice"
+	branch_condition.compare_value = "yes"
+	to_c.conditions.append(branch_condition)
+	graph_b.transitions.append(to_c)
+	var graph_c := TutorialStep.new()
+	graph_c.step_id = &"graph_c"
+	graph_c.fallback_message = "Graph C"
+	graph_scenario.steps.assign([graph_a, graph_b, graph_c])
+	graph_scenario.entry_step_id = graph_a.step_id
+	assert(graph_scenario.validate_graph().is_empty())
+	assert(graph_scenario.get_initial_hands_debug().size() == 3)
+	var example := load(
+		"res://features/tutorial/examples/branching_example.tres",
+	) as TutorialScenario
+	assert(example != null)
+	assert(example.validate_graph().is_empty())
+	director.setup(game, graph_scenario)
+	director.restart()
+	assert(director.get("_current_step") == graph_a)
+	assert(not (game.get_node("%PassButton") as Button).visible)
+	director.call("_input", _left_click(Vector2(640.0, 360.0)))
+	assert(director.get("_current_step") == graph_b)
+	director.notify_event(&"branch_event", {"choice": "no"})
+	assert(director.get("_current_step") == graph_b)
+	director.notify_event(&"branch_event", {"choice": "yes"})
+	assert(director.get("_current_step") == graph_c)
 
 	print("BONUS_TEST_TUTORIAL_OK")
 	app.queue_free()
