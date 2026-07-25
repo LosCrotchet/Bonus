@@ -1,10 +1,21 @@
 [gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://3bhw6v14mn53"]
 
+[ext_resource type="Script" uid="uid://d2eaooap6slc5" path="res://features/tutorial/tutorial_control_directive.gd" id="1_6k0a3"]
 [ext_resource type="Texture2D" uid="uid://bhyngfymapktb" path="res://assets/tutorial/emoji/emoji_u1f9d0.png" id="1_ywaa0"]
 [ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="2_p5buw"]
+[ext_resource type="Script" uid="uid://dgss6q7ydmndf" path="res://features/tutorial/tutorial_ai_command.gd" id="4_s3al4"]
+[ext_resource type="Script" uid="uid://dtoxh4pjc2v8j" path="res://features/tutorial/tutorial_transition.gd" id="5_srwl0"]
+[ext_resource type="Script" uid="uid://6ma7dkfcx3mm" path="res://features/tutorial/tutorial_condition.gd" id="6_l2oa0"]
+
+[sub_resource type="Resource" id="Resource_6k0a3"]
+script = ExtResource("5_srwl0")
+target_step_id = &"welcome_2"
 
 [resource]
 script = ExtResource("2_p5buw")
 step_id = &"welcome_1"
 message_key = &"TUTORIAL_WELCOME_1"
 emoji = ExtResource("1_ywaa0")
+normalized_dialog_rect = Rect2(0.19693002, 0.6370064, 0.5850771, 0.2938693)
+transitions = Array[ExtResource("5_srwl0")]([SubResource("Resource_6k0a3")])
+editor_graph_position = Vector2(-300, 120)

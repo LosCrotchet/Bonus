@@ -1,8 +1,11 @@
 [gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://b5bi3y5bbjexy"]
 
+[ext_resource type="Script" uid="uid://d2eaooap6slc5" path="res://features/tutorial/tutorial_control_directive.gd" id="1_c7rap"]
 [ext_resource type="Texture2D" uid="uid://ba1w0qyc3r7bi" path="res://assets/tutorial/emoji/emoji_u1f615.png" id="1_g4hqp"]
 [ext_resource type="Texture2D" uid="uid://u8umocnenq5w" path="res://assets/tutorial/emoji/emoji_u1f448.png" id="2_vy5r7"]
 [ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="3_eruy6"]
+[ext_resource type="Script" uid="uid://dgss6q7ydmndf" path="res://features/tutorial/tutorial_ai_command.gd" id="5_yyaw2"]
+[ext_resource type="Script" uid="uid://dtoxh4pjc2v8j" path="res://features/tutorial/tutorial_transition.gd" id="6_h7d01"]
 
 [resource]
 script = ExtResource("3_eruy6")
@@ -17,3 +20,4 @@ continue_mode = 1
 continue_event = &"action_play"
 blocks_gameplay = false
 dim_background = false
+editor_graph_position = Vector2(660, 280)

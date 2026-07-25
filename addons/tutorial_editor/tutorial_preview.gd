@@ -205,6 +205,9 @@ func _draw_dialog() -> void:
 		font_size,
 		-1,
 		Color.WHITE,
+		TextServer.BREAK_MANDATORY
+		| TextServer.BREAK_WORD_BOUND
+		| TextServer.BREAK_ADAPTIVE,
 	)
 	var handle := 9.0
 	draw_rect(Rect2(rect.end - Vector2.ONE * handle, Vector2.ONE * handle), Color(1.0, 0.76, 0.2), true)

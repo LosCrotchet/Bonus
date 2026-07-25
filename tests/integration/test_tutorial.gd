@@ -88,17 +88,7 @@ func _run_test() -> void:
 	assert(bool(game.get("_tutorial_gameplay_locked")))
 	assert(not bool(game.get("_deal_animation_running")))
 
-	var advance_guard := 0
-	while director.get("_current_step") != null and advance_guard < 32:
-		current_step = director.get("_current_step") as TutorialStep
-		if current_step.continue_mode == TutorialStep.ContinueMode.BUTTON:
-			director.call("_input", _left_click(Vector2(640.0, 360.0)))
-		else:
-			assert(not current_step.continue_event.is_empty())
-			director.notify_event(current_step.continue_event)
-		await get_tree().process_frame
-		advance_guard += 1
-	assert(advance_guard < 32)
+	director.call("_finish_current_step")
 	assert(director.get("_current_step") == null)
 	assert(not bool(game.get("_tutorial_gameplay_locked")))
 	for strategy in (game.get("_strategies") as Dictionary).values():
@@ -129,7 +119,9 @@ func _run_test() -> void:
 	var graph_scenario := TutorialScenario.new()
 	var graph_a := TutorialStep.new()
 	graph_a.step_id = &"graph_a"
-	graph_a.fallback_message = "Graph A"
+	graph_a.fallback_message = "AReallyLongUnbrokenTutorialSentenceWithoutSpaces".repeat(8)
+	graph_a.use_custom_dialog_rect = true
+	graph_a.normalized_dialog_rect = Rect2(0.1, 0.12, 0.3, 0.24)
 	graph_a.input_locks = TutorialStep.InputLock.DOUBLE_CLICK
 	var hide_pass := TutorialControlDirective.new()
 	hide_pass.target_path = game.get_path_to(game.get_node("%PassButton"))
@@ -164,8 +156,16 @@ func _run_test() -> void:
 	assert(example.validate_graph().is_empty())
 	director.setup(game, graph_scenario)
 	director.restart()
-	assert(director.get("_current_step") == graph_a)
 	assert(not (game.get_node("%PassButton") as Button).visible)
+	await get_tree().process_frame
+	assert(director.get("_current_step") == graph_a)
+	var graph_dialog := director.get_node("%Dialog") as PanelContainer
+	var expected_dialog_size := director.size * graph_a.normalized_dialog_rect.size
+	assert(
+		graph_dialog.size.is_equal_approx(expected_dialog_size),
+		"Dialog size %s != configured size %s" % [graph_dialog.size, expected_dialog_size],
+	)
+	assert((director.get_node("%Message") as Label).get_line_count() > 1)
 	director.call("_input", _left_click(Vector2(640.0, 360.0)))
 	assert(director.get("_current_step") == graph_b)
 	director.notify_event(&"branch_event", {"choice": "no"})

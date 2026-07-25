@@ -23,6 +23,9 @@ var _control_restore_state: Dictionary = {}
 
 
 func _ready() -> void:
+	message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	message_label.custom_minimum_size = Vector2.ZERO
+	emoji_view.custom_minimum_size = Vector2(104.0, 0.0)
 	blocker.visible = false
 	highlight.visible = false
 	dialog.visible = false
@@ -117,7 +120,7 @@ func _show_next_matching_step(event_key: StringName, _payload: Dictionary) -> vo
 	_show_step(step)
 
 
-func _show_graph_step(step_id: StringName, payload: Dictionary) -> void:
+func _show_graph_step(step_id: StringName, _payload: Dictionary) -> void:
 	if _scenario == null or step_id.is_empty():
 		_finish_current_step()
 		return
@@ -327,24 +330,9 @@ func _position_dialog(step: TutorialStep) -> void:
 		_set_dialog_rect(Rect2(custom_position, custom_size))
 		return
 	var dialog_width := minf(step.dialog_width, viewport_size.x - 68.0)
-	var message_width := dialog_width - 36.0
-	if emoji_view.visible:
-		message_width -= 120.0
-	var font := message_label.get_theme_font(&"font")
-	var font_size := message_label.get_theme_font_size(&"font_size")
-	var text_height := font.get_multiline_string_size(
-		message_label.text,
-		HORIZONTAL_ALIGNMENT_LEFT,
-		maxf(120.0, message_width),
-		font_size,
-	).y
-	var required_height := maxf(
-		104.0,
-		text_height + 42.0,
-	) + 28.0
 	var dialog_size := Vector2(
 		dialog_width,
-		minf(maxf(step.dialog_height, required_height), viewport_size.y - 68.0),
+		minf(step.dialog_height, viewport_size.y - 68.0),
 	)
 	var dialog_position: Vector2
 	match step.placement:
@@ -372,6 +360,10 @@ func _position_dialog(step: TutorialStep) -> void:
 
 
 func _set_dialog_rect(rect: Rect2) -> void:
+	# PanelContainer normally grows to fit its children. Matching hard minimum and
+	# maximum sizes makes the authored rectangle authoritative while Label wraps.
+	dialog.custom_maximum_size = rect.size
+	dialog.custom_minimum_size = rect.size
 	dialog.anchor_left = 0.0
 	dialog.anchor_top = 0.0
 	dialog.anchor_right = 0.0
