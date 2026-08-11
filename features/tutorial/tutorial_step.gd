@@ -41,6 +41,7 @@ enum InputLock {
 @export var pointer_emoji: Texture2D
 @export var pointer_target_path: NodePath
 @export_range(24.0, 160.0, 1.0) var pointer_size := 72.0
+@export var pointer_offset := Vector2.ZERO
 @export_category("Flow")
 @export var continue_mode := ContinueMode.BUTTON
 @export var continue_event: StringName
@@ -48,6 +49,7 @@ enum InputLock {
 @export var dim_background := true
 @export var highlight_path: NodePath
 @export_range(0.0, 5.0, 0.05) var minimum_display_time := 0.0
+@export_range(1, 16, 1) var type_sound_every_characters := 2
 @export var ai_commands: Array[Dictionary] = []
 @export_flags(
 	"Disable deal skip",

@@ -4,7 +4,6 @@
 [ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="2_np0kg"]
 [ext_resource type="Resource" uid="uid://3bhw6v14mn53" path="res://features/tutorial/content/steps/welcome_1.tres" id="3_8vo40"]
 [ext_resource type="Resource" uid="uid://bpj44ejlj28mn" path="res://features/tutorial/content/steps/welcome_2.tres" id="4_rrt5p"]
-[ext_resource type="Resource" uid="uid://b3xju80sk0qw6" path="res://features/tutorial/content/steps/welcome_3.tres" id="5_yecwq"]
 [ext_resource type="Resource" uid="uid://dirjnsi6drr0g" path="res://features/tutorial/content/steps/welcome_4.tres" id="6_chhce"]
 [ext_resource type="Resource" uid="uid://cumy3lruoqt4q" path="res://features/tutorial/content/steps/welcome_5.tres" id="7_6arsu"]
 [ext_resource type="Resource" uid="uid://cw5g6smvk34ua" path="res://features/tutorial/content/steps/initial_hand_1.tres" id="10_cnhwa"]
@@ -15,6 +14,6 @@
 
 [resource]
 script = ExtResource("1_scenario")
-seed_text = "teach002"
-steps = Array[ExtResource("2_np0kg")]([ExtResource("3_8vo40"), ExtResource("4_rrt5p"), ExtResource("14_cnhwa"), ExtResource("5_yecwq"), ExtResource("6_chhce"), ExtResource("7_6arsu"), ExtResource("13_4x0c2"), ExtResource("11_mh13l"), ExtResource("12_230nw"), ExtResource("10_cnhwa")])
+seed_text = "tutorial"
+steps = Array[ExtResource("2_np0kg")]([ExtResource("3_8vo40"), ExtResource("4_rrt5p"), ExtResource("6_chhce"), ExtResource("7_6arsu"), ExtResource("13_4x0c2"), ExtResource("11_mh13l"), ExtResource("12_230nw"), ExtResource("10_cnhwa"), ExtResource("14_cnhwa")])
 entry_step_id = &"welcome_1"

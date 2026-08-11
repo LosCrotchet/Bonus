@@ -4,6 +4,8 @@ const SFX_ROOT := "res://assets/audio/sfx/"
 const MUSIC_ROOT := "res://assets/audio/music/"
 const PLAYER_POOL_SIZE := 20
 const MUSIC_FADE_DURATION := 0.45
+const HOVER_CUE_VOLUME := 0.6
+const STANDARD_CUE_VOLUME := 0.75
 
 var _cue_streams: Dictionary = {}
 var _cue_volume_db: Dictionary = {}
@@ -54,7 +56,10 @@ func play_delayed(cue: StringName, delay: float, volume_offset_db: float = 0.0) 
 func play_bonus_step(step: int) -> void:
 	if _bonus_streams.is_empty():
 		return
-	_play_stream(_bonus_streams[posmod(step, _bonus_streams.size())], -1.0)
+	_play_stream(
+		_bonus_streams[posmod(step, _bonus_streams.size())],
+		linear_to_db(STANDARD_CUE_VOLUME),
+	)
 
 
 func has_cue(cue: StringName) -> bool:
@@ -133,6 +138,11 @@ func _finish_music_crossfade(previous_player: AudioStreamPlayer) -> void:
 
 
 func _build_stream_catalog() -> void:
+	var tutorial_pop := _randomizer(
+		["pop_1.wav", "pop_2.wav", "pop_3.wav", "pop_4.wav"],
+		0.7,
+		0.3,
+	)
 	var card_handling := _randomizer(
 		["card_draw_1.wav", "card_draw_2.wav", "card_draw_3.wav"],
 		0.8,
@@ -140,11 +150,9 @@ func _build_stream_catalog() -> void:
 	)
 	var card_selection := _randomizer(["card_select.wav"], 0.7, 0.2)
 	_cue_streams = {
-		&"ui_hover": _randomizer(
-			["pop_1.wav", "pop_2.wav", "pop_3.wav", "pop_4.wav"],
-			0.7,
-			0.3,
-		),
+		&"ui_hover": tutorial_pop,
+		&"tutorial_confirm": tutorial_pop,
+		&"tutorial_type": _randomizer(["dot.wav"], 0.65, 0.35),
 		&"ui_confirm": _randomizer(["ui_confirm.wav"], 0.18),
 		&"ui_cancel": _randomizer(["ui_cancel.wav"], 0.18),
 		&"ui_invalid": _randomizer(["ui_invalid.wav"], 0.12),
@@ -172,21 +180,13 @@ func _build_stream_catalog() -> void:
 		&"game_win": _randomizer(["game_win.wav"]),
 		&"game_lose": _randomizer(["game_lose.wav"]),
 	}
-	_cue_volume_db = {
-		&"ui_hover": -8.0,
-		&"card_deal": -5.5,
-		&"card_draw": -3.5,
-		&"card_select": -5.0,
-		&"card_deselect": -6.0,
-		&"card_hover": -7.0,
-		&"card_play": -2.5,
-		&"card_reveal": -2.5,
-		&"dice_shake": -2.0,
-		&"turn_change": -3.0,
-		&"pass": -2.0,
-	}
+	_cue_volume_db.clear()
+	for cue in _cue_streams:
+		_cue_volume_db[cue] = linear_to_db(STANDARD_CUE_VOLUME)
+	_cue_volume_db[&"ui_hover"] = linear_to_db(HOVER_CUE_VOLUME)
 	_cue_cooldowns_ms = {
 		&"ui_hover": 45,
+		&"tutorial_confirm": 80,
 		&"ui_invalid": 120,
 		&"card_deal": 24,
 		&"card_draw": 30,
@@ -198,19 +198,7 @@ func _build_stream_catalog() -> void:
 		&"turn_change": 80,
 		&"pass": 80,
 	}
-	for file_name in [
-		"match_synth_1.wav",
-		"match_synth_2.wav",
-		"match_synth_3.wav",
-		"match_synth_4.wav",
-		"match_synth_5.wav",
-		"match_synth_6.wav",
-		"match_synth_7.wav",
-		"match_synth_8.wav",
-		"match_synth_9.wav",
-		"match_synth_10_MAX.wav",
-	]:
-		_bonus_streams.append(_randomizer([file_name], 0.1))
+	_bonus_streams.append(_randomizer(["trumpet_cheerful.wav"], 0.1))
 
 
 func _build_music_catalog() -> void:

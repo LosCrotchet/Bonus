@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://02ohent4f5hg" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="1_6f3ul"]
 [ext_resource type="Script" uid="uid://d2eaooap6slc5" path="res://features/tutorial/tutorial_control_directive.gd" id="1_f5yal"]
 [ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="3_mu3cl"]
+[ext_resource type="Texture2D" uid="uid://u8umocnenq5w" path="res://assets/tutorial/emoji/emoji_u1f448.png" id="3_p31lt"]
 [ext_resource type="Script" uid="uid://dgss6q7ydmndf" path="res://features/tutorial/tutorial_ai_command.gd" id="4_nw77y"]
 [ext_resource type="Script" uid="uid://dtoxh4pjc2v8j" path="res://features/tutorial/tutorial_transition.gd" id="5_p31lt"]
 [ext_resource type="Script" uid="uid://6ma7dkfcx3mm" path="res://features/tutorial/tutorial_condition.gd" id="6_nw77y"]
@@ -18,6 +19,11 @@ trigger = &"initial_deal_finished"
 message_key = &"TUTORIAL_INITIAL_HAND_3"
 emoji = ExtResource("1_6f3ul")
 placement = 3
+use_custom_dialog_rect = true
+normalized_dialog_rect = Rect2(0.4758908, 0.118483886, 0.48595816, 0.28946403)
+pointer_emoji = ExtResource("3_p31lt")
+pointer_target_path = NodePath("SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DiceGroup/DiceArea/DiceButton")
 dim_background = false
+highlight_path = NodePath("SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DiceGroup/DiceArea/DiceButton")
 transitions = Array[ExtResource("5_p31lt")]([SubResource("Resource_p31lt")])
 editor_graph_position = Vector2(180, 280)

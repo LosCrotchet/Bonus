@@ -31,6 +31,7 @@ enum GameplayTiming {
 
 const SETTINGS_PATH := "user://bonus_settings.cfg"
 const DEFAULT_GAME_SPEED := GameSpeed.SLOW
+const DEFAULT_SFX_VOLUME := 0.7
 const SPEED_MULTIPLIERS: Array[float] = [1.7, 1.15, 0.75]
 const UI_ANIMATION_DURATION := 0.22
 const BASE_TIMINGS := {
@@ -62,7 +63,7 @@ var double_click_actions := false
 var use_simplified_cards := false
 var player_id := ""
 var master_volume := 0.8
-var sfx_volume := 0.75
+var sfx_volume := DEFAULT_SFX_VOLUME
 var music_volume := 0.65
 
 var _audio_save_timer: Timer

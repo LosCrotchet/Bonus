@@ -2158,6 +2158,8 @@ func _on_game_finished(player_index: int) -> void:
 func _on_public_action_resolved(public_action: Dictionary) -> void:
 	for strategy in _strategies.values():
 		(strategy as PlayerStrategy).observe_action(public_action.duplicate(true))
+	if _human_auto_strategy != null:
+		_human_auto_strategy.observe_action(public_action.duplicate(true))
 	_notify_tutorial_event(&"action_resolved", public_action)
 	var action_type := StringName(str(public_action.get("type", "")))
 	if not action_type.is_empty():

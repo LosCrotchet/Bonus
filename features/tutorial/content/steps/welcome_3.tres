@@ -16,5 +16,6 @@ script = ExtResource("2_iasdp")
 step_id = &"welcome_2"
 message_key = &"TUTORIAL_WELCOME_2"
 emoji = ExtResource("1_r3lat")
+pointer_offset = null
 transitions = Array[ExtResource("5_whntx")]([SubResource("Resource_o70fb")])
-editor_graph_position = Vector2(-60, 120)
+editor_graph_position = Vector2(-140, -20)

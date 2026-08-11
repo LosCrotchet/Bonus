@@ -221,7 +221,9 @@ func _draw_pointer() -> void:
 		return
 	var pointer_size := step.pointer_size * _canvas_scale()
 	var rect := Rect2(
-		target_rect.end - Vector2(pointer_size + 10.0, target_rect.size.y * 0.5),
+		target_rect.end
+		- Vector2(pointer_size + 10.0, target_rect.size.y * 0.5)
+		+ step.pointer_offset * _canvas_scale(),
 		Vector2.ONE * pointer_size,
 	)
 	draw_texture_rect(step.pointer_emoji, rect, false)

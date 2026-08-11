@@ -647,6 +647,8 @@ func _on_peer_disconnected(peer_id: int) -> void:
 
 func _on_server_public_action(action: Dictionary) -> void:
 	_last_public_action = action.duplicate(true)
+	for strategy in _server_strategies.values():
+		(strategy as PlayerStrategy).observe_action(action.duplicate(true))
 
 
 func _on_server_game_finished(_winner_index: int) -> void:

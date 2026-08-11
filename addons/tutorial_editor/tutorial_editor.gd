@@ -10,6 +10,7 @@ var _scenario: TutorialScenario
 var _step: TutorialStep
 var _transition: TutorialTransition
 var _updating := false
+var _graph_sync_generation := 0
 
 var _path_edit: LineEdit
 var _status: Label
@@ -31,12 +32,15 @@ var _rect_label: Label
 var _emoji_edit: LineEdit
 var _pointer_edit: LineEdit
 var _pointer_size: SpinBox
+var _pointer_offset_x: SpinBox
+var _pointer_offset_y: SpinBox
 var _highlight_edit: LineEdit
 var _blocks_check: CheckBox
 var _dim_check: CheckBox
 var _continue_option: OptionButton
 var _continue_event_edit: LineEdit
 var _minimum_time: SpinBox
+var _type_sound_interval: SpinBox
 var _lock_checks: Array[CheckBox] = []
 
 var _directive_mode: OptionButton
@@ -230,6 +234,7 @@ func _build_center_panel() -> Control:
 	_graph.connection_request.connect(_on_graph_connection_requested)
 	_graph.disconnection_request.connect(_on_graph_disconnection_requested)
 	_graph.delete_nodes_request.connect(_on_graph_delete_requested)
+	_graph.visibility_changed.connect(_on_graph_visibility_changed)
 	var graph_hint := Label.new()
 	graph_hint.text = "Drag yellow output -> blue input"
 	graph_hint.add_theme_color_override(&"font_color", Color(0.75, 0.8, 0.8))
@@ -302,6 +307,25 @@ func _build_inspector() -> Control:
 	_pointer_size.max_value = 160
 	_pointer_size.value_changed.connect(_on_step_value_changed)
 	_add_labeled_control(form, "Pointer size", _pointer_size)
+	var pointer_offset_row := HBoxContainer.new()
+	pointer_offset_row.add_child(_make_label("Pointer offset", 105.0))
+	_pointer_offset_x = SpinBox.new()
+	_pointer_offset_x.min_value = -1000.0
+	_pointer_offset_x.max_value = 1000.0
+	_pointer_offset_x.step = 1.0
+	_pointer_offset_x.prefix = "X "
+	_pointer_offset_x.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_pointer_offset_x.value_changed.connect(_on_step_value_changed)
+	pointer_offset_row.add_child(_pointer_offset_x)
+	_pointer_offset_y = SpinBox.new()
+	_pointer_offset_y.min_value = -1000.0
+	_pointer_offset_y.max_value = 1000.0
+	_pointer_offset_y.step = 1.0
+	_pointer_offset_y.prefix = "Y "
+	_pointer_offset_y.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_pointer_offset_y.value_changed.connect(_on_step_value_changed)
+	pointer_offset_row.add_child(_pointer_offset_y)
+	form.add_child(pointer_offset_row)
 	_highlight_edit = _sample_path_field(form, "Highlight", &"highlight")
 
 	form.add_child(HSeparator.new())
@@ -320,6 +344,14 @@ func _build_inspector() -> Control:
 	_minimum_time.step = 0.05
 	_minimum_time.value_changed.connect(_on_step_value_changed)
 	_add_labeled_control(form, "Minimum time", _minimum_time)
+	_type_sound_interval = SpinBox.new()
+	_type_sound_interval.min_value = 1.0
+	_type_sound_interval.max_value = 16.0
+	_type_sound_interval.step = 1.0
+	_type_sound_interval.rounded = true
+	_type_sound_interval.suffix = " chars"
+	_type_sound_interval.value_changed.connect(_on_step_value_changed)
+	_add_labeled_control(form, "Type sound every", _type_sound_interval)
 
 	form.add_child(_section_title("INPUT LOCKS"))
 	var lock_grid := GridContainer.new()
@@ -470,8 +502,9 @@ func _refresh_step_fields() -> void:
 	var controls := [
 		_id_edit, _trigger_edit, _message_key_edit, _message_edit,
 		_placement_option, _custom_rect_check, _emoji_edit, _pointer_edit,
-		_pointer_size, _highlight_edit, _blocks_check, _dim_check,
-		_continue_option, _continue_event_edit, _minimum_time,
+		_pointer_size, _pointer_offset_x, _pointer_offset_y, _highlight_edit,
+		_blocks_check, _dim_check,
+		_continue_option, _continue_event_edit, _minimum_time, _type_sound_interval,
 	]
 	for control in controls:
 		if control is LineEdit or control is TextEdit or control is SpinBox:
@@ -488,12 +521,15 @@ func _refresh_step_fields() -> void:
 		_emoji_edit.text = _step.emoji.resource_path if _step.emoji != null else ""
 		_pointer_edit.text = str(_step.pointer_target_path)
 		_pointer_size.value = _step.pointer_size
+		_pointer_offset_x.value = _step.pointer_offset.x
+		_pointer_offset_y.value = _step.pointer_offset.y
 		_highlight_edit.text = str(_step.highlight_path)
 		_blocks_check.button_pressed = _step.blocks_gameplay
 		_dim_check.button_pressed = _step.dim_background
 		_continue_option.select(_step.continue_mode)
 		_continue_event_edit.text = str(_step.continue_event)
 		_minimum_time.value = _step.minimum_display_time
+		_type_sound_interval.value = _step.type_sound_every_characters
 		for index in range(_lock_checks.size()):
 			_lock_checks[index].button_pressed = (_step.input_locks & (1 << index)) != 0
 		_update_rect_label()
@@ -519,12 +555,14 @@ func _commit_step_fields() -> void:
 	_step.emoji = load(_emoji_edit.text) as Texture2D if ResourceLoader.exists(_emoji_edit.text) else null
 	_step.pointer_target_path = NodePath(_pointer_edit.text)
 	_step.pointer_size = _pointer_size.value
+	_step.pointer_offset = Vector2(_pointer_offset_x.value, _pointer_offset_y.value)
 	_step.highlight_path = NodePath(_highlight_edit.text)
 	_step.blocks_gameplay = _blocks_check.button_pressed
 	_step.dim_background = _dim_check.button_pressed
 	_step.continue_mode = _continue_option.selected
 	_step.continue_event = StringName(_continue_event_edit.text.strip_edges())
 	_step.minimum_display_time = _minimum_time.value
+	_step.type_sound_every_characters = roundi(_type_sound_interval.value)
 	if old_id != _step.step_id:
 		_update_transition_targets(old_id, _step.step_id)
 		_rebuild_step_list()
@@ -676,6 +714,8 @@ func _clear_graph_entry() -> void:
 func _rebuild_graph() -> void:
 	if _graph == null:
 		return
+	_graph_sync_generation += 1
+	var generation := _graph_sync_generation
 	_graph.clear_connections()
 	for child in _graph.get_children():
 		if child is GraphNode:
@@ -704,47 +744,83 @@ func _rebuild_graph() -> void:
 		node.node_selected.connect(_select_graph_node.bind(step))
 		node.position_offset_changed.connect(func() -> void: step.editor_graph_position = node.position_offset)
 		_graph.add_child(node)
+	_sync_graph_connections(generation)
+	_sync_graph_connections.call_deferred(generation)
+
+
+func _sync_graph_connections(generation: int = -1) -> void:
+	if generation >= 0 and generation != _graph_sync_generation:
+		return
+	if _graph == null or _scenario == null:
+		return
 	for step in _scenario.steps:
 		if step == null:
 			continue
 		for transition in step.transitions:
-			if transition != null and _graph.has_node(NodePath(str(transition.target_step_id))):
-				if not _graph.is_node_connected(step.step_id, 0, transition.target_step_id, 0):
-					var error := _graph.connect_node(
-						step.step_id,
-						0,
-						transition.target_step_id,
-						0,
-					)
-					if error != OK:
-						push_error(
-							"Could not draw tutorial transition %s -> %s (error %d)"
-							% [step.step_id, transition.target_step_id, error],
-						)
+			if transition == null or transition.target_step_id.is_empty():
+				continue
+			var error := _ensure_graph_connection(step.step_id, transition.target_step_id)
+			if error != OK:
+				push_error(
+					"Could not draw tutorial transition %s -> %s (error %d)"
+					% [step.step_id, transition.target_step_id, error],
+				)
+	_graph.queue_redraw()
+
+
+func _ensure_graph_connection(from: StringName, to: StringName) -> Error:
+	if (
+		from.is_empty()
+		or to.is_empty()
+		or not _graph.has_node(NodePath(str(from)))
+		or not _graph.has_node(NodePath(str(to)))
+	):
+		return ERR_DOES_NOT_EXIST
+	if _graph.is_node_connected(from, 0, to, 0):
+		return OK
+	return _graph.connect_node(from, 0, to, 0)
+
+
+func _on_graph_visibility_changed() -> void:
+	if _graph != null and _graph.visible:
+		_sync_graph_connections.call_deferred(_graph_sync_generation)
 
 
 func _on_graph_connection_requested(from: StringName, _from_port: int, to: StringName, _to_port: int) -> void:
 	var source := _scenario.get_step(from)
-	if source == null or _has_transition_to(source, to):
+	if source == null:
 		return
-	var transition := TutorialTransition.new()
-	transition.target_step_id = to
-	source.transitions.append(transition)
-	var error := _graph.connect_node(from, 0, to, 0)
+	var transition_index := _find_transition_index(source, to)
+	var created_transition := transition_index < 0
+	if created_transition:
+		var transition := TutorialTransition.new()
+		transition.target_step_id = to
+		source.transitions.append(transition)
+		transition_index = source.transitions.size() - 1
+	var was_connected := _graph.is_node_connected(from, 0, to, 0)
+	var error := _ensure_graph_connection(from, to)
 	if error != OK:
-		source.transitions.erase(transition)
+		if created_transition:
+			source.transitions.remove_at(transition_index)
 		_set_status("Could not create graph connection (error %d)" % error, true)
 		return
 	_set_step(source)
-	_select_transition(source.transitions.size() - 1)
-	_set_status("Connected %s -> %s" % [from, to])
+	_select_transition(transition_index)
+	_set_status(
+		("Connected" if created_transition or was_connected else "Restored")
+		+ " %s -> %s" % [from, to]
+	)
 
 
 func _has_transition_to(source: TutorialStep, target_id: StringName) -> bool:
+	return _find_transition_index(source, target_id) >= 0
+
+
+func _find_transition_index(source: TutorialStep, target_id: StringName) -> int:
 	for transition in source.transitions:
 		if transition != null and transition.target_step_id == target_id:
-			return true
-	return false
+			return source.transitions.find(transition)
+	return -1
 
 
 func _on_graph_disconnection_requested(from: StringName, _from_port: int, to: StringName, _to_port: int) -> void:

@@ -33,6 +33,10 @@
 
 Pointer 与 Highlight 右侧的 **Sample** 会进入取样模式。此时点击预览中的目标控件，工具会写入相对于 `GameScene` 的真实 `NodePath`。不要手工猜路径；场景结构调整后应重新取样并运行校验。
 
+Pointer target 下方的 **Pointer offset** 提供 X/Y 像素偏移。先用 Sample 固定锚点，再用偏移把手势移到目标外侧；正 X 向右、正 Y 向下，预览会按画布缩放显示同样的偏移关系。
+
+**Type sound every** 控制教程逐字音效的密度，表示每显示多少个字符播放一次 `dot.wav`；默认值为 2，最小值为 1。该节奏由步骤自身控制，不受全局音效冷却影响。
+
 ## 线性步骤与流程图
 
 `entry_step_id` 为空时，导演使用旧的线性模式：按 `steps` 数组顺序执行，`trigger` 决定步骤何时出现，`continue_mode` 与 `continue_event` 决定何时结束。左侧 **Up/Down** 调整线性顺序。
@@ -41,6 +45,7 @@ Pointer 与 Highlight 右侧的 **Sample** 会进入取样模式。此时点击�
 
 - 入口节点在教程开始时立即显示。
 - 从节点右侧端口拖到另一个节点，创建一个默认的 Click Transition。
+- Flow Graph 打开时会根据步骤资源中的 Transition 重新同步连线；若界面连线因刷新丢失，再次拖到同一目标会恢复显示，而不会重复创建 Transition。
 - 选中步骤后，在右侧 **Outgoing Transitions** 选择连线，把 Trigger 改成 Click 或 Event。
 - Event Transition 填写 `event_key`，例如 `action_roll`、`action_play`、`initial_deal_finished`。
 - 点击 **Edit conditions**，在 Godot Inspector 的 `conditions` 数组中添加 `TutorialCondition`。
