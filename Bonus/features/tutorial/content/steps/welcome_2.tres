@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://dtoxh4pjc2v8j" path="res://features/tutorial/tutorial_transition.gd" id="5_h14sb"]
 [ext_resource type="Script" uid="uid://6ma7dkfcx3mm" path="res://features/tutorial/tutorial_condition.gd" id="6_2xqet"]
 
-[sub_resource type="Resource" id="Resource_oyk5w"]
+[sub_resource type="Resource" id="Resource_cw642"]
 script = ExtResource("5_h14sb")
 target_step_id = &"welcome_3"
 
@@ -16,5 +16,5 @@ script = ExtResource("2_iasdp")
 step_id = &"welcome_2"
 message_key = &"TUTORIAL_WELCOME_2"
 emoji = ExtResource("1_5iy75")
-transitions = Array[ExtResource("5_h14sb")]([SubResource("Resource_oyk5w")])
+transitions = Array[ExtResource("5_h14sb")]([SubResource("Resource_cw642")])
 editor_graph_position = Vector2(-60, 120)

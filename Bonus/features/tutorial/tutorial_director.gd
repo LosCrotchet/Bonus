@@ -1,6 +1,8 @@
 class_name TutorialDirector
 extends Control
 
+const TYPEWRITER_CHARACTERS_PER_SECOND := 16.0
+
 @onready var blocker: ColorRect = %Blocker
 @onready var highlight: Panel = %Highlight
 @onready var dialog: PanelContainer = %Dialog
@@ -18,6 +20,9 @@ var _pointer_tween: Tween
 var _continue_indicator_tween: Tween
 var _continue_float_tween: Tween
 var _continue_ready := false
+var _text_reveal_complete := true
+var _minimum_display_complete := true
+var _presentation_generation := 0
 var _started := false
 var _control_restore_state: Dictionary = {}
 
@@ -89,7 +94,6 @@ func _input(event: InputEvent) -> void:
 	if (
 		_current_step == null
 		or _current_step.continue_mode != TutorialStep.ContinueMode.BUTTON
-		or not _continue_ready
 		or event is not InputEventMouseButton
 	):
 		return
@@ -100,6 +104,12 @@ func _input(event: InputEvent) -> void:
 		or mouse_event.double_click
 		or _game.call("is_tutorial_input_passthrough_point", mouse_event.position)
 	):
+		return
+	if not _text_reveal_complete:
+		_complete_text_reveal(_current_step, _presentation_generation)
+		get_viewport().set_input_as_handled()
+		return
+	if not _continue_ready:
 		return
 	_advance_button_step()
 	get_viewport().set_input_as_handled()
@@ -139,9 +149,12 @@ func _show_graph_step(step_id: StringName, _payload: Dictionary) -> void:
 
 func _show_step(step: TutorialStep) -> void:
 	var message := step.get_message(self)
+	_presentation_generation += 1
+	var generation := _presentation_generation
 	blocker.visible = step.dim_background
 	blocker.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	message_label.text = message
+	message_label.visible_characters = 0 if not message.is_empty() else -1
 	emoji_view.texture = step.emoji
 	emoji_view.visible = step.emoji != null
 	pointer_emoji_view.texture = step.pointer_emoji
@@ -153,6 +166,8 @@ func _show_step(step: TutorialStep) -> void:
 	pointer_emoji_view.custom_minimum_size = Vector2.ONE * step.pointer_size
 	pointer_emoji_view.size = Vector2.ONE * step.pointer_size
 	_continue_ready = false
+	_text_reveal_complete = message.is_empty()
+	_minimum_display_complete = step.minimum_display_time <= 0.0
 	continue_indicator.visible = false
 	continue_indicator.modulate.a = 0.0
 	_position_dialog(step)
@@ -163,22 +178,82 @@ func _show_step(step: TutorialStep) -> void:
 		_play_dialog_enter()
 	if pointer_emoji_view.visible:
 		_play_pointer_enter()
+	if not message.is_empty():
+		_run_typewriter(message.length(), step, generation)
+	if step.minimum_display_time > 0.0:
+		_complete_minimum_display_after_delay(
+			step.minimum_display_time,
+			step,
+			generation,
+		)
+	_try_enable_continue()
+
+
+func _run_typewriter(
+	total_characters: int,
+	expected_step: TutorialStep,
+	generation: int,
+) -> void:
+	var revealed := 0
+	var character_interval := 1.0 / TYPEWRITER_CHARACTERS_PER_SECOND
+	var sound_interval := maxi(1, expected_step.type_sound_every_characters)
+	while revealed < total_characters:
+		await get_tree().create_timer(character_interval).timeout
+		if (
+			_current_step != expected_step
+			or generation != _presentation_generation
+			or _text_reveal_complete
+		):
+			return
+		revealed += 1
+		message_label.visible_characters = revealed
+		if (revealed - 1) % sound_interval == 0:
+			AudioService.play(&"tutorial_type")
+	_complete_text_reveal(expected_step, generation)
+
+
+func _complete_text_reveal(
+	expected_step: TutorialStep,
+	generation: int,
+) -> void:
 	if (
-		step.continue_mode == TutorialStep.ContinueMode.BUTTON
-		and step.minimum_display_time > 0.0
+		_current_step != expected_step
+		or generation != _presentation_generation
+		or _text_reveal_complete
 	):
-		_enable_continue_after_delay(step.minimum_display_time, step)
-	elif step.continue_mode == TutorialStep.ContinueMode.BUTTON:
-		_show_continue_indicator()
+		return
+	message_label.visible_characters = -1
+	_text_reveal_complete = true
+	_try_enable_continue()
 
 
-func _enable_continue_after_delay(duration: float, expected_step: TutorialStep) -> void:
+func _complete_minimum_display_after_delay(
+	duration: float,
+	expected_step: TutorialStep,
+	generation: int,
+) -> void:
 	await get_tree().create_timer(duration).timeout
-	if _current_step == expected_step:
-		_show_continue_indicator()
+	if _current_step != expected_step or generation != _presentation_generation:
+		return
+	_minimum_display_complete = true
+	_try_enable_continue()
+
+
+func _try_enable_continue() -> void:
+	if (
+		_current_step == null
+		or _current_step.continue_mode != TutorialStep.ContinueMode.BUTTON
+		or not _text_reveal_complete
+		or not _minimum_display_complete
+		or _continue_ready
+	):
+		return
+	_show_continue_indicator()
 
 
 func _show_continue_indicator() -> void:
+	if _continue_ready:
+		return
 	_continue_ready = true
 	continue_indicator.visible = true
 	continue_indicator.modulate.a = 0.0
@@ -231,7 +306,7 @@ func _start_continue_indicator_float() -> void:
 func _advance_button_step() -> void:
 	if _current_step == null or not _continue_ready:
 		return
-	AudioService.play(&"ui_confirm")
+	AudioService.play(&"tutorial_confirm")
 	if _scenario != null and _scenario.uses_graph():
 		var transition := _find_graph_transition(
 			TutorialTransition.TriggerMode.CLICK,
@@ -255,7 +330,10 @@ func _advance_button_step() -> void:
 
 
 func _finish_current_step(unlock_gameplay := true) -> void:
+	_presentation_generation += 1
 	_continue_ready = false
+	_text_reveal_complete = true
+	_minimum_display_complete = true
 	_current_step = null
 	blocker.visible = false
 	highlight.visible = false
@@ -269,6 +347,7 @@ func _finish_current_step(unlock_gameplay := true) -> void:
 		_continue_float_tween.kill()
 		_continue_float_tween = null
 	continue_indicator.position = Vector2.ZERO
+	message_label.visible_characters = -1
 	if _pointer_tween != null:
 		_pointer_tween.kill()
 		_pointer_tween = null
@@ -490,7 +569,7 @@ func _reposition_pointer() -> void:
 	var desired_position := Vector2(
 		target_rect.end.x - pointer_size.x - 42.0,
 		target_rect.position.y + 24.0,
-	)
+	) + _current_step.pointer_offset
 	var viewport_rect := get_viewport_rect().grow(-12.0)
 	pointer_emoji_view.global_position = Vector2(
 		clampf(

@@ -25,6 +25,11 @@ func _run() -> void:
 	preview.size = Vector2(960.0, 540.0)
 	preview.set_step(step)
 	await process_frame
+	var pointer_offset_x := editor.get("_pointer_offset_x") as SpinBox
+	var pointer_offset_y := editor.get("_pointer_offset_y") as SpinBox
+	pointer_offset_x.value = 28.0
+	pointer_offset_y.value = -14.0
+	assert(step.pointer_offset == Vector2(28.0, -14.0))
 
 	var original := step.normalized_dialog_rect
 	var center := preview.call("_dialog_screen_rect").get_center() as Vector2
@@ -67,6 +72,18 @@ func _test_graph_connection(editor: Control, scenario: TutorialScenario) -> void
 	assert(graph.has_node(NodePath(str(source.step_id))))
 	assert(graph.has_node(NodePath(str(target.step_id))))
 	assert(graph.is_node_connected(source.step_id, 0, target.step_id, 0))
+	var transition_count := source.transitions.size()
+	graph.clear_connections()
+	assert(not graph.is_node_connected(source.step_id, 0, target.step_id, 0))
+	editor.call(
+		"_on_graph_connection_requested",
+		source.step_id,
+		0,
+		target.step_id,
+		0,
+	)
+	assert(graph.is_node_connected(source.step_id, 0, target.step_id, 0))
+	assert(source.transitions.size() == transition_count)
 	editor.call(
 		"_on_graph_disconnection_requested",
 		source.step_id,

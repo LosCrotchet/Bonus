@@ -9,6 +9,8 @@ func _run_test() -> void:
 	for cue in [
 		&"ui_hover",
 		&"ui_confirm",
+		&"tutorial_confirm",
+		&"tutorial_type",
 		&"ui_fade_in",
 		&"card_deal",
 		&"card_draw",
@@ -27,7 +29,7 @@ func _run_test() -> void:
 	]:
 		assert(AudioService.has_cue(cue), "Missing audio cue: %s" % cue)
 	assert(not AudioService.has_cue(&"bonus_loop"))
-	assert(AudioService.get_bonus_step_count() == 10)
+	assert(AudioService.get_bonus_step_count() == 1)
 	assert(AudioService.has_music(&"menu"))
 	assert(AudioService.has_music(&"game"))
 	var music_catalog := AudioService.get("_music_streams") as Dictionary
@@ -38,10 +40,27 @@ func _run_test() -> void:
 
 	var catalog := AudioService.get("_cue_streams") as Dictionary
 	var hover := catalog[&"ui_hover"] as AudioStreamRandomizer
+	var tutorial_confirm := catalog[&"tutorial_confirm"] as AudioStreamRandomizer
+	var tutorial_type := catalog[&"tutorial_type"] as AudioStreamRandomizer
 	var card_deal := catalog[&"card_deal"] as AudioStreamRandomizer
 	var card_draw := catalog[&"card_draw"] as AudioStreamRandomizer
 	assert(hover.streams_count == 4)
 	assert(hover.random_pitch_semitones > 0.0)
+	assert(tutorial_confirm == hover)
+	assert(tutorial_type.streams_count == 1)
+	assert(tutorial_type.random_pitch_semitones > 0.0)
+	assert(tutorial_type.get_stream(0).resource_path.ends_with("dot.wav"))
+	var cooldowns := AudioService.get("_cue_cooldowns_ms") as Dictionary
+	assert(not cooldowns.has(&"tutorial_type"))
+	var cue_volumes := AudioService.get("_cue_volume_db") as Dictionary
+	for cue in catalog:
+		var expected_volume := 0.6 if cue == &"ui_hover" else 0.75
+		assert(
+			is_equal_approx(db_to_linear(float(cue_volumes[cue])), expected_volume),
+			"Unexpected volume for audio cue: %s" % cue,
+		)
+	var settings_constants := (SettingsService.get_script() as Script).get_script_constant_map()
+	assert(is_equal_approx(float(settings_constants["DEFAULT_SFX_VOLUME"]), 0.7))
 	assert(card_deal == card_draw)
 	assert(card_deal.streams_count == 3)
 	assert(card_deal.random_pitch_semitones > 0.0)
@@ -63,13 +82,7 @@ func _run_test() -> void:
 		(bonus_steps[0] as AudioStreamRandomizer)
 		.get_stream(0)
 		.resource_path
-		.ends_with("match_synth_1.wav")
-	)
-	assert(
-		(bonus_steps[9] as AudioStreamRandomizer)
-		.get_stream(0)
-		.resource_path
-		.ends_with("match_synth_10_MAX.wav")
+		.ends_with("trumpet_cheerful.wav")
 	)
 
 	AudioService.play(&"ui_hover")

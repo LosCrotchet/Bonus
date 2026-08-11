@@ -32,7 +32,7 @@ static func is_valid(value: String) -> bool:
 
 static func to_int(value: String) -> int:
 	var normalized := sanitize(value)
-	var seed_value := int(normalized.hash())
+	var seed_value := int(normalized.hash()) + 1
 	return seed_value if seed_value != 0 else 1
 
 
