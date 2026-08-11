@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="TutorialScenario" format=3 uid="uid://cjbnu12ccdvx3"]
+
+[ext_resource type="Script" uid="uid://dypfx4bvw47nb" path="res://features/tutorial/tutorial_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="2_step"]
+[ext_resource type="Resource" uid="uid://jjj3by04n5ht" path="res://features/tutorial/examples/steps/branch_start.tres" id="3_start"]
+[ext_resource type="Resource" uid="uid://bitfpsibw5elf" path="res://features/tutorial/examples/steps/branch_roll.tres" id="4_roll"]
+[ext_resource type="Resource" uid="uid://dsp8vp45qr4qo" path="res://features/tutorial/examples/steps/branch_high.tres" id="5_high"]
+[ext_resource type="Resource" uid="uid://b8qdhq5hc6hmr" path="res://features/tutorial/examples/steps/branch_low.tres" id="6_low"]
+
+[resource]
+script = ExtResource("1_scenario")
+steps = Array[ExtResource("2_step")]([ExtResource("4_roll"), ExtResource("3_start"), ExtResource("5_high"), ExtResource("6_low")])
+entry_step_id = &"branch_start"

@@ -1,0 +1,267 @@
+[gd_resource type="Theme" format=3 uid="uid://cbc4n3ejioec4"]
+
+[ext_resource type="FontFile" uid="uid://bobda3iv4j3mt" path="res://assets/fonts/SourceHanSans-VF.otf.ttc" id="1_font"]
+[ext_resource type="Texture2D" uid="uid://cl8rpjr4fcqgl" path="res://assets/themes/cartoon_ui/black/button wider idle.png" id="2_black_idle"]
+[ext_resource type="Texture2D" uid="uid://stoqco5xopq1" path="res://assets/themes/cartoon_ui/black/button wider hover.png" id="3_black_hover"]
+[ext_resource type="Texture2D" uid="uid://iyf2bk5fa5to" path="res://assets/themes/cartoon_ui/black/button wider clicked.png" id="4_black_pressed"]
+[ext_resource type="Texture2D" uid="uid://hgnxtc45dt4u" path="res://assets/themes/cartoon_ui/black/button wide idle.png" id="5_wide_idle"]
+[ext_resource type="Texture2D" uid="uid://cnfodxvsd2s6i" path="res://assets/themes/cartoon_ui/black/button wide hover.png" id="6_wide_hover"]
+[ext_resource type="Texture2D" uid="uid://b4f2rip8kq7i4" path="res://assets/themes/cartoon_ui/black/button wide clicked.png" id="7_wide_pressed"]
+[ext_resource type="Texture2D" uid="uid://c6fxkqi7os0vp" path="res://assets/themes/cartoon_ui/black/button square idle.png" id="8_square_idle"]
+[ext_resource type="Texture2D" uid="uid://dsq4uyy4nx6vl" path="res://assets/themes/cartoon_ui/black/button square hover.png" id="9_square_hover"]
+[ext_resource type="Texture2D" uid="uid://5vkxu8mpg8rn" path="res://assets/themes/cartoon_ui/black/button square clicked.png" id="10_square_pressed"]
+[ext_resource type="Texture2D" uid="uid://ca1csuvf5k666" path="res://assets/themes/cartoon_ui/black/checkbox_32_empty.png" id="11_check_empty"]
+[ext_resource type="Texture2D" uid="uid://clqi72jgkp3xm" path="res://assets/themes/cartoon_ui/black/checkbox_32_hover.png" id="12_check_hover"]
+[ext_resource type="Texture2D" uid="uid://blhupggmpv23u" path="res://assets/themes/cartoon_ui/black/checkbox_32_tick.png" id="13_check_tick"]
+[ext_resource type="Texture2D" uid="uid://b8fx6628eb5ti" path="res://assets/themes/cartoon_ui/blue/button wide idle.png" id="14_blue_idle"]
+[ext_resource type="Texture2D" uid="uid://c27ubbc1ec3g6" path="res://assets/themes/cartoon_ui/blue/button wide hover.png" id="15_blue_hover"]
+[ext_resource type="Texture2D" uid="uid://w03kkj3bx8eu" path="res://assets/themes/cartoon_ui/blue/button wide clicked.png" id="16_blue_pressed"]
+[ext_resource type="Texture2D" uid="uid://bdag8c3oqeujb" path="res://assets/themes/cartoon_ui/red/button wide idle.png" id="17_red_idle"]
+[ext_resource type="Texture2D" uid="uid://c846807asr33t" path="res://assets/themes/cartoon_ui/red/button wide hover.png" id="18_red_hover"]
+[ext_resource type="Texture2D" uid="uid://oajpwt0rlms4" path="res://assets/themes/cartoon_ui/red/button wide clicked.png" id="19_red_pressed"]
+[ext_resource type="Texture2D" uid="uid://bfnjanifshiga" path="res://assets/themes/cartoon_ui/green/button wide idle.png" id="20_green_idle"]
+[ext_resource type="Texture2D" uid="uid://cxikgqm8sgf41" path="res://assets/themes/cartoon_ui/green/button wide hover.png" id="21_green_hover"]
+[ext_resource type="Texture2D" uid="uid://5j1ue5pj4lx3" path="res://assets/themes/cartoon_ui/green/button wide clicked.png" id="22_green_pressed"]
+
+[sub_resource type="StyleBoxTexture" id="BlueNormal"]
+texture = ExtResource("14_blue_idle")
+texture_margin_left = 6.667
+texture_margin_top = 4.333
+texture_margin_right = 6.667
+texture_margin_bottom = 4.333
+
+[sub_resource type="StyleBoxEmpty" id="Empty"]
+
+[sub_resource type="StyleBoxTexture" id="BlueHover"]
+texture = ExtResource("15_blue_hover")
+texture_margin_left = 6.667
+texture_margin_top = 4.333
+texture_margin_right = 6.667
+texture_margin_bottom = 4.333
+
+[sub_resource type="StyleBoxTexture" id="BluePressed"]
+texture = ExtResource("16_blue_pressed")
+texture_margin_left = 6.667
+texture_margin_top = 4.333
+texture_margin_right = 6.667
+texture_margin_bottom = 4.333
+
+[sub_resource type="StyleBoxTexture" id="BlackNormal"]
+content_margin_left = 18.0
+content_margin_top = 7.0
+content_margin_right = 18.0
+content_margin_bottom = 7.0
+texture = ExtResource("2_black_idle")
+texture_margin_left = 8.0
+texture_margin_top = 4.667
+texture_margin_right = 8.0
+texture_margin_bottom = 4.667
+
+[sub_resource type="StyleBoxTexture" id="BlackHover"]
+content_margin_left = 18.0
+content_margin_top = 7.0
+content_margin_right = 18.0
+content_margin_bottom = 7.0
+texture = ExtResource("3_black_hover")
+texture_margin_left = 8.0
+texture_margin_top = 4.667
+texture_margin_right = 8.0
+texture_margin_bottom = 4.667
+
+[sub_resource type="StyleBoxTexture" id="BlackPressed"]
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 6.0
+texture = ExtResource("4_black_pressed")
+texture_margin_left = 8.0
+texture_margin_top = 4.667
+texture_margin_right = 8.0
+texture_margin_bottom = 4.667
+
+[sub_resource type="StyleBoxTexture" id="GreenNormal"]
+texture = ExtResource("20_green_idle")
+texture_margin_left = 6.667
+texture_margin_top = 4.333
+texture_margin_right = 6.667
+texture_margin_bottom = 4.333
+
+[sub_resource type="StyleBoxTexture" id="GreenHover"]
+texture = ExtResource("21_green_hover")
+texture_margin_left = 6.667
+texture_margin_top = 4.333
+texture_margin_right = 6.667
+texture_margin_bottom = 4.333
+
+[sub_resource type="StyleBoxTexture" id="GreenPressed"]
+texture = ExtResource("22_green_pressed")
+texture_margin_left = 6.667
+texture_margin_top = 4.333
+texture_margin_right = 6.667
+texture_margin_bottom = 4.333
+
+[sub_resource type="StyleBoxTexture" id="RedNormal"]
+texture = ExtResource("17_red_idle")
+texture_margin_left = 6.667
+texture_margin_top = 4.333
+texture_margin_right = 6.667
+texture_margin_bottom = 4.333
+
+[sub_resource type="StyleBoxTexture" id="RedHover"]
+texture = ExtResource("18_red_hover")
+texture_margin_left = 6.667
+texture_margin_top = 4.333
+texture_margin_right = 6.667
+texture_margin_bottom = 4.333
+
+[sub_resource type="StyleBoxTexture" id="RedPressed"]
+texture = ExtResource("19_red_pressed")
+texture_margin_left = 6.667
+texture_margin_top = 4.333
+texture_margin_right = 6.667
+texture_margin_bottom = 4.333
+
+[sub_resource type="StyleBoxTexture" id="SquareNormal"]
+texture = ExtResource("8_square_idle")
+texture_margin_left = 4.667
+texture_margin_top = 4.667
+texture_margin_right = 4.667
+texture_margin_bottom = 4.667
+
+[sub_resource type="StyleBoxTexture" id="SquareHover"]
+texture = ExtResource("9_square_hover")
+texture_margin_left = 4.667
+texture_margin_top = 4.667
+texture_margin_right = 4.667
+texture_margin_bottom = 4.667
+
+[sub_resource type="StyleBoxTexture" id="SquarePressed"]
+texture = ExtResource("10_square_pressed")
+texture_margin_left = 4.667
+texture_margin_top = 4.667
+texture_margin_right = 4.667
+texture_margin_bottom = 4.667
+
+[sub_resource type="StyleBoxTexture" id="WideNormal"]
+texture = ExtResource("5_wide_idle")
+texture_margin_left = 6.667
+texture_margin_top = 4.333
+texture_margin_right = 6.667
+texture_margin_bottom = 4.333
+
+[sub_resource type="StyleBoxTexture" id="WideHover"]
+texture = ExtResource("6_wide_hover")
+texture_margin_left = 6.667
+texture_margin_top = 4.333
+texture_margin_right = 6.667
+texture_margin_bottom = 4.333
+
+[sub_resource type="StyleBoxTexture" id="WidePressed"]
+texture = ExtResource("7_wide_pressed")
+texture_margin_left = 6.667
+texture_margin_top = 4.333
+texture_margin_right = 6.667
+texture_margin_bottom = 4.333
+
+[sub_resource type="FontVariation" id="Font_default"]
+base_font = ExtResource("1_font")
+variation_opentype = {
+2003265652: 560.0
+}
+
+[resource]
+default_font = SubResource("Font_default")
+default_font_size = 16
+BlueButton/base_type = &"Button"
+BlueButton/styles/disabled = SubResource("BlueNormal")
+BlueButton/styles/disabled_mirrored = SubResource("BlueNormal")
+BlueButton/styles/focus = SubResource("Empty")
+BlueButton/styles/hover = SubResource("BlueHover")
+BlueButton/styles/hover_mirrored = SubResource("BlueHover")
+BlueButton/styles/hover_pressed = SubResource("BluePressed")
+BlueButton/styles/hover_pressed_mirrored = SubResource("BluePressed")
+BlueButton/styles/normal = SubResource("BlueNormal")
+BlueButton/styles/normal_mirrored = SubResource("BlueNormal")
+BlueButton/styles/pressed = SubResource("BluePressed")
+BlueButton/styles/pressed_mirrored = SubResource("BluePressed")
+Button/colors/font_color = Color(0.96, 0.98, 0.98, 1)
+Button/colors/font_disabled_color = Color(0.56, 0.6, 0.6, 0.72)
+Button/colors/font_hover_color = Color(1, 1, 1, 1)
+Button/colors/font_pressed_color = Color(1, 1, 1, 1)
+Button/constants/h_separation = 14
+Button/styles/disabled = SubResource("BlackNormal")
+Button/styles/disabled_mirrored = SubResource("BlackNormal")
+Button/styles/focus = SubResource("Empty")
+Button/styles/hover = SubResource("BlackHover")
+Button/styles/hover_mirrored = SubResource("BlackHover")
+Button/styles/hover_pressed = SubResource("BlackPressed")
+Button/styles/hover_pressed_mirrored = SubResource("BlackPressed")
+Button/styles/normal = SubResource("BlackNormal")
+Button/styles/normal_mirrored = SubResource("BlackNormal")
+Button/styles/pressed = SubResource("BlackPressed")
+Button/styles/pressed_mirrored = SubResource("BlackPressed")
+CheckBox/icons/checked = ExtResource("13_check_tick")
+CheckBox/icons/checked_disabled = ExtResource("13_check_tick")
+CheckBox/icons/checked_hover = ExtResource("13_check_tick")
+CheckBox/icons/unchecked = ExtResource("11_check_empty")
+CheckBox/icons/unchecked_disabled = ExtResource("11_check_empty")
+CheckBox/icons/unchecked_hover = ExtResource("12_check_hover")
+CheckBox/styles/disabled = SubResource("Empty")
+CheckBox/styles/disabled_mirrored = SubResource("Empty")
+CheckBox/styles/focus = SubResource("Empty")
+CheckBox/styles/hover = SubResource("Empty")
+CheckBox/styles/hover_mirrored = SubResource("Empty")
+CheckBox/styles/hover_pressed = SubResource("Empty")
+CheckBox/styles/hover_pressed_mirrored = SubResource("Empty")
+CheckBox/styles/normal = SubResource("Empty")
+CheckBox/styles/normal_mirrored = SubResource("Empty")
+CheckBox/styles/pressed = SubResource("Empty")
+CheckBox/styles/pressed_mirrored = SubResource("Empty")
+GreenButton/base_type = &"Button"
+GreenButton/styles/disabled = SubResource("GreenNormal")
+GreenButton/styles/disabled_mirrored = SubResource("GreenNormal")
+GreenButton/styles/focus = SubResource("Empty")
+GreenButton/styles/hover = SubResource("GreenHover")
+GreenButton/styles/hover_mirrored = SubResource("GreenHover")
+GreenButton/styles/hover_pressed = SubResource("GreenPressed")
+GreenButton/styles/hover_pressed_mirrored = SubResource("GreenPressed")
+GreenButton/styles/normal = SubResource("GreenNormal")
+GreenButton/styles/normal_mirrored = SubResource("GreenNormal")
+GreenButton/styles/pressed = SubResource("GreenPressed")
+GreenButton/styles/pressed_mirrored = SubResource("GreenPressed")
+RedButton/base_type = &"Button"
+RedButton/styles/disabled = SubResource("RedNormal")
+RedButton/styles/disabled_mirrored = SubResource("RedNormal")
+RedButton/styles/focus = SubResource("Empty")
+RedButton/styles/hover = SubResource("RedHover")
+RedButton/styles/hover_mirrored = SubResource("RedHover")
+RedButton/styles/hover_pressed = SubResource("RedPressed")
+RedButton/styles/hover_pressed_mirrored = SubResource("RedPressed")
+RedButton/styles/normal = SubResource("RedNormal")
+RedButton/styles/normal_mirrored = SubResource("RedNormal")
+RedButton/styles/pressed = SubResource("RedPressed")
+RedButton/styles/pressed_mirrored = SubResource("RedPressed")
+SquareButton/base_type = &"Button"
+SquareButton/styles/disabled = SubResource("SquareNormal")
+SquareButton/styles/disabled_mirrored = SubResource("SquareNormal")
+SquareButton/styles/focus = SubResource("Empty")
+SquareButton/styles/hover = SubResource("SquareHover")
+SquareButton/styles/hover_mirrored = SubResource("SquareHover")
+SquareButton/styles/hover_pressed = SubResource("SquarePressed")
+SquareButton/styles/hover_pressed_mirrored = SubResource("SquarePressed")
+SquareButton/styles/normal = SubResource("SquareNormal")
+SquareButton/styles/normal_mirrored = SubResource("SquareNormal")
+SquareButton/styles/pressed = SubResource("SquarePressed")
+SquareButton/styles/pressed_mirrored = SubResource("SquarePressed")
+WideButton/base_type = &"Button"
+WideButton/styles/disabled = SubResource("WideNormal")
+WideButton/styles/disabled_mirrored = SubResource("WideNormal")
+WideButton/styles/focus = SubResource("Empty")
+WideButton/styles/hover = SubResource("WideHover")
+WideButton/styles/hover_mirrored = SubResource("WideHover")
+WideButton/styles/hover_pressed = SubResource("WidePressed")
+WideButton/styles/hover_pressed_mirrored = SubResource("WidePressed")
+WideButton/styles/normal = SubResource("WideNormal")
+WideButton/styles/normal_mirrored = SubResource("WideNormal")
+WideButton/styles/pressed = SubResource("WidePressed")
+WideButton/styles/pressed_mirrored = SubResource("WidePressed")

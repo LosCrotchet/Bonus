@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://shared/ui/settings_panel.gd" id="1_settings"]
+[ext_resource type="FontFile" path="res://assets/fonts/SourceHanSans-VF.otf.ttc" id="2_font"]
 
 [sub_resource type="StyleBoxFlat" id="Style_panel"]
 bg_color = Color(0.105, 0.13, 0.13, 0.98)
@@ -10,11 +11,47 @@ border_width_right = 1
 border_width_bottom = 1
 border_color = Color(0.29, 0.38, 0.36, 1)
 content_margin_left = 24.0
-content_margin_top = 22.0
+content_margin_top = 14.0
 content_margin_right = 24.0
-content_margin_bottom = 22.0
+content_margin_bottom = 14.0
 shadow_color = Color(0, 0, 0, 0.42)
 shadow_size = 12
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_speed"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_window"]
+
+[sub_resource type="FontVariation" id="Font_info_bold"]
+base_font = ExtResource("2_font")
+variation_opentype = {
+2003265652: 750.0
+}
+
+[sub_resource type="StyleBoxFlat" id="Style_info_button"]
+bg_color = Color(0.1, 0.13, 0.13, 0.35)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.62, 0.7, 0.68, 0.9)
+corner_radius_top_left = 11
+corner_radius_top_right = 11
+corner_radius_bottom_right = 11
+corner_radius_bottom_left = 11
+
+[sub_resource type="StyleBoxFlat" id="Style_info_hover"]
+bg_color = Color(0.24, 0.3, 0.29, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.8, 0.34, 1)
+corner_radius_top_left = 11
+corner_radius_top_right = 11
+corner_radius_bottom_right = 11
+corner_radius_bottom_left = 11
+
+[sub_resource type="StyleBoxEmpty" id="Style_info_focus"]
 
 [node name="SettingsPanel" type="PanelContainer"]
 custom_minimum_size = Vector2(480, 660)
@@ -23,7 +60,7 @@ script = ExtResource("1_settings")
 
 [node name="Layout" type="VBoxContainer" parent="."]
 layout_mode = 2
-theme_override_constants/separation = 7
+theme_override_constants/separation = 3
 
 [node name="Title" type="Label" parent="Layout"]
 unique_name_in_owner = true
@@ -35,15 +72,13 @@ text = "UI_GAME_SETTINGS"
 [node name="Divider" type="HSeparator" parent="Layout"]
 layout_mode = 2
 
-[node name="GameSpeedRow" type="HBoxContainer" parent="Layout"]
+[node name="DisplaySection" type="Label" parent="Layout"]
 layout_mode = 2
-[node name="Label" type="Label" parent="Layout/GameSpeedRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "UI_GAME_SPEED"
-[node name="GameSpeedOption" type="OptionButton" parent="Layout/GameSpeedRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 38)
+theme_override_colors/font_color = Color(1, 0.75, 0.27, 1)
+theme_override_font_sizes/font_size = 15
+text = "UI_SECTION_DISPLAY"
+
+[node name="DisplaySeparator" type="HSeparator" parent="Layout"]
 layout_mode = 2
 
 [node name="ResolutionRow" type="HBoxContainer" parent="Layout"]
@@ -63,10 +98,28 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_WINDOW_MODE"
-[node name="WindowModeOption" type="OptionButton" parent="Layout/WindowModeRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 38)
+[node name="WindowModeButtons" type="HBoxContainer" parent="Layout/WindowModeRow"]
 layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="WindowedButton" type="Button" parent="Layout/WindowModeRow/WindowModeButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(106, 36)
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("ButtonGroup_window")
+theme_type_variation = &"SquareButton"
+text = "UI_WINDOWED"
+
+[node name="FullscreenButton" type="Button" parent="Layout/WindowModeRow/WindowModeButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(106, 36)
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_window")
+theme_type_variation = &"SquareButton"
+text = "UI_FULLSCREEN"
 
 [node name="LanguageRow" type="HBoxContainer" parent="Layout"]
 layout_mode = 2
@@ -77,6 +130,15 @@ text = "UI_LANGUAGE"
 [node name="LanguageOption" type="OptionButton" parent="Layout/LanguageRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(220, 38)
+layout_mode = 2
+
+[node name="SoundSection" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.27, 1)
+theme_override_font_sizes/font_size = 15
+text = "UI_SECTION_SOUND"
+
+[node name="SoundSeparator" type="HSeparator" parent="Layout"]
 layout_mode = 2
 
 [node name="MasterVolumeRow" type="HBoxContainer" parent="Layout"]
@@ -133,23 +195,62 @@ custom_minimum_size = Vector2(52, 0)
 layout_mode = 2
 horizontal_alignment = 2
 
+[node name="GameSection" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.27, 1)
+theme_override_font_sizes/font_size = 15
+text = "UI_SECTION_GAME"
+
+[node name="GameSeparator" type="HSeparator" parent="Layout"]
+layout_mode = 2
+
+[node name="GameSpeedRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Layout/GameSpeedRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_GAME_SPEED"
+
+[node name="GameSpeedButtons" type="HBoxContainer" parent="Layout/GameSpeedRow"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="SpeedSlowButton" type="Button" parent="Layout/GameSpeedRow/GameSpeedButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(68, 36)
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("ButtonGroup_speed")
+theme_type_variation = &"SquareButton"
+text = "UI_SPEED_SLOW"
+
+[node name="SpeedMediumButton" type="Button" parent="Layout/GameSpeedRow/GameSpeedButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(68, 36)
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_speed")
+theme_type_variation = &"SquareButton"
+text = "UI_SPEED_MEDIUM"
+
+[node name="SpeedFastButton" type="Button" parent="Layout/GameSpeedRow/GameSpeedButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(68, 36)
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_speed")
+theme_type_variation = &"SquareButton"
+text = "UI_SPEED_FAST"
+
 [node name="StatusTextRow" type="HBoxContainer" parent="Layout"]
 layout_mode = 2
 [node name="Label" type="Label" parent="Layout/StatusTextRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_SHOW_STATUS_TEXT"
-[node name="StatusTextToggle" type="CheckButton" parent="Layout/StatusTextRow"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="AutoPassRow" type="HBoxContainer" parent="Layout"]
-layout_mode = 2
-[node name="Label" type="Label" parent="Layout/AutoPassRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "UI_AUTO_PASS"
-[node name="AutoPassToggle" type="CheckButton" parent="Layout/AutoPassRow"]
+[node name="StatusTextToggle" type="CheckBox" parent="Layout/StatusTextRow"]
 unique_name_in_owner = true
 layout_mode = 2
 
@@ -159,7 +260,33 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_DOUBLE_CLICK_ACTIONS"
-[node name="DoubleClickToggle" type="CheckButton" parent="Layout/DoubleClickRow"]
+[node name="DoubleClickInfo" type="Button" parent="Layout/DoubleClickRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(30, 24)
+layout_mode = 2
+tooltip_text = "UI_DOUBLE_CLICK_HINT"
+focus_mode = 0
+theme_override_fonts/font = SubResource("Font_info_bold")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("Style_info_button")
+theme_override_styles/pressed = SubResource("Style_info_hover")
+theme_override_styles/hover = SubResource("Style_info_hover")
+theme_override_styles/hover_pressed = SubResource("Style_info_hover")
+theme_override_styles/disabled = SubResource("Style_info_button")
+theme_override_styles/focus = SubResource("Style_info_focus")
+text = "?"
+metadata/control_motion_disabled = true
+[node name="DoubleClickToggle" type="CheckBox" parent="Layout/DoubleClickRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="SimplifiedCardsRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+[node name="Label" type="Label" parent="Layout/SimplifiedCardsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_USE_SIMPLIFIED_CARDS"
+[node name="SimplifiedCardsToggle" type="CheckBox" parent="Layout/SimplifiedCardsRow"]
 unique_name_in_owner = true
 layout_mode = 2
 
@@ -176,6 +303,7 @@ theme_override_constants/separation = 8
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+theme_type_variation = &"RedButton"
 text = "UI_EXIT_TO_MENU"
 
 [node name="ExitMenuConfirmation" type="HBoxContainer" parent="Layout/NavigationActions"]
@@ -191,34 +319,9 @@ text = "UI_CONFIRM_EXIT_MENU"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(74, 40)
 layout_mode = 2
+theme_type_variation = &"RedButton"
 text = "UI_YES"
 [node name="ExitMenuNo" type="Button" parent="Layout/NavigationActions/ExitMenuConfirmation"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(74, 40)
-layout_mode = 2
-text = "UI_NO"
-
-[node name="ExitGameButton" type="Button" parent="Layout/NavigationActions"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-text = "UI_EXIT_GAME"
-
-[node name="ExitGameConfirmation" type="HBoxContainer" parent="Layout/NavigationActions"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_override_constants/separation = 8
-[node name="Prompt" type="Label" parent="Layout/NavigationActions/ExitGameConfirmation"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "UI_CONFIRM_EXIT_GAME"
-[node name="ExitGameYes" type="Button" parent="Layout/NavigationActions/ExitGameConfirmation"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(74, 40)
-layout_mode = 2
-text = "UI_YES"
-[node name="ExitGameNo" type="Button" parent="Layout/NavigationActions/ExitGameConfirmation"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(74, 40)
 layout_mode = 2
@@ -238,15 +341,23 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"GreenButton"
 text = "UI_APPLY"
 
-[node name="ApplyStatus" type="Label" parent="Layout/BottomButtons"]
+[node name="ApplyFeedbackLayer" type="Control" parent="."]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ApplyStatus" type="Label" parent="ApplyFeedbackLayer"]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(108, 42)
-layout_mode = 2
+custom_minimum_size = Vector2(126, 38)
+layout_mode = 0
+offset_right = 126.0
+offset_bottom = 38.0
+mouse_filter = 2
 theme_override_colors/font_color = Color(0.42, 0.95, 0.66, 1)
 theme_override_font_sizes/font_size = 16
 text = "UI_APPLY_SUCCESS"
-horizontal_alignment = 1
+horizontal_alignment = 0
 vertical_alignment = 1

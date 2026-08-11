@@ -58,13 +58,22 @@ func set_hand(
 	_card_views.assign(next_views)
 	_layout_cards(true)
 	for index in range(added_views.size()):
-		added_views[index].play_entry_animation(minf(index, 8) * 0.035)
+		added_views[index].play_entry_animation(
+			minf(index, 8) * SettingsService.get_gameplay_duration(
+				SettingsService.GameplayTiming.CARD_ENTRY,
+			) * 0.09,
+		)
 
 
 func set_selection(selected_ids: Array[int]) -> void:
 	_selected_ids.assign(selected_ids)
 	for card_view in _card_views:
 		card_view.set_selected(_selected_ids.has(card_view.card_id))
+
+
+func refresh_card_textures() -> void:
+	for card_view in _card_views:
+		card_view.refresh_texture()
 
 
 func clear_selection() -> void:
@@ -80,6 +89,8 @@ func set_interaction_enabled(value: bool) -> void:
 	_interaction_enabled = value
 	if not value:
 		_reset_pointer_state()
+		_hovered_card_id = -1
+		_update_neighbor_avoidance()
 	for card_view in _card_views:
 		card_view.set_interaction_enabled(value)
 
@@ -110,8 +121,14 @@ func set_cards_animation_hidden(card_ids: Array[int], should_hide: bool) -> void
 func _input(event: InputEvent) -> void:
 	if event is not InputEventMouseButton:
 		return
-	if event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
-		_reset_pointer_state()
+	if event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed and _interaction_enabled:
+			_selection_drag_active = true
+			_drag_visited.clear()
+			_pressed_card_id = -1
+			_press_origin = event.position
+		else:
+			_reset_pointer_state()
 	elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed and _interaction_enabled:
 		clear_selection()
 
@@ -179,9 +196,12 @@ func _on_card_pointer_entered(card_id: int) -> void:
 		and _interaction_enabled
 		and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	):
-		if get_global_mouse_position().distance_to(_press_origin) > SWIPE_THRESHOLD:
+		if (
+			_pressed_card_id == -1
+			or get_global_mouse_position().distance_to(_press_origin) > SWIPE_THRESHOLD
+		):
 			_pressed_card_id = -1
-		_toggle_card_once(card_id)
+			_toggle_card_once(card_id)
 
 
 func _on_card_pointer_exited(card_id: int) -> void:

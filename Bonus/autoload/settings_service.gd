@@ -17,8 +17,33 @@ enum WindowMode {
 	FULLSCREEN,
 }
 
+enum GameplayTiming {
+	DEAL_CARD,
+	CARD_ENTRY,
+	CARD_TRAVEL,
+	AI_THINK,
+	ACTION_PAUSE,
+	BONUS_TRANSITION,
+	FEEDBACK,
+	DICE_ROLL,
+	INDICATOR_MOVE,
+}
+
 const SETTINGS_PATH := "user://bonus_settings.cfg"
-const DEFAULT_GAME_SPEED := GameSpeed.MEDIUM
+const DEFAULT_GAME_SPEED := GameSpeed.SLOW
+const SPEED_MULTIPLIERS: Array[float] = [1.7, 1.15, 0.75]
+const UI_ANIMATION_DURATION := 0.22
+const BASE_TIMINGS := {
+	GameplayTiming.DEAL_CARD: 0.31,
+	GameplayTiming.CARD_ENTRY: 0.38,
+	GameplayTiming.CARD_TRAVEL: 0.52,
+	GameplayTiming.AI_THINK: 0.78,
+	GameplayTiming.ACTION_PAUSE: 0.72,
+	GameplayTiming.BONUS_TRANSITION: 0.56,
+	GameplayTiming.FEEDBACK: 0.62,
+	GameplayTiming.DICE_ROLL: 0.64,
+	GameplayTiming.INDICATOR_MOVE: 0.48,
+}
 const RESOLUTIONS: Array[Vector2i] = [
 	Vector2i(1280, 720),
 	Vector2i(1440, 1080),
@@ -33,8 +58,9 @@ var resolution := Vector2i(1280, 720)
 var window_mode := WindowMode.WINDOWED
 var locale := "zh_CN"
 var show_status_text := true
-var auto_pass := false
 var double_click_actions := false
+var use_simplified_cards := false
+var player_id := ""
 var master_volume := 0.8
 var sfx_volume := 0.75
 var music_volume := 0.65
@@ -49,6 +75,9 @@ func _ready() -> void:
 	_audio_save_timer.timeout.connect(_save_settings)
 	add_child(_audio_save_timer)
 	_load_settings()
+	if player_id.is_empty():
+		player_id = "Player-%s" % SeedCodec.generate_random_text().left(4)
+		_save_settings()
 	_apply_language()
 	_apply_audio()
 	_apply_display.call_deferred()
@@ -61,8 +90,9 @@ func get_snapshot() -> Dictionary:
 		"window_mode": window_mode,
 		"locale": locale,
 		"show_status_text": show_status_text,
-		"auto_pass": auto_pass,
 		"double_click_actions": double_click_actions,
+		"use_simplified_cards": use_simplified_cards,
+		"player_id": player_id,
 		"master_volume": master_volume,
 		"sfx_volume": sfx_volume,
 		"music_volume": music_volume,
@@ -93,8 +123,11 @@ func apply_settings(candidate: Dictionary) -> bool:
 	window_mode = next_window_mode as WindowMode
 	locale = next_locale
 	show_status_text = bool(candidate.get("show_status_text", show_status_text))
-	auto_pass = bool(candidate.get("auto_pass", auto_pass))
 	double_click_actions = bool(candidate.get("double_click_actions", double_click_actions))
+	use_simplified_cards = bool(candidate.get(
+		"use_simplified_cards",
+		use_simplified_cards,
+	))
 	_save_settings()
 
 	if locale_has_changed:
@@ -151,24 +184,43 @@ func set_music_volume(value: float) -> void:
 	_emit_audio_change()
 
 
+func set_player_id(value: String) -> bool:
+	var clean_id := value.strip_edges().left(24)
+	if clean_id.is_empty():
+		return false
+	player_id = clean_id
+	_save_settings()
+	settings_changed.emit(get_snapshot())
+	return true
+
+
 func get_ai_think_delay() -> float:
-	return [1.15, 0.8, 0.58][game_speed]
+	return get_gameplay_duration(GameplayTiming.AI_THINK)
 
 
 func get_dice_step_duration() -> float:
-	return [0.09, 0.07, 0.055][game_speed]
+	return get_gameplay_duration(GameplayTiming.DICE_ROLL) / 8.0
 
 
 func get_ui_animation_duration() -> float:
-	return [0.32, 0.24, 0.18][game_speed]
+	return UI_ANIMATION_DURATION
 
 
 func get_card_travel_duration() -> float:
-	return [0.58, 0.42, 0.3][game_speed]
+	return get_gameplay_duration(GameplayTiming.CARD_TRAVEL)
+
+
+func get_deal_card_duration() -> float:
+	return get_gameplay_duration(GameplayTiming.DEAL_CARD)
 
 
 func get_feedback_duration() -> float:
-	return [0.9, 0.65, 0.45][game_speed]
+	return get_gameplay_duration(GameplayTiming.FEEDBACK)
+
+
+func get_gameplay_duration(timing: GameplayTiming) -> float:
+	var base_duration := float(BASE_TIMINGS.get(timing, BASE_TIMINGS[GameplayTiming.ACTION_PAUSE]))
+	return base_duration * SPEED_MULTIPLIERS[game_speed]
 
 
 func _apply_language() -> void:
@@ -227,8 +279,13 @@ func _load_settings() -> void:
 		GameSpeed.FAST,
 	) as GameSpeed
 	show_status_text = bool(config.get_value("gameplay", "show_status_text", true))
-	auto_pass = bool(config.get_value("gameplay", "auto_pass", false))
 	double_click_actions = bool(config.get_value("gameplay", "double_click_actions", false))
+	use_simplified_cards = bool(config.get_value(
+		"gameplay",
+		"use_simplified_cards",
+		false,
+	))
+	player_id = str(config.get_value("network", "player_id", "")).strip_edges().left(24)
 	master_volume = clampf(config.get_value("audio", "master_volume", master_volume), 0.0, 1.0)
 	sfx_volume = clampf(config.get_value("audio", "sfx_volume", sfx_volume), 0.0, 1.0)
 	music_volume = clampf(config.get_value("audio", "music_volume", music_volume), 0.0, 1.0)
@@ -249,12 +306,13 @@ func _save_settings() -> void:
 	var config := ConfigFile.new()
 	config.set_value("gameplay", "speed", game_speed)
 	config.set_value("gameplay", "show_status_text", show_status_text)
-	config.set_value("gameplay", "auto_pass", auto_pass)
 	config.set_value("gameplay", "double_click_actions", double_click_actions)
+	config.set_value("gameplay", "use_simplified_cards", use_simplified_cards)
 	config.set_value("display", "resolution", resolution)
 	config.set_value("display", "window_mode", window_mode)
 	config.set_value("language", "locale", locale)
 	config.set_value("audio", "master_volume", master_volume)
 	config.set_value("audio", "sfx_volume", sfx_volume)
 	config.set_value("audio", "music_volume", music_volume)
+	config.set_value("network", "player_id", player_id)
 	config.save(SETTINGS_PATH)

@@ -1,9 +1,19 @@
 keys,zh_CN,en
 UI_SETTINGS,设置,Settings
+UI_HAND_TYPES,牌型,Hand Types
+UI_CLOSE,关闭,Close
+UI_HAND_TYPES_POINT,点数,Count
+UI_HAND_TYPES_NAME,牌型名称,Hand Type
+UI_HAND_TYPES_DESCRIPTION,描述,Description
+UI_HAND_TYPES_EXAMPLE,示例,Example
 UI_GAME_SETTINGS,牌局设置,Game Settings
 UI_PLAYER_COUNT,玩家数量,Players
-UI_PLAYER_COUNT_OPTION,{count} 人,{count} players
+UI_PLAYER_COUNT_OPTION,{count} 人,{count}P
+UI_PLAYER_COUNT_SHORT,{count}人,{count}P
 UI_GAME_SPEED,游戏速度,Game Speed
+UI_SECTION_DISPLAY,显示,Display
+UI_SECTION_SOUND,声音,Sound
+UI_SECTION_GAME,游戏,Game
 UI_SPEED_SLOW,慢,Slow
 UI_SPEED_MEDIUM,中,Medium
 UI_SPEED_FAST,快,Fast
@@ -12,15 +22,20 @@ UI_WINDOW_MODE,显示模式,Display Mode
 UI_WINDOWED,窗口,Windowed
 UI_FULLSCREEN,全屏,Fullscreen
 UI_LANGUAGE,语言,Language
-UI_LANGUAGE_ZH_CN,简体中文,Simplified Chinese
+UI_LANGUAGE_ZH_CN,简体中文,简体中文
 UI_LANGUAGE_EN,English,English
 UI_MASTER_VOLUME,总音量,Master Volume
 UI_SFX_VOLUME,音效音量,SFX Volume
 UI_MUSIC_VOLUME,音乐音量,Music Volume
 UI_SHOW_STATUS_TEXT,显示提示文本,Show Status Text
-UI_AUTO_PASS,自动跳过,Auto Pass
 UI_DOUBLE_CLICK_ACTIONS,双击出牌与过牌,Double-click Play and Pass
+UI_DOUBLE_CLICK_HINT,左键双击除手牌之外的空白处出牌，右键双击空白处过牌,Double-click empty space with the left mouse button to play; double-click with the right mouse button to pass
+UI_USE_SIMPLIFIED_CARDS,使用简化牌面,Use Simplified Cards
+UI_AUTO_ROLL,自动掷骰子,Auto Roll
+UI_AUTO_SKIP,自动跳过,Auto Skip
+UI_AUTO_PLAY,自动打牌,Auto Play
 UI_APPLY,应用,Apply
+UI_CONTINUE,继续,Continue
 UI_APPLY_SUCCESS,应用成功,Applied
 UI_CANCEL,取消,Cancel
 UI_EXIT_TO_MENU,退出到主界面,Exit to Main Menu
@@ -30,17 +45,41 @@ UI_YES,是,Yes
 UI_NO,否,No
 UI_NEW_GAME,新牌局,New Game
 UI_EXIT_GAME,退出游戏,Exit Game
+UI_TUTORIAL,教程,Tutorial
 UI_SINGLE_PLAYER,单人游戏,Single Player
 UI_GAME_HEADER,BONUS | {mode}（{count}）,BONUS | {mode} ({count})
+UI_GAME_SEED,种子 {seed},Seed {seed}
 UI_MULTIPLAYER,多人游戏,Multiplayer
 UI_START_GAME,开始游戏,Start Game
+UI_CUSTOM_SEED,自定义种子,Custom Seed
+UI_SEED_PLACEHOLDER,8位小写字母或数字,8 lowercase letters or digits
+UI_SAVED_GAME_FOUND,发现未完成的牌局,Unfinished Game Found
+UI_SAVED_GAME_PROMPT,是否继续上次的单人牌局？选择开始新游戏将覆盖旧存档。,Continue your previous single-player game? Starting new game will replace the old save.
+UI_SAVED_GAME_META,{count} 人 · {seed},{count}P · {seed}
+UI_SAVED_GAME_RULES,规则：{rules},Rules: {rules}
+UI_SEED_SUMMARY_CUSTOM,自定义种子：{seed},Custom seed: {seed}
+UI_SEED_SUMMARY_RANDOM,随机种子：{seed},Random seed: {seed}
+UI_CONTINUE_GAME,继续上次牌局,Continue Game
+UI_START_NEW_GAME,开始新牌局,Start New Game
 UI_BACK,返回,Back
 UI_BACK_TO_MENU,回到主菜单,Back to Main Menu
 RULE_INCLUDE_JOKERS,牌堆包括大小王,Include Jokers
+RULE_EXCLUDE_JOKERS,牌堆不含大小王,Exclude Jokers
 RULE_JOKERS_WILD,大小王可作万能牌,Jokers Are Wild
+RULE_JOKERS_NATURAL,大小王不作万能牌,Jokers Are Natural Cards
+RULE_WILDCARD_FINISH_DRAW,最后一次出牌带有万能牌时摸两张,Draw Two After a Final Wildcard Play
+RULE_WILDCARD_FINISH_NO_DRAW,万能牌收尾时不摸牌,No Draw After a Final Wildcard Play
 RULE_SEQUENCE_WITH_TWO,顺子可以带 2,Straights Include 2
+RULE_SEQUENCE_WITHOUT_TWO,顺子不带 2,Straights Exclude 2
 RULE_VARIABLE_DRAW,未出牌时摸 7-x 张,Draw 7-x After All Pass
-UI_RECOMMEND,推荐,Hint
+RULE_FIXED_DRAW,未出牌时摸 3 张,Draw 3 After All Pass
+RULE_VARIABLE_DRAW_HINT,其中 x 是骰子点数；如果不启用则默认摸 3 张,x is the die value; when disabled the default draw is 3 cards
+RULE_SHORT_JOKERS,大小王,Jokers
+RULE_SHORT_WILDCARD,万能牌,Wildcards
+RULE_SHORT_FINISH_LIMIT,绝杀限制,Final-play Limit
+RULE_SHORT_SEQUENCE_TWO,顺子带2,Straights +2
+RULE_SHORT_VARIABLE_DRAW,摸牌张数可变,Variable Draw
+UI_RECOMMEND,提示,Hint
 UI_PASS,不出,Pass
 UI_PLAY,出牌,Play
 UI_RESTART,再来一把！,Play Again!
@@ -66,6 +105,7 @@ UI_INTERPRETATION_OPTION,{hand_type} · 主体 {rank},{hand_type} · Main rank {
 UI_PASS_FEEDBACK,PASS,PASS
 UI_BONUS_FEEDBACK,BONUS!,BONUS!
 STATUS_CLICK_DICE,轮到南家，点击画面开始回合,South's turn. Click the screen to start.
+STATUS_DEALING,正在发牌，双击画面可跳过,Dealing cards. Double-click to skip.
 STATUS_PREPARING_ROLL,{player}准备掷骰,{player} is preparing to roll
 STATUS_ROLLING,{player}正在掷骰…,{player} is rolling...
 STATUS_WINNER,{player}获胜,{player} wins
@@ -73,6 +113,8 @@ STATUS_BONUS,{player}获得 BONUS，必须打出至少一张合法牌,{player} h
 STATUS_MUST_COVER,{player}需要盖过{hand_type}，或选择不出,{player} must beat {hand_type} or pass
 STATUS_MUST_PLAY,{player}需要打出 {count} 张合法牌，或选择不出,{player} must play {count} legal cards or pass
 STATUS_NO_LEGAL_PLAY,当前没有可出的合法牌，请选择不出,No legal play is available. Choose Pass.
+UI_CARD_SELECT_HINT,选择 / 取消选择 / 连选,Select / Deselect / Multi-select
+UI_CARD_CLEAR_HINT,取消所有选择,Clear Selection
 ERROR_PLAYER_COUNT,玩家人数必须为 2 至 4 人,Player count must be between 2 and 4
 ERROR_CANNOT_ROLL,当前阶段不能掷骰子,The die cannot be rolled now
 ERROR_DICE_RANGE,骰子点数必须为 1 至 6,Die value must be between 1 and 6
@@ -115,6 +157,20 @@ HAND_FIVE_WITH_ONE,五带一,Five with One
 HAND_FOUR_WITH_TWO,四带二,Four with Two
 HAND_TRIPLE_WITH_TRIPLE,三带三,Triple with Triple
 HAND_PAIR_STRAIGHT_3,三连对,Three Consecutive Pairs
+HAND_DESC_SINGLE,任意一张牌。,Any single card.
+HAND_DESC_PAIR,两张同点数牌；纯大小王可混合作为最高对子。,Two cards of one rank; natural jokers may be mixed as the highest pair.
+HAND_DESC_TRIPLE,三张同点数牌；可盖过任意三张牌型；纯大小王可混合。,Three cards of one rank; beats any 3-card type; natural jokers may be mixed.
+HAND_DESC_STRAIGHT,所有牌点数连续；是否可带 2 由本局规则决定。,All ranks are consecutive; the current rules decide whether 2 is allowed.
+HAND_DESC_FOUR_KIND,四张同点数牌；可盖过任意四张牌型。,Four cards of one rank; beats any 4-card type.
+HAND_DESC_TRIPLE_WITH_ONE,三条外加一张不同点数的牌。,A triple with one card of another rank.
+HAND_DESC_PAIR_STRAIGHT,连续点数的对子组成连对。,Pairs of consecutive ranks.
+HAND_DESC_FIVE_KIND,五张同点数牌；可盖过任意五张牌型。,Five cards of one rank; beats any 5-card type.
+HAND_DESC_TRIPLE_WITH_PAIR,三条外加另一点数的对子。,A triple with a pair of another rank.
+HAND_DESC_FOUR_WITH_ONE,四条外加一张不同点数的牌。,Four of a kind with one card of another rank.
+HAND_DESC_SIX_KIND,六张同点数牌；可盖过任意六张牌型。,Six cards of one rank; beats any 6-card type.
+HAND_DESC_FIVE_WITH_ONE,五条外加一张不同点数的牌。,Five of a kind with one card of another rank.
+HAND_DESC_FOUR_WITH_TWO,四条外加两张非主体牌；附带牌可同点数或不同点数。,Four of a kind with two kickers; the kickers may match each other.
+HAND_DESC_TRIPLE_WITH_TRIPLE,两个不同点数的三条。,Two triples of different ranks.
 HAND_UNKNOWN,未知牌型,Unknown Hand
 SEAT_SOUTH,南家,South
 SEAT_NORTH,北家,North
@@ -128,3 +184,66 @@ CARD_SUIT_HEARTS,红心,Hearts
 CARD_SUIT_SPADES,黑桃,Spades
 AI_STRATEGY_BASE,基础策略,Base Strategy
 AI_STRATEGY_DEFAULT,默认策略,Default Strategy
+AI_STRATEGY_TUTORIAL,教程策略,Tutorial Strategy
+LAN_TITLE,局域网联机,LAN Multiplayer
+LAN_PLAYER_ID,玩家 ID,Player ID
+LAN_CREATE_ROOM,创建房间,Host Room
+LAN_JOIN_ROOM,加入房间,Join Room
+LAN_CREATE,创建,Create
+LAN_JOIN,加入,Join
+LAN_ADDRESS,房主 IP 地址,Host IP Address
+LAN_PORT,端口,Port
+LAN_TURN_TIMER,回合读秒,Turn Timer
+LAN_READY,准备,Ready
+LAN_UNREADY,取消准备,Cancel Ready
+LAN_ADD_AI,添加 AI,Add AI
+LAN_KICK,踢出,Kick
+LAN_LEAVE_ROOM,离开房间,Leave Room
+LAN_MEMBERS,房间成员,Room Members
+LAN_MEMBERS_COUNT,房间成员 | {current} / {capacity},Room Members | {current} / {capacity}
+LAN_SECONDS_SHORT,{seconds}秒,{seconds}s
+LAN_ROOM_SUMMARY,{count} 人 · 每回合 {timeout} 秒 · 种子 {seed},{count} players · {timeout}s turns · Seed {seed}
+LAN_MEMBER_READY,已准备,Ready
+LAN_MEMBER_NOT_READY,未准备,Not Ready
+LAN_STATUS_CONNECTING,正在连接房主……,Connecting to host...
+LAN_STATUS_DISCONNECTED,连接已断开,Disconnected
+LAN_ERROR_PLAYER_ID_REQUIRED,请输入有效的玩家 ID,Enter a valid player ID
+LAN_ERROR_INVALID_PORT,端口必须在 1024 至 65535 之间,Port must be between 1024 and 65535
+LAN_ERROR_ADDRESS_REQUIRED,请输入房主的 IP 地址,Enter the host IP address
+LAN_ERROR_INVALID_SEED,种子必须是 8 位小写字母或数字,Seed must contain 8 lowercase letters or digits
+LAN_ERROR_CREATE_SERVER,无法创建局域网房间,Could not create the LAN room
+LAN_ERROR_CONNECT_FAILED,无法连接到房主,Could not connect to the host
+LAN_ERROR_ROOM_NOT_JOINABLE,房间不存在、已关闭或对局已经开始,The room is unavailable or the match has started
+LAN_ERROR_ROOM_FULL,房间已满,The room is full
+LAN_ERROR_DUPLICATE_PLAYER_ID,该玩家 ID 已在房间中,That player ID is already in the room
+LAN_ERROR_PROTOCOL_MISMATCH,客户端与房主的游戏版本不兼容,Client and host versions are incompatible
+LAN_ERROR_MEMBER_NOT_FOUND,未找到该房间成员,Room member not found
+LAN_ERROR_GAME_ALREADY_STARTED,对局已经开始,The match has already started
+LAN_ERROR_SEAT_UNAVAILABLE,该位置不可用,That seat is unavailable
+LAN_ERROR_CANNOT_REMOVE_HOST,不能移除房主,The host cannot be removed
+LAN_ERROR_SEATS_OCCUPIED,人数变更会移除已有玩家,Changing player count would remove an occupied seat
+LAN_ERROR_NOT_ALL_READY,所有位置必须有人且全部准备后才能开始,Every seat must be occupied and ready before starting
+LAN_ERROR_KICKED,你已被房主移出房间,You were removed by the host
+LAN_ERROR_HOST_DISCONNECTED,房主已断线，对局结束,The host disconnected and the match ended
+LAN_STATUS_TURN_TIME,剩余 {seconds} 秒,{seconds}s remaining
+LAN_STATUS_PLAYER_DISCONNECTED,{player} 已断线，AI 正在接管,{player} disconnected; AI is taking over
+LAN_HAND_TITLE,{player}（你） · {count} 张,{player} (You) · {count} cards
+LAN_EDIT_ROOM,房间设置,Room Settings
+LAN_APPLY_ROOM,应用房间设置,Apply Room Settings
+LAN_HOST_ENDPOINT,局域网地址：{address}:{port},LAN address: {address}:{port}
+LAN_ROOM_TITLE,局域网房间,LAN Room
+LAN_ROOM_INFO,房间信息,Room Information
+LAN_ENDPOINT_LABEL,局域网地址,LAN Address
+LAN_RULES,房间规则,Room Rules
+LAN_SECONDS,{seconds} 秒,{seconds}s
+STEAM_MULTIPLAYER,Steam 联机,Steam Multiplayer
+STEAM_LOBBY_COMING,大厅（即将推出）,Lobby (Coming Soon)
+STEAM_ONLINE_COMING,在线游戏（即将推出）,Online Play (Coming Soon)
+UI_SEED,种子,Seed
+TUTORIAL_WELCOME_1,嗯...你来得正好，我有点玩累了，这一把给你打。,NULL
+TUTORIAL_WELCOME_2,什么？你说你不会？,NULL
+TUTORIAL_WELCOME_3,......你不知道Bonus吗？,NULL
+TUTORIAL_WELCOME_4,那也好，我来教你吧！,NULL
+TUTORIAL_INITIAL_HAND_1,Bonus是一款将扑克和骰子结合起来的扑克游戏；\n简单来说，就是根据骰子的点数打出对应数量的牌，谁先把手里的牌打完谁就赢啦。,NULL
+TUTORIAL_INITIAL_HAND_2,在一局游戏中，我们一共会用两副牌，每位玩家首先会抓 17 张扑克牌。,NULL
+TUTORIAL_INITIAL_HAND_3,这两位是你的对手。这一把会从你开始，然后逆时针进行。\n......我们先等牌抓完。（双击可以跳过）,NULL

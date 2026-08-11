@@ -19,6 +19,8 @@ flowchart TD
     AI["ai：策略实现"] --> Core
     Multiplayer["multiplayer：联机适配"] --> Core
     Features --> Shared["shared：共享 UI"]
+    Features --> Save["SaveGameService：持久化快照"]
+    Save --> Core
     Features --> Assets["assets：运行时资源"]
 ```
 
@@ -123,7 +125,7 @@ SETUP -> DEALING -> WAITING_FOR_ROLL -> WAITING_FOR_ACTION -> RESOLVING -> FINIS
 
 ## 随机性
 
-洗牌和骰子不直接调用全局随机函数，而通过可注入的随机源生成。正式游戏使用随机种子，测试使用固定种子。多人游戏中只有权威端生成随机结果，并把结果作为状态或事件同步给客户端。
+洗牌和骰子不直接调用全局随机函数，而通过可注入的随机源生成。正式游戏对外使用八位小写字母/数字种子字符串，由 `SeedCodec` 稳定转换为内部整数；相同字符串生成相同的洗牌和后续骰子序列。存档同时记录可读种子、RNG 的 `seed` 与内部 `state`，恢复时先设置种子再恢复状态。多人游戏中只有权威端生成随机结果，并把结果作为状态或事件同步给客户端。
 
 ## 场景职责
 
@@ -148,7 +150,18 @@ SETUP -> DEALING -> WAITING_FOR_ROLL -> WAITING_FOR_ACTION -> RESOLVING -> FINIS
 - 本地手牌及鼠标选择。
 - 行动按钮、状态提示和结算弹窗。
 
-游戏场景销毁时，本局状态一并销毁，避免重开游戏时残留旧数据。
+游戏场景持有当前 `GameSession`；跨场景保存由 `SaveGameService` 接收纯数据快照完成，场景节点本身不会进入存档。
+
+### 教程
+
+`features/tutorial/` 通过固定种子的普通单人牌局工作，不复制规则状态机。`TutorialScenario` 保存教程步骤，`TutorialDirector` 负责对话、emoji、高亮和节奏门控，`TutorialStrategy` 执行脚本指定的 AI 动作并在缺少指令时回退到默认策略。教程不覆盖玩家的未完成单人存档。具体内容制作流程见 [教程制作指南](tutorial_authoring.md)。
+
+### 存档
+
+- 未完成牌局保存到 `user://bonus_save.json`，不写入项目目录。
+- `GameSession` 快照包含所有牌堆、玩家手牌、牌型、阶段、回合计数、规则、种子和 RNG 状态。
+- 每次牌局状态变化以及返回主界面时保存；结算后清除存档。
+- 主菜单只负责询问继续或新开，快照校验和文件读写由 `SaveGameService` 负责。
 
 ## Autoload 原则
 
@@ -157,6 +170,7 @@ SETUP -> DEALING -> WAITING_FOR_ROLL -> WAITING_FOR_ACTION -> RESOLVING -> FINIS
 - 场景导航。
 - 设置存储。
 - 音频播放。
+- 未完成牌局的单文件持久化。
 
 `GameSession`、牌堆、玩家列表、AI 和网络房间状态默认不使用 Autoload。新增 Autoload 必须在本文档记录理由。
 

@@ -10,6 +10,7 @@ func _init() -> void:
 	_test_all_pass_draws_three()
 	_test_variable_pass_draw_count()
 	_test_joker_finish_penalty()
+	_test_optional_joker_finish_penalty()
 	_test_natural_joker_finish()
 	_test_winner_resolution()
 	print("BONUS_TEST_RULE_GAME_FLOW_OK")
@@ -127,6 +128,21 @@ func _test_joker_finish_penalty() -> void:
 	assert(session.phase != GameSession.Phase.FINISHED)
 	assert(session.players[0].hand.size() == 2)
 	assert(session.last_play_pattern.uses_wildcard)
+
+
+func _test_optional_joker_finish_penalty() -> void:
+	var rules := GameRules.new()
+	rules.draw_two_on_wildcard_finish = false
+	var session := _session_with_hands([
+		[5],
+		[5],
+		[6],
+	], rules)
+	session.players[0].hand.append(_joker())
+	assert(session.accept_dice_result(0, 2))
+	assert(session.play_cards(0, _first_ids(session, 0, 2)))
+	assert(session.phase == GameSession.Phase.FINISHED)
+	assert(session.winner_index == 0)
 
 
 func _test_natural_joker_finish() -> void:

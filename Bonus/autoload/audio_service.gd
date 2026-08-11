@@ -1,102 +1,325 @@
 extends Node
 
-const SOUND_STREAMS := {
-	&"card_draw": preload("res://assets/audio/card_draw_1.wav"),
-	&"card_fan": preload("res://assets/audio/card_fan_2.wav"),
-	&"dice_roll": preload("res://assets/audio/dice_roll_2.wav"),
-	&"ui_hover": preload("res://assets/audio/sci_fi_hover.wav"),
-	&"ui_confirm": preload("res://assets/audio/sci_fi_confirm.wav"),
-	&"ui_cancel": preload("res://assets/audio/sci_fi_cancel.wav"),
-	&"ui_disallow": preload("res://assets/audio/sci_fi_disallow.wav"),
-	&"ui_select": preload("res://assets/audio/sci_fi_select.wav"),
-}
+const SFX_ROOT := "res://assets/audio/sfx/"
+const MUSIC_ROOT := "res://assets/audio/music/"
+const PLAYER_POOL_SIZE := 20
+const MUSIC_FADE_DURATION := 0.45
 
-const MAX_SIMULTANEOUS_SOUNDS := 12
-
+var _cue_streams: Dictionary = {}
+var _cue_volume_db: Dictionary = {}
+var _cue_cooldowns_ms: Dictionary = {}
+var _bonus_streams: Array[AudioStream] = []
 var _players: Array[AudioStreamPlayer] = []
+var _music_streams: Dictionary = {}
+var _music_players: Array[AudioStreamPlayer] = []
+var _music_active_index := 0
+var _music_track: StringName = &""
+var _music_tween: Tween
+var _pool_cursor := 0
+var _last_played_at_ms: Dictionary = {}
 
 
 func _ready() -> void:
-	process_mode = Node.PROCESS_MODE_ALWAYS
+	_build_stream_catalog()
+	_build_player_pool()
+	_build_music_catalog()
+	_build_music_players()
 	get_tree().node_added.connect(_on_node_added)
-	_bind_existing_buttons.call_deferred()
+	_bind_existing_button_hovers.call_deferred()
 
 
-func play(sound_name: StringName, volume_db: float = 0.0, pitch_scale: float = 1.0) -> void:
-	var stream := SOUND_STREAMS.get(sound_name) as AudioStream
-	if stream == null:
-		push_warning("Unknown sound: %s" % sound_name)
+func _exit_tree() -> void:
+	stop_all()
+	stop_music()
+	_players.clear()
+	_music_players.clear()
+	_cue_streams.clear()
+	_bonus_streams.clear()
+	_music_streams.clear()
+
+
+func play(cue: StringName, volume_offset_db: float = 0.0) -> void:
+	var stream := _cue_streams.get(cue) as AudioStream
+	if stream == null or not _can_play(cue):
 		return
-	var player := _get_available_player()
+	_play_stream(stream, float(_cue_volume_db.get(cue, 0.0)) + volume_offset_db)
+
+
+func play_delayed(cue: StringName, delay: float, volume_offset_db: float = 0.0) -> void:
+	if delay > 0.0:
+		await get_tree().create_timer(delay).timeout
+	play(cue, volume_offset_db)
+
+
+func play_bonus_step(step: int) -> void:
+	if _bonus_streams.is_empty():
+		return
+	_play_stream(_bonus_streams[posmod(step, _bonus_streams.size())], -1.0)
+
+
+func has_cue(cue: StringName) -> bool:
+	return _cue_streams.has(cue)
+
+
+func get_bonus_step_count() -> int:
+	return _bonus_streams.size()
+
+
+func stop_all() -> void:
+	for player in _players:
+		player.stop()
+		player.stream = null
+
+
+func shutdown() -> void:
+	stop_all()
+	stop_music()
+	await get_tree().process_frame
+	await get_tree().create_timer(0.08).timeout
+
+
+func play_music(track: StringName, fade_duration: float = MUSIC_FADE_DURATION) -> void:
+	var stream := _music_streams.get(track) as AudioStream
+	if stream == null or _music_players.is_empty():
+		return
+	if _music_track == track and _music_players[_music_active_index].playing:
+		return
+	if _music_tween != null:
+		_music_tween.kill()
+
+	var current_player := _music_players[_music_active_index]
+	var had_current_track := current_player.playing
+	var next_index := _music_active_index
+	if had_current_track:
+		next_index = 1 - _music_active_index
+	var next_player := _music_players[next_index]
+	next_player.stop()
+	next_player.stream = stream
+	next_player.volume_db = -80.0 if had_current_track else 0.0
+	next_player.play()
+	_music_active_index = next_index
+	_music_track = track
+
+	if not had_current_track:
+		_music_tween = null
+		return
+	var duration := maxf(0.05, fade_duration)
+	_music_tween = create_tween().set_parallel(true)
+	_music_tween.tween_property(next_player, "volume_db", 0.0, duration)
+	_music_tween.tween_property(current_player, "volume_db", -80.0, duration)
+	_music_tween.chain().tween_callback(_finish_music_crossfade.bind(current_player))
+
+
+func stop_music() -> void:
+	if _music_tween != null:
+		_music_tween.kill()
+		_music_tween = null
+	for player in _music_players:
+		player.stop()
+		player.stream = null
+		player.volume_db = 0.0
+	_music_track = &""
+
+
+func has_music(track: StringName) -> bool:
+	return _music_streams.has(track)
+
+
+func _finish_music_crossfade(previous_player: AudioStreamPlayer) -> void:
+	previous_player.stop()
+	previous_player.stream = null
+	previous_player.volume_db = 0.0
+	_music_tween = null
+
+
+func _build_stream_catalog() -> void:
+	var card_handling := _randomizer(
+		["card_draw_1.wav", "card_draw_2.wav", "card_draw_3.wav"],
+		0.8,
+		0.35,
+	)
+	var card_selection := _randomizer(["card_select.wav"], 0.7, 0.2)
+	_cue_streams = {
+		&"ui_hover": _randomizer(
+			["pop_1.wav", "pop_2.wav", "pop_3.wav", "pop_4.wav"],
+			0.7,
+			0.3,
+		),
+		&"ui_confirm": _randomizer(["ui_confirm.wav"], 0.18),
+		&"ui_cancel": _randomizer(["ui_cancel.wav"], 0.18),
+		&"ui_invalid": _randomizer(["ui_invalid.wav"], 0.12),
+		&"ui_fade_in": _randomizer(["ui_fade_in.wav"], 0.12),
+		&"ui_fade_out": _randomizer(["ui_fade_out.wav"], 0.12),
+		&"settings_applied": _randomizer(["settings_applied.wav"], 0.12),
+		&"card_deal": card_handling,
+		&"card_draw": card_handling,
+		&"card_select": card_selection,
+		&"card_deselect": card_selection,
+		&"card_hover": _randomizer(["card_hover.wav"], 0.65, 0.2),
+		&"card_play": _randomizer(["card_play.wav"], 0.55, 0.2),
+		&"card_reveal": _randomizer(["card_fan.wav", "card_fan_2.wav"], 0.45),
+		&"dice_shake": _randomizer(
+			["dice_shake_1.wav", "dice_shake_2.wav", "dice_shake_3.wav"],
+			0.25,
+		),
+		&"dice_land": _randomizer(
+			["dice_roll_1.wav", "dice_roll_2.wav", "dice_roll_3.wav", "dice_roll_4.wav"],
+			0.3,
+		),
+		&"turn_change": _randomizer(["turn_change.wav"], 0.18),
+		&"pass": _randomizer(["pass.wav"], 0.2),
+		&"round_start": _randomizer(["round_start.wav"], 0.12),
+		&"game_win": _randomizer(["game_win.wav"]),
+		&"game_lose": _randomizer(["game_lose.wav"]),
+	}
+	_cue_volume_db = {
+		&"ui_hover": -8.0,
+		&"card_deal": -5.5,
+		&"card_draw": -3.5,
+		&"card_select": -5.0,
+		&"card_deselect": -6.0,
+		&"card_hover": -7.0,
+		&"card_play": -2.5,
+		&"card_reveal": -2.5,
+		&"dice_shake": -2.0,
+		&"turn_change": -3.0,
+		&"pass": -2.0,
+	}
+	_cue_cooldowns_ms = {
+		&"ui_hover": 45,
+		&"ui_invalid": 120,
+		&"card_deal": 24,
+		&"card_draw": 30,
+		&"card_select": 22,
+		&"card_deselect": 22,
+		&"card_hover": 35,
+		&"card_play": 45,
+		&"card_reveal": 80,
+		&"turn_change": 80,
+		&"pass": 80,
+	}
+	for file_name in [
+		"match_synth_1.wav",
+		"match_synth_2.wav",
+		"match_synth_3.wav",
+		"match_synth_4.wav",
+		"match_synth_5.wav",
+		"match_synth_6.wav",
+		"match_synth_7.wav",
+		"match_synth_8.wav",
+		"match_synth_9.wav",
+		"match_synth_10_MAX.wav",
+	]:
+		_bonus_streams.append(_randomizer([file_name], 0.1))
+
+
+func _build_music_catalog() -> void:
+	var tracks := {
+		&"menu": "menu_music.mp3",
+		&"game": "game_music.mp3",
+	}
+	for track in tracks:
+		var file_name := str(tracks[track])
+		var stream := load(MUSIC_ROOT + file_name) as AudioStreamMP3
+		if stream == null:
+			push_warning("Unable to load music track: %s" % file_name)
+			continue
+		stream.loop = true
+		_music_streams[track] = stream
+
+
+func _randomizer(
+	file_names: Array,
+	random_pitch_semitones: float = 0.0,
+	random_volume_db: float = 0.0,
+) -> AudioStreamRandomizer:
+	var randomizer := AudioStreamRandomizer.new()
+	randomizer.playback_mode = AudioStreamRandomizer.PLAYBACK_RANDOM_NO_REPEATS
+	randomizer.random_pitch_semitones = random_pitch_semitones
+	randomizer.random_volume_offset_db = random_volume_db
+	for file_name_value in file_names:
+		var file_name := str(file_name_value)
+		var stream := load(SFX_ROOT + file_name) as AudioStream
+		if stream != null:
+			randomizer.add_stream(-1, stream)
+	return randomizer
+
+
+func _build_player_pool() -> void:
+	for _index in range(PLAYER_POOL_SIZE):
+		var player := AudioStreamPlayer.new()
+		player.bus = &"SFX"
+		player.finished.connect(_release_player.bind(player))
+		add_child(player)
+		_players.append(player)
+
+
+func _build_music_players() -> void:
+	for _index in range(2):
+		var player := AudioStreamPlayer.new()
+		player.bus = &"Music"
+		add_child(player)
+		_music_players.append(player)
+
+
+func _play_stream(stream: AudioStream, volume_db: float) -> void:
+	if (
+		stream == null
+		or _players.is_empty()
+		or DisplayServer.get_name() == "headless"
+	):
+		return
+	var player := _find_available_player()
 	player.stream = stream
-	player.bus = &"SFX"
 	player.volume_db = volume_db
-	player.pitch_scale = pitch_scale
 	player.play()
 
 
-func play_ui_hover() -> void:
-	play(&"ui_hover", -9.0, 1.08)
-
-
-func play_ui_confirm() -> void:
-	play(&"ui_confirm", -7.0)
-
-
-func play_ui_cancel() -> void:
-	play(&"ui_cancel", -7.0)
-
-
-func play_ui_disallow() -> void:
-	play(&"ui_disallow", -7.0)
-
-
-func play_ui_select() -> void:
-	play(&"ui_select", -10.0, 1.08)
-
-
-func _get_available_player() -> AudioStreamPlayer:
-	for player in _players:
-		if not player.playing:
-			return player
-	if _players.size() >= MAX_SIMULTANEOUS_SOUNDS:
-		return _players[0]
-	var player := AudioStreamPlayer.new()
-	add_child(player)
-	_players.append(player)
+func _find_available_player() -> AudioStreamPlayer:
+	for offset in range(_players.size()):
+		var index := (_pool_cursor + offset) % _players.size()
+		if not _players[index].playing:
+			_pool_cursor = (index + 1) % _players.size()
+			return _players[index]
+	var player := _players[_pool_cursor]
+	_pool_cursor = (_pool_cursor + 1) % _players.size()
+	player.stop()
 	return player
 
 
-func _bind_existing_buttons() -> void:
-	_bind_buttons_in(get_tree().root)
+func _release_player(player: AudioStreamPlayer) -> void:
+	if is_instance_valid(player) and not player.playing:
+		player.stream = null
 
 
-func _bind_buttons_in(node: Node) -> void:
-	_bind_button(node)
-	for child in node.get_children():
-		_bind_buttons_in(child)
+func _can_play(cue: StringName) -> bool:
+	var cooldown := int(_cue_cooldowns_ms.get(cue, 0))
+	if cooldown <= 0:
+		return true
+	var now := Time.get_ticks_msec()
+	var previous := int(_last_played_at_ms.get(cue, -cooldown))
+	if now - previous < cooldown:
+		return false
+	_last_played_at_ms[cue] = now
+	return true
 
 
 func _on_node_added(node: Node) -> void:
-	_bind_button(node)
+	if node is Button:
+		_bind_button_hover(node as Button)
 
 
-func _bind_button(node: Node) -> void:
-	if node is not BaseButton or node.has_meta(&"audio_service_bound"):
+func _bind_existing_button_hovers() -> void:
+	for node in get_tree().root.find_children("*", "Button", true, false):
+		_bind_button_hover(node as Button)
+
+
+func _bind_button_hover(button: Button) -> void:
+	if button.has_meta(&"audio_hover_bound"):
 		return
-	var button := node as BaseButton
-	button.set_meta(&"audio_service_bound", true)
-	button.mouse_entered.connect(_on_button_hovered.bind(button))
-	button.pressed.connect(_on_button_pressed.bind(button))
-
-
-func _on_button_hovered(button: BaseButton) -> void:
-	if button.visible and not button.disabled:
-		play_ui_hover()
-
-
-func _on_button_pressed(button: BaseButton) -> void:
-	var sound_name := StringName(button.get_meta(&"ui_sound", &"ui_confirm"))
-	if sound_name == &"none":
-		return
-	play(sound_name, -7.0)
+	button.set_meta(&"audio_hover_bound", true)
+	button.mouse_entered.connect(
+		func() -> void:
+			if not button.disabled and button.visible:
+				play(&"ui_hover")
+	)

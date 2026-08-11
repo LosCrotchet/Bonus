@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://dsp8vp45qr4qo"]
+
+[ext_resource type="Script" uid="uid://d2eaooap6slc5" path="res://features/tutorial/tutorial_control_directive.gd" id="1_luj6p"]
+[ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="1_step"]
+[ext_resource type="Script" uid="uid://dgss6q7ydmndf" path="res://features/tutorial/tutorial_ai_command.gd" id="2_ai"]
+[ext_resource type="Script" uid="uid://dtoxh4pjc2v8j" path="res://features/tutorial/tutorial_transition.gd" id="4_fpmqb"]
+
+[sub_resource type="Resource" id="AI_roll"]
+script = ExtResource("2_ai")
+phase = 1
+action = 0
+forced_dice_value = 5
+
+[resource]
+script = ExtResource("1_step")
+step_id = &"branch_high"
+fallback_message = "High branch. The next AI roll is forced to 5."
+scripted_ai_actions = Array[ExtResource("2_ai")]([SubResource("AI_roll")])
+editor_graph_position = Vector2(650, 40)

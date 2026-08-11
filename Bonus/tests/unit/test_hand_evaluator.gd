@@ -46,6 +46,9 @@ func _test_comparison_rules() -> void:
 	assert(HandEvaluator.beats(high_triple, low_triple))
 	assert(not HandEvaluator.beats(low_triple, high_triple))
 	assert(not HandEvaluator.beats(high_triple, high_triple))
+	var three_card_straight := _pattern([6, 7, 8], HandPattern.Type.STRAIGHT)
+	assert(HandEvaluator.beats(low_triple, three_card_straight))
+	assert(not HandEvaluator.beats(three_card_straight, low_triple))
 
 	var low_body := _pattern([6, 6, 6, 14], HandPattern.Type.TRIPLE_WITH_ONE)
 	var high_body := _pattern([7, 7, 7, 3], HandPattern.Type.TRIPLE_WITH_ONE)
@@ -97,10 +100,37 @@ func _test_natural_jokers() -> void:
 
 	var natural_pair: Array[CardData] = [
 		_joker(CardData.JokerKind.SMALL),
-		_joker(CardData.JokerKind.SMALL),
+		_joker(CardData.JokerKind.BIG),
 	]
-	var pair := _pattern_from_cards(natural_pair, HandPattern.Type.PAIR, 16)
+	var pair := _pattern_from_cards(
+		natural_pair,
+		HandPattern.Type.PAIR,
+		CardData.NATURAL_JOKER_GROUP_RANK,
+	)
 	assert(pair != null and not pair.uses_wildcard)
+	var two_pair := _pattern([CardData.Rank.TWO, CardData.Rank.TWO], HandPattern.Type.PAIR)
+	assert(HandEvaluator.beats(pair, two_pair))
+
+	var natural_triple: Array[CardData] = [
+		_joker(CardData.JokerKind.BIG),
+		_joker(CardData.JokerKind.SMALL),
+		_joker(CardData.JokerKind.BIG),
+	]
+	var triple := _pattern_from_cards(
+		natural_triple,
+		HandPattern.Type.TRIPLE,
+		CardData.NATURAL_JOKER_GROUP_RANK,
+	)
+	assert(triple != null and not triple.uses_wildcard)
+
+	var natural_four := natural_triple.duplicate()
+	natural_four.append(_joker(CardData.JokerKind.SMALL))
+	var four := _pattern_from_cards(
+		natural_four,
+		HandPattern.Type.FOUR_KIND,
+		CardData.NATURAL_JOKER_GROUP_RANK,
+	)
+	assert(four != null and not four.uses_wildcard)
 
 
 func _test_optional_rules() -> void:

@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Bonus"
-config/version="0.5.2"
+config/version="0.5.28"
 run/main_scene="res://app/app.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
@@ -24,6 +24,8 @@ default_bus_layout="res://default_bus_layout.tres"
 
 SettingsService="*res://autoload/settings_service.gd"
 AudioService="*res://autoload/audio_service.gd"
+SaveGameService="*res://autoload/save_game_service.gd"
+LanMultiplayerService="*res://autoload/lan_multiplayer_service.gd"
 
 [display]
 
@@ -32,8 +34,17 @@ window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godotsteam/plugin.cfg", "res://addons/landetector/plugin.cfg", "res://addons/tutorial_editor/plugin.cfg")
+
+[gui]
+
+timers/tooltip_delay_sec=0.05
+
 [internationalization]
 
+locale/translation_remaps={}
 locale/translations=PackedStringArray("res://localization/strings.en.translation", "res://localization/strings.zh_CN.translation")
 locale/fallback="zh_CN"
 

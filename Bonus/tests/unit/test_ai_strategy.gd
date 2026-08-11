@@ -1,8 +1,11 @@
 extends SceneTree
 
+const SettingsServiceScript := preload("res://autoload/settings_service.gd")
+
 
 func _init() -> void:
 	_test_default_speed()
+	_test_speed_profiles_are_ordered_and_ui_is_fixed()
 	_test_strategy_context_is_public_and_detached()
 	_test_default_strategy_completes_a_legal_game()
 	print("BONUS_TEST_AI_STRATEGY_OK")
@@ -10,7 +13,37 @@ func _init() -> void:
 
 
 func _test_default_speed() -> void:
-	assert(SettingsService.DEFAULT_GAME_SPEED == SettingsService.GameSpeed.MEDIUM)
+	assert(
+		SettingsServiceScript.DEFAULT_GAME_SPEED
+		== SettingsServiceScript.GameSpeed.SLOW
+	)
+
+
+func _test_speed_profiles_are_ordered_and_ui_is_fixed() -> void:
+	var settings := SettingsServiceScript.new()
+	var durations := {}
+	for timing in SettingsServiceScript.GameplayTiming.values():
+		durations[timing] = []
+		for speed in SettingsServiceScript.GameSpeed.values():
+			settings.game_speed = speed
+			(durations[timing] as Array).append(settings.get_gameplay_duration(timing))
+		var values := durations[timing] as Array
+		assert(values[SettingsServiceScript.GameSpeed.SLOW] > values[SettingsServiceScript.GameSpeed.MEDIUM])
+		assert(values[SettingsServiceScript.GameSpeed.MEDIUM] > values[SettingsServiceScript.GameSpeed.FAST])
+	assert(is_equal_approx(
+		SettingsServiceScript.SPEED_MULTIPLIERS[SettingsServiceScript.GameSpeed.FAST],
+		0.75,
+	))
+	settings.game_speed = SettingsServiceScript.GameSpeed.FAST
+	assert(
+		settings.get_gameplay_duration(SettingsServiceScript.GameplayTiming.ACTION_PAUSE)
+		>= 0.5
+	)
+	settings.game_speed = SettingsServiceScript.GameSpeed.SLOW
+	var slow_ui_duration := settings.get_ui_animation_duration()
+	settings.game_speed = SettingsServiceScript.GameSpeed.FAST
+	assert(is_equal_approx(settings.get_ui_animation_duration(), slow_ui_duration))
+	settings.free()
 
 
 func _test_strategy_context_is_public_and_detached() -> void:

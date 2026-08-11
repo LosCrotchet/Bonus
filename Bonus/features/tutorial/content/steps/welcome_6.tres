@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://cqokj6t5d6t0s"]
+
+[ext_resource type="Texture2D" uid="uid://02ohent4f5hg" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="1_rrsh3"]
+[ext_resource type="Script" uid="uid://d2eaooap6slc5" path="res://features/tutorial/tutorial_control_directive.gd" id="1_sbxf6"]
+[ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="2_b6c0f"]
+[ext_resource type="Script" uid="uid://dgss6q7ydmndf" path="res://features/tutorial/tutorial_ai_command.gd" id="4_omc6h"]
+[ext_resource type="Script" uid="uid://dtoxh4pjc2v8j" path="res://features/tutorial/tutorial_transition.gd" id="5_33u1r"]
+[ext_resource type="Script" uid="uid://6ma7dkfcx3mm" path="res://features/tutorial/tutorial_condition.gd" id="6_omc6h"]
+
+[sub_resource type="Resource" id="Resource_33u1r"]
+script = ExtResource("5_33u1r")
+target_step_id = &"initial_hand_1"
+
+[resource]
+script = ExtResource("2_b6c0f")
+step_id = &"welcome_6"
+message_key = &"TUTORIAL_WELCOME_6"
+emoji = ExtResource("1_rrsh3")
+dim_background = false
+transitions = Array[ExtResource("5_33u1r")]([SubResource("Resource_33u1r")])
+editor_graph_position = Vector2(740, 120)

@@ -3,6 +3,7 @@ extends RefCounted
 
 static var _strategy_scripts: Dictionary = {
 	&"default": preload("res://ai/strategies/default.gd"),
+	&"tutorial": preload("res://ai/strategies/tutorial.gd"),
 }
 
 

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://b8qdhq5hc6hmr"]
+
+[ext_resource type="Script" uid="uid://d2eaooap6slc5" path="res://features/tutorial/tutorial_control_directive.gd" id="1_p8q8u"]
+[ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="1_step"]
+[ext_resource type="Script" uid="uid://dgss6q7ydmndf" path="res://features/tutorial/tutorial_ai_command.gd" id="3_81l4n"]
+[ext_resource type="Script" uid="uid://dtoxh4pjc2v8j" path="res://features/tutorial/tutorial_transition.gd" id="4_6148b"]
+
+[resource]
+script = ExtResource("1_step")
+step_id = &"branch_low"
+fallback_message = "Low branch. A transition with no conditions is the fallback."
+editor_graph_position = Vector2(650, 230)

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://b222cmx82y116"]
+
+[ext_resource type="Texture2D" uid="uid://bhyngfymapktb" path="res://assets/tutorial/emoji/emoji_u1f9d0.png" id="1_c4vw0"]
+[ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="2_b6c0f"]
+
+[resource]
+script = ExtResource("2_b6c0f")
+step_id = &"welcome_7"
+message_key = &"TUTORIAL_WELCOME_7"
+emoji = ExtResource("1_c4vw0")
+dim_background = false

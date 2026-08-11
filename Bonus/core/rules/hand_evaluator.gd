@@ -21,12 +21,15 @@ static func evaluate_all(
 		else:
 			ordinary_ranks.append(card.rank)
 
-	results = _classify_ranks(
-		natural_ranks,
-		joker_count > 0,
-		false,
-		rules.allow_two_in_sequences,
-	)
+	if ordinary_ranks.is_empty() and joker_count in [2, 3, 4]:
+		results = _classify_natural_joker_group(joker_count)
+	else:
+		results = _classify_ranks(
+			natural_ranks,
+			joker_count > 0,
+			false,
+			rules.allow_two_in_sequences,
+		)
 	if joker_count == 0 or ordinary_ranks.is_empty() or not rules.jokers_are_wild:
 		results.sort_custom(_is_pattern_preferred)
 		return results
@@ -186,6 +189,23 @@ static func _classify_ranks(
 				_add_pattern(results, HandPattern.Type.PAIR_STRAIGHT, card_count, unique_ranks[-1], contains_joker, uses_wildcard)
 
 	return results
+
+
+static func _classify_natural_joker_group(joker_count: int) -> Array[HandPattern]:
+	var type := HandPattern.Type.PAIR
+	if joker_count == 3:
+		type = HandPattern.Type.TRIPLE
+	elif joker_count == 4:
+		type = HandPattern.Type.FOUR_KIND
+	return [
+		HandPattern.new(
+			type,
+			joker_count,
+			CardData.NATURAL_JOKER_GROUP_RANK,
+			true,
+			false,
+		),
+	]
 
 
 static func _generate_assignments(
