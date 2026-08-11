@@ -181,8 +181,8 @@ func _run_test() -> void:
 	var graph_visible_characters := (
 		(director.get_node("%Message") as Label).visible_characters
 	)
-	assert(graph_visible_characters >= 1)
-	assert(graph_visible_characters <= 4)
+	assert(graph_visible_characters >= 4)
+	assert(graph_visible_characters <= 6)
 	var graph_dialog := director.get_node("%Dialog") as PanelContainer
 	var expected_dialog_size := director.size * graph_a.normalized_dialog_rect.size
 	assert(
