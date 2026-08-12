@@ -4,6 +4,7 @@ extends Control
 signal event_source_released
 
 const TYPEWRITER_CHARACTERS_PER_SECOND := 16.0
+const NO_HIGHLIGHT_CUTOUT := Vector4(-1.0, -1.0, -1.0, -1.0)
 
 @onready var blocker: ColorRect = %Blocker
 @onready var highlight: Panel = %Highlight
@@ -140,6 +141,10 @@ func _show_next_matching_step(event_key: StringName, _payload: Dictionary) -> vo
 	_apply_ai_commands(step.get_ai_commands())
 	_game.call("set_tutorial_gameplay_locked", step.blocks_gameplay)
 	_game.call("set_tutorial_input_locks", step.input_locks)
+	_game.call(
+		"set_tutorial_action_bar_override",
+		step.show_action_bar_while_locked,
+	)
 	_apply_control_directives(step.control_directives)
 	_show_step(step)
 
@@ -160,6 +165,10 @@ func _show_graph_step(step_id: StringName, _payload: Dictionary) -> void:
 	_apply_ai_commands(step.get_ai_commands())
 	_game.call("set_tutorial_gameplay_locked", step.blocks_gameplay)
 	_game.call("set_tutorial_input_locks", step.input_locks)
+	_game.call(
+		"set_tutorial_action_bar_override",
+		step.show_action_bar_while_locked,
+	)
 	_apply_control_directives(step.control_directives)
 	_show_step(step)
 
@@ -358,6 +367,7 @@ func _finish_current_step(unlock_gameplay := true) -> void:
 	_minimum_display_complete = true
 	_current_step = null
 	blocker.visible = false
+	_set_blocker_cutout(NO_HIGHLIGHT_CUTOUT)
 	highlight.visible = false
 	dialog.visible = false
 	pointer_emoji_view.visible = false
@@ -375,6 +385,8 @@ func _finish_current_step(unlock_gameplay := true) -> void:
 		_pointer_tween = null
 	set_process(false)
 	_restore_control_directives()
+	if _game != null:
+		_game.call("set_tutorial_action_bar_override", false)
 	if _game != null and unlock_gameplay:
 		_game.call("set_tutorial_gameplay_locked", false)
 		_game.call("set_tutorial_input_locks", 0)
@@ -544,6 +556,8 @@ func _on_resized() -> void:
 
 func _update_highlight(path: NodePath) -> void:
 	highlight.visible = not path.is_empty() and _game.has_node(path)
+	if not highlight.visible:
+		_set_blocker_cutout(NO_HIGHLIGHT_CUTOUT)
 	set_process(highlight.visible)
 	if highlight.visible:
 		_reposition_highlight()
@@ -567,10 +581,27 @@ func _reposition_highlight() -> void:
 	var target := _game.get_node_or_null(_current_step.highlight_path) as Control
 	if target == null:
 		highlight.visible = false
+		_set_blocker_cutout(NO_HIGHLIGHT_CUTOUT)
 		return
 	var rect := target.get_global_rect().grow(6.0)
 	highlight.global_position = rect.position
 	highlight.size = rect.size
+	if blocker.visible and blocker.size.x > 0.0 and blocker.size.y > 0.0:
+		var blocker_rect := blocker.get_global_rect()
+		var local_position := rect.position - blocker_rect.position
+		var local_end := rect.end - blocker_rect.position
+		_set_blocker_cutout(Vector4(
+			clampf(local_position.x / blocker_rect.size.x, 0.0, 1.0),
+			clampf(local_position.y / blocker_rect.size.y, 0.0, 1.0),
+			clampf(local_end.x / blocker_rect.size.x, 0.0, 1.0),
+			clampf(local_end.y / blocker_rect.size.y, 0.0, 1.0),
+		))
+
+
+func _set_blocker_cutout(value: Vector4) -> void:
+	var blocker_material := blocker.material as ShaderMaterial
+	if blocker_material != null:
+		blocker_material.set_shader_parameter(&"cutout_rect", value)
 
 
 func _update_pointer() -> void:

@@ -1,8 +1,11 @@
-[gd_resource type="Resource" script_class="TutorialStep" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://cwve6mwhqw2hg"]
 
-[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="2"]
-[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="3"]
+[ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="1"]
+[ext_resource type="Script" uid="uid://d2eaooap6slc5" path="res://features/tutorial/tutorial_control_directive.gd" id="1_0xf5y"]
+[ext_resource type="Texture2D" uid="uid://02ohent4f5hg" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="2"]
+[ext_resource type="Script" uid="uid://dtoxh4pjc2v8j" path="res://features/tutorial/tutorial_transition.gd" id="3"]
+[ext_resource type="Script" uid="uid://dgss6q7ydmndf" path="res://features/tutorial/tutorial_ai_command.gd" id="4_oo4fv"]
+[ext_resource type="Script" uid="uid://6ma7dkfcx3mm" path="res://features/tutorial/tutorial_condition.gd" id="6_i8mkl"]
 
 [sub_resource type="Resource" id="to_monitor"]
 script = ExtResource("3")
@@ -13,13 +16,11 @@ script = ExtResource("1")
 step_id = &"tutorial_complete"
 message_key = &"TUTORIAL_COMPLETE"
 emoji = ExtResource("2")
-placement = 0
 use_custom_dialog_rect = true
 normalized_dialog_rect = Rect2(0.23, 0.68, 0.54, 0.24)
 blocks_gameplay = false
-dim_background = true
 releases_event_source = true
-input_locks = 439
 minimum_display_time = 0.35
+input_locks = 439
 transitions = Array[ExtResource("3")]([SubResource("to_monitor")])
 editor_graph_position = Vector2(1760, 120)

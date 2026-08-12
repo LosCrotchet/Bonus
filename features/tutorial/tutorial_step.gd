@@ -48,6 +48,7 @@ enum InputLock {
 @export var blocks_gameplay := true
 @export var dim_background := true
 @export var highlight_path: NodePath
+@export var show_action_bar_while_locked: bool = false
 @export_category("Event Checkpoint")
 @export var blocks_event_source := false
 @export var releases_event_source := false

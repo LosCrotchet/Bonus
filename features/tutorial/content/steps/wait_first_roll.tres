@@ -1,8 +1,10 @@
-[gd_resource type="Resource" script_class="TutorialStep" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://d3dm5s74y0vji"]
 
-[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1"]
-[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2"]
-[ext_resource type="Script" path="res://features/tutorial/tutorial_condition.gd" id="3"]
+[ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="1"]
+[ext_resource type="Script" uid="uid://d2eaooap6slc5" path="res://features/tutorial/tutorial_control_directive.gd" id="1_mnhwg"]
+[ext_resource type="Script" uid="uid://dtoxh4pjc2v8j" path="res://features/tutorial/tutorial_transition.gd" id="2"]
+[ext_resource type="Script" uid="uid://6ma7dkfcx3mm" path="res://features/tutorial/tutorial_condition.gd" id="3"]
+[ext_resource type="Script" uid="uid://dgss6q7ydmndf" path="res://features/tutorial/tutorial_ai_command.gd" id="3_7xiue"]
 
 [sub_resource type="Resource" id="condition_human"]
 script = ExtResource("3")

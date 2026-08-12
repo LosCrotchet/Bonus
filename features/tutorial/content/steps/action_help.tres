@@ -1,21 +1,20 @@
-[gd_resource type="Resource" script_class="TutorialStep" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://dgwqb65mec4il"]
 
-[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1"]
-[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2"]
-[ext_resource type="Script" path="res://features/tutorial/tutorial_ai_command.gd" id="3"]
-[ext_resource type="Texture2D" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="5"]
+[ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="1"]
+[ext_resource type="Script" uid="uid://d2eaooap6slc5" path="res://features/tutorial/tutorial_control_directive.gd" id="1_0opp1"]
+[ext_resource type="Script" uid="uid://dtoxh4pjc2v8j" path="res://features/tutorial/tutorial_transition.gd" id="2"]
+[ext_resource type="Script" uid="uid://dgss6q7ydmndf" path="res://features/tutorial/tutorial_ai_command.gd" id="3"]
+[ext_resource type="Texture2D" uid="uid://02ohent4f5hg" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="5"]
+[ext_resource type="Script" uid="uid://6ma7dkfcx3mm" path="res://features/tutorial/tutorial_condition.gd" id="6_xx66e"]
 
 [sub_resource type="Resource" id="ai_pass_1"]
 script = ExtResource("3")
-player_index = 1
 phase = 2
-action = 2
 
 [sub_resource type="Resource" id="ai_pass_2"]
 script = ExtResource("3")
 player_index = 2
 phase = 2
-action = 2
 
 [sub_resource type="Resource" id="to_wait_outcome"]
 script = ExtResource("2")
@@ -32,8 +31,9 @@ normalized_dialog_rect = Rect2(0.16, 0.06, 0.68, 0.35)
 blocks_gameplay = false
 dim_background = false
 highlight_path = NodePath("SafeArea/MainLayout/ActionSlot/ActionBar")
+show_action_bar_while_locked = true
+minimum_display_time = 5.0
 input_locks = 439
-minimum_display_time = 0.35
 scripted_ai_actions = Array[ExtResource("3")]([SubResource("ai_pass_1"), SubResource("ai_pass_2")])
 transitions = Array[ExtResource("2")]([SubResource("to_wait_outcome")])
 editor_graph_position = Vector2(300, 120)

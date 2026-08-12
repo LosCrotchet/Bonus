@@ -84,13 +84,38 @@ func _draw() -> void:
 		_draw_center_text("Open a TutorialScenario and select a step")
 		return
 	if step.dim_background:
-		draw_rect(_canvas_rect, Color(0.0, 0.0, 0.0, 0.5), true)
+		_draw_dim_background()
 	_draw_sampled_target(step.highlight_path, Color(1.0, 0.76, 0.2, 0.95), 4.0)
 	_draw_dialog()
 	_draw_pointer()
 	if not sample_kind.is_empty():
 		draw_rect(_canvas_rect, Color(0.25, 0.8, 1.0, 0.09), true)
 		_draw_center_text("Click a game control to sample: %s" % sample_kind)
+
+
+func _draw_dim_background() -> void:
+	var dim_color := Color(0.0, 0.0, 0.0, 0.5)
+	var cutout := _target_screen_rect(step.highlight_path).grow(6.0 * _canvas_scale())
+	if cutout.size == Vector2.ZERO:
+		draw_rect(_canvas_rect, dim_color, true)
+		return
+	cutout = cutout.intersection(_canvas_rect)
+	draw_rect(Rect2(
+		_canvas_rect.position,
+		Vector2(_canvas_rect.size.x, maxf(0.0, cutout.position.y - _canvas_rect.position.y)),
+	), dim_color, true)
+	draw_rect(Rect2(
+		Vector2(_canvas_rect.position.x, cutout.end.y),
+		Vector2(_canvas_rect.size.x, maxf(0.0, _canvas_rect.end.y - cutout.end.y)),
+	), dim_color, true)
+	draw_rect(Rect2(
+		Vector2(_canvas_rect.position.x, cutout.position.y),
+		Vector2(maxf(0.0, cutout.position.x - _canvas_rect.position.x), cutout.size.y),
+	), dim_color, true)
+	draw_rect(Rect2(
+		Vector2(cutout.end.x, cutout.position.y),
+		Vector2(maxf(0.0, _canvas_rect.end.x - cutout.end.x), cutout.size.y),
+	), dim_color, true)
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -221,9 +246,10 @@ func _draw_pointer() -> void:
 		return
 	var pointer_size := step.pointer_size * _canvas_scale()
 	var rect := Rect2(
-		target_rect.end
-		- Vector2(pointer_size + 10.0, target_rect.size.y * 0.5)
-		+ step.pointer_offset * _canvas_scale(),
+		Vector2(
+			target_rect.end.x - pointer_size - 42.0 * _canvas_scale(),
+			target_rect.position.y + 24.0 * _canvas_scale(),
+		) + step.pointer_offset * _canvas_scale(),
 		Vector2.ONE * pointer_size,
 	)
 	draw_texture_rect(step.pointer_emoji, rect, false)

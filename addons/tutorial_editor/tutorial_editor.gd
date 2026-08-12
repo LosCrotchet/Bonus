@@ -37,6 +37,7 @@ var _pointer_offset_y: SpinBox
 var _highlight_edit: LineEdit
 var _blocks_check: CheckBox
 var _dim_check: CheckBox
+var _show_locked_actions_check: CheckBox
 var _blocks_event_check: CheckBox
 var _releases_event_check: CheckBox
 var _continue_option: OptionButton
@@ -346,6 +347,11 @@ func _build_inspector() -> Control:
 	form.add_child(_section_title("TIMING & FLOW"))
 	_blocks_check = _check_field(form, "Block all gameplay", _on_step_value_changed)
 	_dim_check = _check_field(form, "Dim background", _on_step_value_changed)
+	_show_locked_actions_check = _check_field(
+		form,
+		"Show locked action bar",
+		_on_step_value_changed,
+	)
 	_blocks_event_check = _check_field(form, "Block event source", _on_step_value_changed)
 	_releases_event_check = _check_field(form, "Release event source", _on_step_value_changed)
 	_continue_option = OptionButton.new()
@@ -521,7 +527,7 @@ func _refresh_step_fields() -> void:
 		_id_edit, _trigger_edit, _message_key_edit, _message_edit,
 		_placement_option, _custom_rect_check, _emoji_edit, _pointer_edit,
 		_pointer_size, _pointer_offset_x, _pointer_offset_y, _highlight_edit,
-		_blocks_check, _dim_check,
+		_blocks_check, _dim_check, _show_locked_actions_check,
 		_continue_option, _continue_event_edit, _minimum_time, _type_sound_interval,
 	]
 	for control in controls:
@@ -544,6 +550,8 @@ func _refresh_step_fields() -> void:
 		_highlight_edit.text = str(_step.highlight_path)
 		_blocks_check.button_pressed = _step.blocks_gameplay
 		_dim_check.button_pressed = _step.dim_background
+		if is_instance_valid(_show_locked_actions_check):
+			_show_locked_actions_check.button_pressed = _step.show_action_bar_while_locked
 		_blocks_event_check.button_pressed = _step.blocks_event_source
 		_releases_event_check.button_pressed = _step.releases_event_source
 		_continue_option.select(_step.continue_mode)
@@ -579,6 +587,8 @@ func _commit_step_fields() -> void:
 	_step.highlight_path = NodePath(_highlight_edit.text)
 	_step.blocks_gameplay = _blocks_check.button_pressed
 	_step.dim_background = _dim_check.button_pressed
+	if is_instance_valid(_show_locked_actions_check):
+		_step.show_action_bar_while_locked = _show_locked_actions_check.button_pressed
 	_step.blocks_event_source = _blocks_event_check.button_pressed
 	_step.releases_event_source = _releases_event_check.button_pressed
 	_step.continue_mode = _continue_option.selected

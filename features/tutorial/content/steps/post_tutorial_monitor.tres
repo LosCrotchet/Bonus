@@ -1,18 +1,14 @@
-[gd_resource type="Resource" script_class="TutorialStep" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://c8d0xidewmg5n"]
 
-[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1"]
-[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2"]
-[ext_resource type="Script" path="res://features/tutorial/tutorial_condition.gd" id="3"]
+[ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="1"]
+[ext_resource type="Script" uid="uid://d2eaooap6slc5" path="res://features/tutorial/tutorial_control_directive.gd" id="1_2qglu"]
+[ext_resource type="Script" uid="uid://dtoxh4pjc2v8j" path="res://features/tutorial/tutorial_transition.gd" id="2"]
+[ext_resource type="Script" uid="uid://6ma7dkfcx3mm" path="res://features/tutorial/tutorial_condition.gd" id="3"]
+[ext_resource type="Script" uid="uid://dgss6q7ydmndf" path="res://features/tutorial/tutorial_ai_command.gd" id="3_fd5wf"]
 
 [sub_resource type="Resource" id="condition_human"]
 script = ExtResource("3")
 property_path = "player_index"
-compare_value = "0"
-
-[sub_resource type="Resource" id="condition_other"]
-script = ExtResource("3")
-property_path = "player_index"
-operator = 1
 compare_value = "0"
 
 [sub_resource type="Resource" id="condition_not_explained"]
@@ -27,6 +23,12 @@ target_step_id = &"bonus_human_late"
 trigger_mode = 1
 event_key = &"bonus_started"
 conditions = Array[ExtResource("3")]([SubResource("condition_human"), SubResource("condition_not_explained")])
+
+[sub_resource type="Resource" id="condition_other"]
+script = ExtResource("3")
+property_path = "player_index"
+operator = 1
+compare_value = "0"
 
 [sub_resource type="Resource" id="to_other"]
 script = ExtResource("2")

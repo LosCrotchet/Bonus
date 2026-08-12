@@ -106,6 +106,7 @@ UI_PASS_FEEDBACK,PASS,PASS
 UI_BONUS_FEEDBACK,BONUS!,BONUS!
 STATUS_CLICK_DICE,轮到南家，点击画面开始回合,South's turn. Click the screen to start.
 STATUS_DEALING,正在发牌，双击画面可跳过,Dealing cards. Double-click to skip.
+STATUS_TUTORIAL_DEALING,正在发牌...,Dealing cards...
 STATUS_PREPARING_ROLL,{player}准备掷骰,{player} is preparing to roll
 STATUS_ROLLING,{player}正在掷骰…,{player} is rolling...
 STATUS_WINNER,{player}获胜,{player} wins

@@ -21,6 +21,7 @@ func _run() -> void:
 	assert(scenario != null)
 	assert(editor.get("_blocks_event_check") is CheckBox)
 	assert(editor.get("_releases_event_check") is CheckBox)
+	assert(editor.get("_show_locked_actions_check") is CheckBox)
 	assert(scenario.forced_first_human_roll == 5)
 	assert(step != null)
 	assert(preview != null)

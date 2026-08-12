@@ -1,9 +1,12 @@
-[gd_resource type="Resource" script_class="TutorialStep" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://bjr0vilgv77ay"]
 
-[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1"]
-[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2"]
-[ext_resource type="Texture2D" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="3"]
-[ext_resource type="Texture2D" path="res://assets/tutorial/emoji/emoji_u1f448.png" id="4"]
+[ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="1"]
+[ext_resource type="Script" uid="uid://d2eaooap6slc5" path="res://features/tutorial/tutorial_control_directive.gd" id="1_3jiw3"]
+[ext_resource type="Script" uid="uid://dtoxh4pjc2v8j" path="res://features/tutorial/tutorial_transition.gd" id="2"]
+[ext_resource type="Texture2D" uid="uid://02ohent4f5hg" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="3"]
+[ext_resource type="Texture2D" uid="uid://du3o445cid11l" path="res://assets/tutorial/emoji/point_down.png" id="4"]
+[ext_resource type="Script" uid="uid://dgss6q7ydmndf" path="res://features/tutorial/tutorial_ai_command.gd" id="5_p37fg"]
+[ext_resource type="Script" uid="uid://6ma7dkfcx3mm" path="res://features/tutorial/tutorial_condition.gd" id="7_7aapi"]
 
 [sub_resource type="Resource" id="to_first_roll"]
 script = ExtResource("2")
@@ -21,8 +24,7 @@ use_custom_dialog_rect = true
 normalized_dialog_rect = Rect2(0.17, 0.06, 0.66, 0.27)
 pointer_emoji = ExtResource("4")
 pointer_target_path = NodePath("SafeArea/MainLayout/HandPanel")
-pointer_size = 72.0
-pointer_offset = Vector2(-32, -82)
+pointer_offset = Vector2(-32, -18)
 continue_mode = 1
 blocks_gameplay = false
 dim_background = false

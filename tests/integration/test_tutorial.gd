@@ -141,6 +141,7 @@ func _run_test() -> void:
 	graph_a.input_locks = TutorialStep.InputLock.DOUBLE_CLICK
 	graph_a.pointer_emoji = expected_initial_step.emoji
 	graph_a.pointer_target_path = game.get_path_to(game.get_node("%SettingsButton"))
+	graph_a.highlight_path = graph_a.pointer_target_path
 	graph_a.pointer_offset = Vector2(24.0, -16.0)
 	graph_a.type_sound_every_characters = 3
 	assert(graph_a.type_sound_every_characters == 3)
@@ -213,6 +214,12 @@ func _run_test() -> void:
 		),
 	)
 	assert(pointer.global_position.is_equal_approx(expected_pointer_position))
+	var blocker := director.get_node("%Blocker") as ColorRect
+	var blocker_material := blocker.material as ShaderMaterial
+	assert(blocker_material != null)
+	var cutout := blocker_material.get_shader_parameter(&"cutout_rect") as Vector4
+	assert(cutout.z > cutout.x)
+	assert(cutout.w > cutout.y)
 	director.call("_input", _left_click(Vector2(640.0, 360.0)))
 	assert(director.get("_current_step") == graph_a)
 	assert((director.get_node("%Message") as Label).visible_characters == -1)

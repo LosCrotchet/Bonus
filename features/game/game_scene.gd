@@ -81,6 +81,7 @@ var _tutorial_scenario: TutorialScenario
 var _tutorial_director: TutorialDirector
 var _tutorial_gameplay_locked := false
 var _tutorial_input_locks := 0
+var _tutorial_show_locked_action_bar := false
 var _tutorial_state_signature := ""
 var _pending_tutorial_ai_commands: Dictionary = {}
 var _tutorial_first_human_roll_pending := false
@@ -631,6 +632,13 @@ func set_tutorial_input_locks(input_locks: int) -> void:
 	_refresh.call_deferred()
 
 
+func set_tutorial_action_bar_override(enabled: bool) -> void:
+	if not _tutorial_mode or _tutorial_show_locked_action_bar == enabled:
+		return
+	_tutorial_show_locked_action_bar = enabled
+	_refresh.call_deferred()
+
+
 func _has_tutorial_input_lock(input_lock: int) -> bool:
 	return _tutorial_mode and (_tutorial_input_locks & input_lock) != 0
 
@@ -738,6 +746,15 @@ func _handle_tutorial_round_boundary(serial: int) -> void:
 		)
 		return
 	if _tutorial_needs_next_player_intro:
+		await get_tree().create_timer(SettingsService.get_gameplay_duration(
+			SettingsService.GameplayTiming.ACTION_PAUSE,
+		)).timeout
+		if (
+			serial != _game_serial
+			or _session.phase != GameSession.Phase.AWAITING_ROLL
+			or not _tutorial_needs_next_player_intro
+		):
+			return
 		_tutorial_needs_next_player_intro = false
 		await _await_tutorial_checkpoint(
 			&"before_next_player_roll",
@@ -1122,7 +1139,17 @@ func _refresh_actions() -> void:
 		_has_tutorial_input_lock(TutorialStep.InputLock.PLAY)
 		and _has_tutorial_input_lock(TutorialStep.InputLock.PASS)
 	)
-	_set_action_bar_visible(awaiting_action and not tutorial_actions_hidden)
+	var show_tutorial_locked_actions := (
+		_tutorial_show_locked_action_bar
+		and _session.current_player_index == _human_player_index
+		and _session.phase == GameSession.Phase.AWAITING_ACTION
+		and not _dealing
+		and not _rolling
+	)
+	_set_action_bar_visible(
+		(awaiting_action and not tutorial_actions_hidden)
+		or show_tutorial_locked_actions,
+	)
 
 
 func _refresh_status() -> void:
@@ -1136,7 +1163,9 @@ func _refresh_status() -> void:
 	if not _transient_key.is_empty():
 		message = _translated(_transient_key, _transient_args)
 	elif _dealing:
-		message = tr(&"STATUS_DEALING")
+		message = tr(
+			&"STATUS_TUTORIAL_DEALING" if _tutorial_mode else &"STATUS_DEALING"
+		)
 	elif _rolling:
 		message = _translated(
 			&"STATUS_ROLLING",

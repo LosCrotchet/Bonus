@@ -1,14 +1,10 @@
-[gd_resource type="Resource" script_class="TutorialStep" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="TutorialStep" format=3 uid="uid://c7tmpykmvrb6v"]
 
-[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1"]
-[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2"]
-[ext_resource type="Script" path="res://features/tutorial/tutorial_condition.gd" id="3"]
-
-[sub_resource type="Resource" id="condition_other_bonus"]
-script = ExtResource("3")
-property_path = "player_index"
-operator = 1
-compare_value = "0"
+[ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="1"]
+[ext_resource type="Script" uid="uid://d2eaooap6slc5" path="res://features/tutorial/tutorial_control_directive.gd" id="1_00ohm"]
+[ext_resource type="Script" uid="uid://dtoxh4pjc2v8j" path="res://features/tutorial/tutorial_transition.gd" id="2"]
+[ext_resource type="Script" uid="uid://6ma7dkfcx3mm" path="res://features/tutorial/tutorial_condition.gd" id="3"]
+[ext_resource type="Script" uid="uid://dgss6q7ydmndf" path="res://features/tutorial/tutorial_ai_command.gd" id="3_5si5p"]
 
 [sub_resource type="Resource" id="condition_human_bonus"]
 script = ExtResource("3")
@@ -21,19 +17,25 @@ source = 1
 property_path = "tutorial_bonus_explained"
 operator = 7
 
-[sub_resource type="Resource" id="to_bonus_other"]
-script = ExtResource("2")
-target_step_id = &"bonus_other"
-trigger_mode = 1
-event_key = &"bonus_started"
-conditions = Array[ExtResource("3")]([SubResource("condition_other_bonus"), SubResource("condition_not_explained")])
-
 [sub_resource type="Resource" id="to_bonus_human"]
 script = ExtResource("2")
 target_step_id = &"bonus_human"
 trigger_mode = 1
 event_key = &"bonus_started"
 conditions = Array[ExtResource("3")]([SubResource("condition_human_bonus"), SubResource("condition_not_explained")])
+
+[sub_resource type="Resource" id="condition_other_bonus"]
+script = ExtResource("3")
+property_path = "player_index"
+operator = 1
+compare_value = "0"
+
+[sub_resource type="Resource" id="to_bonus_other"]
+script = ExtResource("2")
+target_step_id = &"bonus_other"
+trigger_mode = 1
+event_key = &"bonus_started"
+conditions = Array[ExtResource("3")]([SubResource("condition_other_bonus"), SubResource("condition_not_explained")])
 
 [sub_resource type="Resource" id="to_covering"]
 script = ExtResource("2")

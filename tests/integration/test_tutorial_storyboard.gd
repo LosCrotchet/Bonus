@@ -15,6 +15,21 @@ func _run_test() -> void:
 	var action_help := scenario.get_step(&"action_help")
 	assert(action_help != null)
 	assert(action_help.get_message(self).contains("\n"))
+	assert(action_help.minimum_display_time == 5.0)
+	assert(action_help.show_action_bar_while_locked)
+	var rolled_five := scenario.get_step(&"rolled_five")
+	assert(rolled_five != null)
+	assert(not rolled_five.dim_background)
+	assert((rolled_five.input_locks & TutorialStep.InputLock.HAND) != 0)
+	for bonus_step_id in [
+		&"bonus_human",
+		&"bonus_other",
+		&"bonus_human_late",
+		&"bonus_other_late",
+	]:
+		var bonus_step := scenario.get_step(bonus_step_id)
+		assert(bonus_step.minimum_display_time == 4.0)
+		assert(bonus_step.normalized_dialog_rect.position.y >= 0.6)
 	for step_id in [
 		&"intro_goal",
 		&"deal_and_ranks",
@@ -59,10 +74,13 @@ func _run_test() -> void:
 	))
 	assert((director.get("_current_step") as TutorialStep).step_id == &"rolled_five")
 	assert(not (game.get_node("%ActionBar") as Control).visible)
-	assert(bool(game.get_node("%HandView").get("_interaction_enabled")))
+	assert(not bool(game.get_node("%HandView").get("_interaction_enabled")))
 	_advance_dialog(director)
 	assert((director.get("_current_step") as TutorialStep).step_id == &"action_help")
-	assert(not (game.get_node("%ActionBar") as Control).visible)
+	await get_tree().process_frame
+	assert((game.get_node("%ActionBar") as Control).visible)
+	assert((game.get_node("%PlayButton") as Button).disabled)
+	assert((game.get_node("%PassButton") as Button).disabled)
 	_advance_dialog(director)
 	assert((director.get("_current_step") as TutorialStep).step_id == &"wait_first_outcome")
 	assert(director.notify_checkpoint(&"before_forced_draw", {
@@ -78,6 +96,15 @@ func _run_test() -> void:
 	_advance_dialog(director)
 	await get_tree().process_frame
 	assert((director.get("_current_step") as TutorialStep).step_id == &"wait_second_round")
+	director.notify_event(&"bonus_started", {"player_index": 1})
+	assert((director.get("_current_step") as TutorialStep).step_id == &"bonus_other")
+	director.notify_event(&"second_round_finished", {"player_index": 1})
+	assert((director.get("_current_step") as TutorialStep).step_id == &"bonus_other")
+	_advance_dialog(director)
+	assert(
+		(director.get("_current_step") as TutorialStep).step_id
+		== &"wait_second_round_no_bonus"
+	)
 	assert(director.notify_checkpoint(&"second_round_finished", {"player_index": 1}))
 	assert((director.get("_current_step") as TutorialStep).step_id == &"covering_rules")
 	_advance_dialog(director)
@@ -89,6 +116,7 @@ func _run_test() -> void:
 	assert((director.get("_current_step") as TutorialStep).step_id == &"post_tutorial_monitor")
 	assert(not bool(game.get("_tutorial_gameplay_locked")))
 	assert(int(game.get("_tutorial_input_locks")) == 0)
+	game.set("tutorial_bonus_explained", false)
 	director.notify_event(&"bonus_started", {"player_index": 1})
 	assert((director.get("_current_step") as TutorialStep).step_id == &"bonus_other_late")
 	assert(bool(game.get("tutorial_bonus_explained")))
