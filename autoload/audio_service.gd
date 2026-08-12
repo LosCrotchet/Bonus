@@ -150,7 +150,7 @@ func _build_stream_catalog() -> void:
 	)
 	var card_selection := _randomizer(["card_select.wav"], 0.7, 0.2)
 	_cue_streams = {
-		&"ui_hover": tutorial_pop,
+		&"ui_hover": _randomizer(["new_hover.wav"], 0.45, 0.18),
 		&"tutorial_confirm": tutorial_pop,
 		&"tutorial_type": _randomizer(["dot.wav"], 0.65, 0.35),
 		&"ui_confirm": _randomizer(["ui_confirm.wav"], 0.18),

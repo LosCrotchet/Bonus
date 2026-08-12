@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="TutorialStep" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_condition.gd" id="3"]
+
+[sub_resource type="Resource" id="condition_other_bonus"]
+script = ExtResource("3")
+property_path = "player_index"
+operator = 1
+compare_value = "0"
+
+[sub_resource type="Resource" id="condition_human_bonus"]
+script = ExtResource("3")
+property_path = "player_index"
+compare_value = "0"
+
+[sub_resource type="Resource" id="condition_not_explained"]
+script = ExtResource("3")
+source = 1
+property_path = "tutorial_bonus_explained"
+operator = 7
+
+[sub_resource type="Resource" id="to_bonus_other"]
+script = ExtResource("2")
+target_step_id = &"bonus_other"
+trigger_mode = 1
+event_key = &"bonus_started"
+conditions = Array[ExtResource("3")]([SubResource("condition_other_bonus"), SubResource("condition_not_explained")])
+
+[sub_resource type="Resource" id="to_bonus_human"]
+script = ExtResource("2")
+target_step_id = &"bonus_human"
+trigger_mode = 1
+event_key = &"bonus_started"
+conditions = Array[ExtResource("3")]([SubResource("condition_human_bonus"), SubResource("condition_not_explained")])
+
+[sub_resource type="Resource" id="to_covering"]
+script = ExtResource("2")
+target_step_id = &"covering_rules"
+trigger_mode = 1
+event_key = &"second_round_finished"
+
+[resource]
+script = ExtResource("1")
+step_id = &"wait_second_round"
+continue_mode = 1
+blocks_gameplay = false
+dim_background = false
+input_locks = 130
+transitions = Array[ExtResource("2")]([SubResource("to_bonus_human"), SubResource("to_bonus_other"), SubResource("to_covering")])
+editor_graph_position = Vector2(1040, 120)

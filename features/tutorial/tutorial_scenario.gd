@@ -5,6 +5,7 @@ extends Resource
 @export_category("Match")
 @export_range(2, 4, 1) var player_count := 3
 @export var seed_text := "teach001"
+@export_range(0, 6, 1) var forced_first_human_roll := 0
 
 @export_category("Rules")
 @export var include_jokers := true

@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="TutorialStep" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2"]
+[ext_resource type="Texture2D" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/tutorial/emoji/emoji_u1f448.png" id="4"]
+
+[sub_resource type="Resource" id="to_first_roll"]
+script = ExtResource("2")
+target_step_id = &"first_roll_intro"
+trigger_mode = 1
+event_key = &"initial_deal_finished"
+
+[resource]
+script = ExtResource("1")
+step_id = &"deal_and_ranks"
+message_key = &"TUTORIAL_DEAL_AND_RANKS"
+emoji = ExtResource("3")
+placement = 1
+use_custom_dialog_rect = true
+normalized_dialog_rect = Rect2(0.17, 0.06, 0.66, 0.27)
+pointer_emoji = ExtResource("4")
+pointer_target_path = NodePath("SafeArea/MainLayout/HandPanel")
+pointer_size = 72.0
+pointer_offset = Vector2(-32, -82)
+continue_mode = 1
+blocks_gameplay = false
+dim_background = false
+highlight_path = NodePath("SafeArea/MainLayout/HandPanel")
+input_locks = 503
+transitions = Array[ExtResource("2")]([SubResource("to_first_roll")])
+editor_graph_position = Vector2(-660, 120)

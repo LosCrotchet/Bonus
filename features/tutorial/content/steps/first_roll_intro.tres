@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="TutorialStep" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2"]
+[ext_resource type="Texture2D" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/tutorial/emoji/emoji_u1f448.png" id="4"]
+
+[sub_resource type="Resource" id="to_wait_roll"]
+script = ExtResource("2")
+target_step_id = &"wait_first_roll"
+
+[resource]
+script = ExtResource("1")
+step_id = &"first_roll_intro"
+message_key = &"TUTORIAL_FIRST_ROLL"
+emoji = ExtResource("3")
+placement = 3
+use_custom_dialog_rect = true
+normalized_dialog_rect = Rect2(0.62, 0.17, 0.35, 0.39)
+pointer_emoji = ExtResource("4")
+pointer_target_path = NodePath("SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollLayout/DiceGroup/DiceArea/DiceButton")
+pointer_size = 66.0
+pointer_offset = Vector2(-56, 62)
+blocks_gameplay = false
+dim_background = true
+highlight_path = NodePath("SafeArea/MainLayout/MainArea/TableRow/RollPanel")
+input_locks = 503
+minimum_display_time = 0.3
+transitions = Array[ExtResource("2")]([SubResource("to_wait_roll")])
+editor_graph_position = Vector2(-420, 120)

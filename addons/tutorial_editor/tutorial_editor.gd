@@ -37,6 +37,8 @@ var _pointer_offset_y: SpinBox
 var _highlight_edit: LineEdit
 var _blocks_check: CheckBox
 var _dim_check: CheckBox
+var _blocks_event_check: CheckBox
+var _releases_event_check: CheckBox
 var _continue_option: OptionButton
 var _continue_event_edit: LineEdit
 var _minimum_time: SpinBox
@@ -176,6 +178,18 @@ func _build_left_panel() -> Control:
 	)
 	seed.set_meta(&"field", &"seed")
 	match_grid.add_child(seed)
+	match_grid.add_child(_make_label("First roll"))
+	var first_roll := SpinBox.new()
+	first_roll.min_value = 0
+	first_roll.max_value = 6
+	first_roll.rounded = true
+	first_roll.tooltip_text = "0 uses the normal random roll"
+	first_roll.value_changed.connect(func(value: float) -> void:
+		if _scenario != null and not _updating:
+			_scenario.forced_first_human_roll = int(value)
+	)
+	first_roll.set_meta(&"field", &"first_roll")
+	match_grid.add_child(first_roll)
 	panel.add_child(match_grid)
 	var scenario_actions := HBoxContainer.new()
 	scenario_actions.add_child(_make_button("Selected = Start", _set_selected_as_start))
@@ -332,6 +346,8 @@ func _build_inspector() -> Control:
 	form.add_child(_section_title("TIMING & FLOW"))
 	_blocks_check = _check_field(form, "Block all gameplay", _on_step_value_changed)
 	_dim_check = _check_field(form, "Dim background", _on_step_value_changed)
+	_blocks_event_check = _check_field(form, "Block event source", _on_step_value_changed)
+	_releases_event_check = _check_field(form, "Release event source", _on_step_value_changed)
 	_continue_option = OptionButton.new()
 	_continue_option.add_item("Click anywhere")
 	_continue_option.add_item("Wait for event")
@@ -467,6 +483,8 @@ func _refresh_scenario_fields() -> void:
 				(node as SpinBox).value = _scenario.player_count
 			&"seed":
 				(node as LineEdit).text = _scenario.seed_text
+			&"first_roll":
+				(node as SpinBox).value = _scenario.forced_first_human_roll
 	_updating = false
 
 
@@ -526,6 +544,8 @@ func _refresh_step_fields() -> void:
 		_highlight_edit.text = str(_step.highlight_path)
 		_blocks_check.button_pressed = _step.blocks_gameplay
 		_dim_check.button_pressed = _step.dim_background
+		_blocks_event_check.button_pressed = _step.blocks_event_source
+		_releases_event_check.button_pressed = _step.releases_event_source
 		_continue_option.select(_step.continue_mode)
 		_continue_event_edit.text = str(_step.continue_event)
 		_minimum_time.value = _step.minimum_display_time
@@ -559,6 +579,8 @@ func _commit_step_fields() -> void:
 	_step.highlight_path = NodePath(_highlight_edit.text)
 	_step.blocks_gameplay = _blocks_check.button_pressed
 	_step.dim_background = _dim_check.button_pressed
+	_step.blocks_event_source = _blocks_event_check.button_pressed
+	_step.releases_event_source = _releases_event_check.button_pressed
 	_step.continue_mode = _continue_option.selected
 	_step.continue_event = StringName(_continue_event_edit.text.strip_edges())
 	_step.minimum_display_time = _minimum_time.value

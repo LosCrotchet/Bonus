@@ -48,6 +48,9 @@ enum InputLock {
 @export var blocks_gameplay := true
 @export var dim_background := true
 @export var highlight_path: NodePath
+@export_category("Event Checkpoint")
+@export var blocks_event_source := false
+@export var releases_event_source := false
 @export_range(0.0, 5.0, 0.05) var minimum_display_time := 0.0
 @export_range(1, 16, 1) var type_sound_every_characters := 2
 @export var ai_commands: Array[Dictionary] = []
@@ -71,8 +74,8 @@ enum InputLock {
 
 func get_message(host: Node) -> String:
 	if not message_key.is_empty():
-		return host.tr(message_key)
-	return fallback_message
+		return host.tr(message_key).replace("\\n", "\n")
+	return fallback_message.replace("\\n", "\n")
 
 
 func get_ai_commands() -> Array[Dictionary]:

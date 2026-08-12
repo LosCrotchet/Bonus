@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="TutorialStep" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_condition.gd" id="3"]
+
+[sub_resource type="Resource" id="condition_human"]
+script = ExtResource("3")
+property_path = "player_index"
+compare_value = "0"
+
+[sub_resource type="Resource" id="to_bonus_human"]
+script = ExtResource("2")
+target_step_id = &"bonus_human"
+trigger_mode = 1
+event_key = &"bonus_started"
+conditions = Array[ExtResource("3")]([SubResource("condition_human")])
+
+[sub_resource type="Resource" id="to_draw"]
+script = ExtResource("2")
+target_step_id = &"forced_draw"
+trigger_mode = 1
+event_key = &"before_forced_draw"
+
+[resource]
+script = ExtResource("1")
+step_id = &"wait_first_outcome"
+continue_mode = 1
+blocks_gameplay = false
+dim_background = false
+input_locks = 130
+transitions = Array[ExtResource("2")]([SubResource("to_bonus_human"), SubResource("to_draw")])
+editor_graph_position = Vector2(540, 120)

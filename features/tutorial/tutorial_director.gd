@@ -1,6 +1,8 @@
 class_name TutorialDirector
 extends Control
 
+signal event_source_released
+
 const TYPEWRITER_CHARACTERS_PER_SECOND := 16.0
 
 @onready var blocker: ColorRect = %Blocker
@@ -25,6 +27,7 @@ var _minimum_display_complete := true
 var _presentation_generation := 0
 var _started := false
 var _control_restore_state: Dictionary = {}
+var _event_source_blocked := false
 
 
 func _ready() -> void:
@@ -55,6 +58,9 @@ func start() -> void:
 
 
 func restart() -> void:
+	if _event_source_blocked:
+		_event_source_blocked = false
+		call_deferred("_emit_event_source_released")
 	if _current_step != null:
 		_finish_current_step()
 	_step_index = 0
@@ -88,6 +94,14 @@ func notify_event(event_key: StringName, payload: Dictionary = {}) -> void:
 		else:
 			return
 	_show_next_matching_step(event_key, payload)
+
+
+func notify_checkpoint(event_key: StringName, payload: Dictionary = {}) -> bool:
+	notify_event(event_key, payload)
+	if not _event_source_blocked or _current_step == null:
+		_event_source_blocked = false
+		return false
+	return true
 
 
 func _input(event: InputEvent) -> void:
@@ -140,6 +154,9 @@ func _show_graph_step(step_id: StringName, _payload: Dictionary) -> void:
 		_finish_current_step()
 		return
 	_current_step = step
+	if step.blocks_event_source:
+		_event_source_blocked = true
+	_game.call("mark_tutorial_step_shown", step.step_id)
 	_apply_ai_commands(step.get_ai_commands())
 	_game.call("set_tutorial_gameplay_locked", step.blocks_gameplay)
 	_game.call("set_tutorial_input_locks", step.input_locks)
@@ -330,6 +347,11 @@ func _advance_button_step() -> void:
 
 
 func _finish_current_step(unlock_gameplay := true) -> void:
+	var releases_source := (
+		_current_step != null
+		and _current_step.releases_event_source
+		and _event_source_blocked
+	)
 	_presentation_generation += 1
 	_continue_ready = false
 	_text_reveal_complete = true
@@ -356,6 +378,13 @@ func _finish_current_step(unlock_gameplay := true) -> void:
 	if _game != null and unlock_gameplay:
 		_game.call("set_tutorial_gameplay_locked", false)
 		_game.call("set_tutorial_input_locks", 0)
+	if releases_source:
+		_event_source_blocked = false
+		call_deferred("_emit_event_source_released")
+
+
+func _emit_event_source_released() -> void:
+	event_source_released.emit()
 
 
 func _find_graph_transition(

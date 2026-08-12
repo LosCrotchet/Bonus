@@ -44,9 +44,11 @@ func _run_test() -> void:
 	var tutorial_type := catalog[&"tutorial_type"] as AudioStreamRandomizer
 	var card_deal := catalog[&"card_deal"] as AudioStreamRandomizer
 	var card_draw := catalog[&"card_draw"] as AudioStreamRandomizer
-	assert(hover.streams_count == 4)
+	assert(hover.streams_count == 1)
 	assert(hover.random_pitch_semitones > 0.0)
-	assert(tutorial_confirm == hover)
+	assert(hover.get_stream(0).resource_path.ends_with("new_hover.wav"))
+	assert(tutorial_confirm != hover)
+	assert(tutorial_confirm.streams_count == 4)
 	assert(tutorial_type.streams_count == 1)
 	assert(tutorial_type.random_pitch_semitones > 0.0)
 	assert(tutorial_type.get_stream(0).resource_path.ends_with("dot.wav"))

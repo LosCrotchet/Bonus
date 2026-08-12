@@ -24,6 +24,7 @@ func _test_following_and_turn_resolution() -> void:
 		[8, 10],
 	])
 	assert(session.accept_dice_result(0, 3))
+	assert(session.get_pass_draw_count(0) == 0)
 	assert(session.play_cards(0, _first_ids(session, 0, 3)))
 	assert(session.current_player_index == 1)
 	assert(session.last_play_pattern.type == HandPattern.Type.TRIPLE)
@@ -93,6 +94,7 @@ func _test_all_pass_draws_three() -> void:
 	assert(session.accept_dice_result(0, 6))
 	assert(session.pass_turn(0))
 	assert(session.pass_turn(1))
+	assert(session.get_pass_draw_count(2) == 3)
 	assert(session.pass_turn(2))
 	assert(session.players[0].hand.size() == before + 3)
 	assert(session.phase == GameSession.Phase.AWAITING_ROLL)

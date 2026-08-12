@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="TutorialStep" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2"]
+[ext_resource type="Texture2D" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="3"]
+
+[sub_resource type="Resource" id="to_monitor"]
+script = ExtResource("2")
+target_step_id = &"post_tutorial_monitor"
+
+[resource]
+script = ExtResource("1")
+step_id = &"bonus_other_late"
+message_key = &"TUTORIAL_BONUS_OTHER"
+emoji = ExtResource("3")
+use_custom_dialog_rect = true
+normalized_dialog_rect = Rect2(0.16, 0.05, 0.68, 0.36)
+blocks_gameplay = false
+dim_background = true
+input_locks = 439
+transitions = Array[ExtResource("2")]([SubResource("to_monitor")])
+editor_graph_position = Vector2(2240, 220)

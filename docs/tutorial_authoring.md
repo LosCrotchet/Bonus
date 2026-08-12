@@ -88,7 +88,7 @@ highlight_path = NodePath("SafeArea/MainLayout/MainArea/TableRow/RollPanel/RollL
 1. `steps/welcome.tres`：收到 `tutorial_started` 后锁定牌局，在屏幕下方显示欢迎语和 `emoji_u1f970`。
 2. `steps/initial_hand.tres`：玩家点击继续后仍保持牌局锁定，在屏幕右侧说明初始手牌；`emoji_u1f600` 作为说话角色，`emoji_u1f448` 独立指向并高亮 `HandPanel`。
 
-同一事件下连续讲解时，让这些步骤使用相同的 `trigger` 并相邻排列。玩家关闭最后一个点击步骤后，导演解除锁定，牌局流程才会继续。当前 `default_tutorial.tres` 中的 `welcome_1` 至 `welcome_6` 就采用这种方式串联。
+同一事件下连续讲解时，可以用 CLICK transition 串联多个步骤。需要在状态提交前暂停时，让入口步骤启用 `blocks_event_source`，并在最后一个步骤启用 `releases_event_source`；牌局只会在最后一段对话关闭后继续。
 
 ## AI 指令
 

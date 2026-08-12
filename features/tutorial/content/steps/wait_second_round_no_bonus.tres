@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="TutorialStep" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2"]
+
+[sub_resource type="Resource" id="to_covering"]
+script = ExtResource("2")
+target_step_id = &"covering_rules"
+trigger_mode = 1
+event_key = &"second_round_finished"
+
+[resource]
+script = ExtResource("1")
+step_id = &"wait_second_round_no_bonus"
+continue_mode = 1
+blocks_gameplay = false
+dim_background = false
+input_locks = 130
+transitions = Array[ExtResource("2")]([SubResource("to_covering")])
+editor_graph_position = Vector2(1280, -40)

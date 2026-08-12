@@ -36,6 +36,8 @@ func _run_test() -> void:
 	assert(session.players.size() == 3)
 	assert(session.game_seed_text == scenario.seed_text)
 	assert(session.game_seed == SeedCodec.to_int(scenario.seed_text))
+	assert(scenario.forced_first_human_roll == 5)
+	assert(scenario.validate_graph().is_empty())
 	assert((game.get_node("%HeaderTitle") as Label).text.contains(tr(&"UI_TUTORIAL")))
 	assert((game.get_node("%HeaderSeed") as Label).text.contains(scenario.seed_text))
 	var director := game.get("_tutorial_director") as TutorialDirector
@@ -97,9 +99,10 @@ func _run_test() -> void:
 	director.call("_input", _left_click(Vector2(640.0, 360.0)))
 	await get_tree().process_frame
 	current_step = director.get("_current_step") as TutorialStep
-	assert(current_step.step_id != expected_initial_step.step_id)
-	assert(bool(game.get("_tutorial_gameplay_locked")))
-	assert(not bool(game.get("_deal_animation_running")))
+	assert(current_step.step_id == &"deal_and_ranks")
+	assert(not bool(game.get("_tutorial_gameplay_locked")))
+	assert(bool(game.get("_deal_animation_running")))
+	assert((int(game.get("_tutorial_input_locks")) & TutorialStep.InputLock.DEAL_SKIP) != 0)
 
 	director.call("_finish_current_step")
 	assert(director.get("_current_step") == null)

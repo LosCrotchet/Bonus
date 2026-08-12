@@ -83,6 +83,11 @@ var _tutorial_gameplay_locked := false
 var _tutorial_input_locks := 0
 var _tutorial_state_signature := ""
 var _pending_tutorial_ai_commands: Dictionary = {}
+var _tutorial_first_human_roll_pending := false
+var _tutorial_normal_roll_count := 0
+var _tutorial_needs_next_player_intro := false
+var _tutorial_second_round_explained := false
+var tutorial_bonus_explained := false
 var _network_initial_snapshot: Dictionary = {}
 var _network_player_meta: Dictionary = {}
 var _selected_card_ids: Array[int] = []
@@ -325,6 +330,15 @@ func _start_new_game(start_deal_animation: bool = true) -> void:
 	_automation_checked_revision = -1
 	_tutorial_state_signature = ""
 	_pending_tutorial_ai_commands.clear()
+	_tutorial_first_human_roll_pending = (
+		_tutorial_mode
+		and _tutorial_scenario != null
+		and _tutorial_scenario.forced_first_human_roll > 0
+	)
+	_tutorial_normal_roll_count = 0
+	_tutorial_needs_next_player_intro = false
+	_tutorial_second_round_explained = false
+	tutorial_bonus_explained = false
 	_dealing = true
 	_deal_animation_running = false
 	_deal_visible_counts = PackedInt32Array()
@@ -642,6 +656,11 @@ func queue_tutorial_ai_command(player_index: int, command: Dictionary) -> void:
 	_pending_tutorial_ai_commands[player_index] = pending
 
 
+func mark_tutorial_step_shown(step_id: StringName) -> void:
+	if step_id in [&"bonus_human", &"bonus_other", &"bonus_human_late", &"bonus_other_late"]:
+		tutorial_bonus_explained = true
+
+
 func _flush_tutorial_ai_commands(player_index: int) -> void:
 	var strategy := _strategies.get(player_index) as TutorialStrategy
 	if strategy == null:
@@ -684,6 +703,46 @@ func _notify_tutorial_event(
 	tutorial_event.emit(event_key, payload.duplicate(true))
 	if _tutorial_director != null:
 		_tutorial_director.notify_event(event_key, payload)
+
+
+func _await_tutorial_checkpoint(
+	event_key: StringName,
+	payload: Dictionary = {},
+) -> void:
+	if not _tutorial_mode or _tutorial_director == null:
+		return
+	if not _tutorial_director.notify_checkpoint(event_key, payload):
+		return
+	await _tutorial_director.event_source_released
+
+
+func _is_empty_round_about_to_draw() -> bool:
+	return (
+		_tutorial_mode
+		and _session.get_pass_draw_count(_session.current_player_index) > 0
+	)
+
+
+func _handle_tutorial_round_boundary(serial: int) -> void:
+	if (
+		not _tutorial_mode
+		or serial != _game_serial
+		or _session.phase != GameSession.Phase.AWAITING_ROLL
+	):
+		return
+	if _tutorial_normal_roll_count >= 2 and not _tutorial_second_round_explained:
+		_tutorial_second_round_explained = true
+		await _await_tutorial_checkpoint(
+			&"second_round_finished",
+			{"player_index": _session.current_player_index},
+		)
+		return
+	if _tutorial_needs_next_player_intro:
+		_tutorial_needs_next_player_intro = false
+		await _await_tutorial_checkpoint(
+			&"before_next_player_roll",
+			{"player_index": _session.current_player_index},
+		)
 
 
 func skip_initial_deal() -> void:
@@ -1059,7 +1118,11 @@ func _refresh_actions() -> void:
 	dice_button.mouse_default_cursor_shape = (
 		Control.CURSOR_POINTING_HAND if not dice_button.disabled else Control.CURSOR_ARROW
 	)
-	_set_action_bar_visible(awaiting_action)
+	var tutorial_actions_hidden := (
+		_has_tutorial_input_lock(TutorialStep.InputLock.PLAY)
+		and _has_tutorial_input_lock(TutorialStep.InputLock.PASS)
+	)
+	_set_action_bar_visible(awaiting_action and not tutorial_actions_hidden)
 
 
 func _refresh_status() -> void:
@@ -1229,6 +1292,7 @@ func _refresh_bonus_effect() -> void:
 		_bonus_sound_step = (_bonus_sound_step + 1) % maxi(1, AudioService.get_bonus_step_count())
 		_notify_tutorial_event(&"bonus_started", {
 			"player_index": bonus_owner,
+			"is_human": bonus_owner == _human_player_index,
 		})
 		_show_center_feedback(&"UI_BONUS_FEEDBACK", Color(1.0, 0.76, 0.25))
 	if _session.is_bonus != _last_bonus_state:
@@ -1366,10 +1430,14 @@ func _on_dice_pressed() -> void:
 
 func _animate_roll_and_commit(player_index: int, serial: int) -> void:
 	var forced_value := 0
-	if _tutorial_mode and player_index != _human_player_index:
-		var tutorial_strategy := _strategies.get(player_index) as TutorialStrategy
-		if tutorial_strategy != null:
-			forced_value = tutorial_strategy.take_forced_dice_value()
+	if _tutorial_mode:
+		if player_index == _human_player_index and _tutorial_first_human_roll_pending:
+			forced_value = _tutorial_scenario.forced_first_human_roll
+			_tutorial_first_human_roll_pending = false
+		elif player_index != _human_player_index:
+			var tutorial_strategy := _strategies.get(player_index) as TutorialStrategy
+			if tutorial_strategy != null:
+				forced_value = tutorial_strategy.take_forced_dice_value()
 	_rolling = true
 	_presentation_busy = true
 	AudioService.play(&"dice_shake")
@@ -1445,6 +1513,7 @@ func _on_pass_pressed() -> void:
 		_show_session_error()
 	else:
 		_animate_non_human_draws(hand_counts)
+		await _handle_tutorial_round_boundary(serial)
 	_presentation_busy = false
 	_refresh()
 
@@ -1686,10 +1755,22 @@ func _run_ai_until_human(serial: int) -> void:
 				)).timeout
 				if serial != _game_serial:
 					return
+				if _is_empty_round_about_to_draw():
+					var pending_draw_count := _session.get_pass_draw_count(player_index)
+					await _await_tutorial_checkpoint(
+						&"before_forced_draw",
+						{
+							"player_index": _session.roller_index,
+							"draw_count": pending_draw_count,
+						},
+					)
+					if serial != _game_serial:
+						return
 				var pass_hand_counts := _snapshot_hand_counts()
 				if not _session.pass_turn(player_index):
 					_apply_ai_fallback(player_index)
 				await _animate_non_human_draws(pass_hand_counts)
+				await _handle_tutorial_round_boundary(serial)
 	_ai_task_running = false
 
 
@@ -2162,6 +2243,16 @@ func _on_public_action_resolved(public_action: Dictionary) -> void:
 		_human_auto_strategy.observe_action(public_action.duplicate(true))
 	_notify_tutorial_event(&"action_resolved", public_action)
 	var action_type := StringName(str(public_action.get("type", "")))
+	if _tutorial_mode and action_type == &"roll":
+		_tutorial_normal_roll_count += 1
+	elif (
+		_tutorial_mode
+		and action_type == &"pass"
+		and int(public_action.get("player_index", -1)) == _human_player_index
+		and _tutorial_normal_roll_count == 1
+		and _session.last_play_pattern == null
+	):
+		_tutorial_needs_next_player_intro = true
 	if not action_type.is_empty():
 		_notify_tutorial_event(StringName("action_%s" % action_type), public_action)
 

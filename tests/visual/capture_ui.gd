@@ -45,6 +45,7 @@ func _capture() -> void:
 			continue_event.button_index = MOUSE_BUTTON_LEFT
 			continue_event.pressed = true
 			tutorial_director.call("_input", continue_event)
+			tutorial_director.call("_input", continue_event)
 		await get_tree().create_timer(0.3).timeout
 	if state in ["settings", "settings_applied"]:
 		(menu.get_node("%SettingsButton") as Button).pressed.emit()

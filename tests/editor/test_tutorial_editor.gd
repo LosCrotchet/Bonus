@@ -19,6 +19,9 @@ func _run() -> void:
 	var step := editor.get("_step") as TutorialStep
 	var preview := editor.get("_preview") as TutorialEditorPreview
 	assert(scenario != null)
+	assert(editor.get("_blocks_event_check") is CheckBox)
+	assert(editor.get("_releases_event_check") is CheckBox)
+	assert(scenario.forced_first_human_roll == 5)
 	assert(step != null)
 	assert(preview != null)
 	_test_graph_connection(editor, scenario)

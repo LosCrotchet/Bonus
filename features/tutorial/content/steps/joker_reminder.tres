@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="TutorialStep" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2"]
+[ext_resource type="Texture2D" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/tutorial/emoji/emoji_u1f448.png" id="4"]
+
+[sub_resource type="Resource" id="to_complete"]
+script = ExtResource("2")
+target_step_id = &"tutorial_complete"
+
+[resource]
+script = ExtResource("1")
+step_id = &"joker_reminder"
+message_key = &"TUTORIAL_JOKER_REMINDER"
+emoji = ExtResource("3")
+placement = 0
+use_custom_dialog_rect = true
+normalized_dialog_rect = Rect2(0.16, 0.64, 0.68, 0.30)
+pointer_emoji = ExtResource("4")
+pointer_target_path = NodePath("SafeArea/MainLayout/Header/HeaderRow/HandTypesButton")
+pointer_size = 62.0
+pointer_offset = Vector2(-66, 46)
+blocks_gameplay = false
+dim_background = true
+highlight_path = NodePath("SafeArea/MainLayout/Header/HeaderRow/HandTypesButton")
+input_locks = 439
+minimum_display_time = 0.35
+transitions = Array[ExtResource("2")]([SubResource("to_complete")])
+editor_graph_position = Vector2(1520, 120)

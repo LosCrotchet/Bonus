@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="TutorialStep" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2"]
+[ext_resource type="Texture2D" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="3"]
+
+[sub_resource type="Resource" id="to_deal"]
+script = ExtResource("2")
+target_step_id = &"deal_and_ranks"
+
+[resource]
+script = ExtResource("1")
+step_id = &"intro_goal"
+message_key = &"TUTORIAL_INTRO_GOAL"
+emoji = ExtResource("3")
+placement = 0
+use_custom_dialog_rect = true
+normalized_dialog_rect = Rect2(0.18, 0.65, 0.64, 0.29)
+minimum_display_time = 0.35
+type_sound_every_characters = 2
+transitions = Array[ExtResource("2")]([SubResource("to_deal")])
+editor_graph_position = Vector2(-900, 120)

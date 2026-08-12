@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="TutorialStep" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_ai_command.gd" id="3"]
+[ext_resource type="Texture2D" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="5"]
+
+[sub_resource type="Resource" id="ai_pass_1"]
+script = ExtResource("3")
+player_index = 1
+phase = 2
+action = 2
+
+[sub_resource type="Resource" id="ai_pass_2"]
+script = ExtResource("3")
+player_index = 2
+phase = 2
+action = 2
+
+[sub_resource type="Resource" id="to_wait_outcome"]
+script = ExtResource("2")
+target_step_id = &"wait_first_outcome"
+
+[resource]
+script = ExtResource("1")
+step_id = &"action_help"
+message_key = &"TUTORIAL_ACTION_HELP"
+emoji = ExtResource("5")
+placement = 1
+use_custom_dialog_rect = true
+normalized_dialog_rect = Rect2(0.16, 0.06, 0.68, 0.35)
+blocks_gameplay = false
+dim_background = false
+highlight_path = NodePath("SafeArea/MainLayout/ActionSlot/ActionBar")
+input_locks = 439
+minimum_display_time = 0.35
+scripted_ai_actions = Array[ExtResource("3")]([SubResource("ai_pass_1"), SubResource("ai_pass_2")])
+transitions = Array[ExtResource("2")]([SubResource("to_wait_outcome")])
+editor_graph_position = Vector2(300, 120)

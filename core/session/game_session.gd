@@ -255,6 +255,17 @@ func pass_turn(player_index: int) -> bool:
 	return true
 
 
+func get_pass_draw_count(player_index: int) -> int:
+	if (
+		phase != Phase.AWAITING_ACTION
+		or player_index != current_player_index
+		or last_play_pattern != null
+		or _round_pass_count < players.size() - 1
+	):
+		return 0
+	return maxi(0, 7 - dice_value) if rules.draw_count_uses_dice else PASS_DRAW_COUNT
+
+
 func draw_cards(player_index: int, count: int) -> int:
 	var drawn_count := 0
 	for _card_index in range(count):

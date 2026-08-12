@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://d22npo0xli4xf" path="res://assets/icons/button_power.png" id="7_power"]
 [ext_resource type="FontFile" uid="uid://bobda3iv4j3mt" path="res://assets/fonts/SourceHanSans-VF.otf.ttc" id="10_font"]
 [ext_resource type="Theme" uid="uid://cbc4n3ejioec4" path="res://assets/themes/cartoon_ui/controls.tres" id="11_controls"]
-[ext_resource type="Texture2D" path="res://assets/icons/tutorial.png" id="12_tutorial"]
+[ext_resource type="Texture2D" uid="uid://n0xbfx6osq21" path="res://assets/icons/tutorial.png" id="12_tutorial"]
 
 [sub_resource type="FontVariation" id="Font_default"]
 base_font = ExtResource("10_font")
@@ -139,7 +139,7 @@ layout_mode = 2
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="TutorialButton" type="Button" parent="MenuPanel/Layout/MenuButtons"]
+[node name="TutorialButton" type="Button" parent="MenuPanel/Layout/MenuButtons" unique_id=730911163]
 unique_name_in_owner = true
 texture_filter = 4
 custom_minimum_size = Vector2(0, 50)

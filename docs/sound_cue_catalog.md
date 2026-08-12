@@ -13,7 +13,7 @@
 
 | 事件 | 素材与播放规则 |
 | --- | --- |
-| `ui_hover` | `pop_1`～`pop_4` 随机不连续重复，轻微变调 |
+| `ui_hover` | `new_hover.wav`，轻微随机变调 |
 | `ui_confirm` / `ui_cancel` / `ui_invalid` | 对应同名素材；弹出式界面不叠加 confirm |
 | `tutorial_confirm` | 教程对话确认；复用 `pop_1`～`pop_4` 随机池并轻微变调 |
 | `tutorial_type` | 教程逐字显示；`dot.wav`，每个步骤可设置每 N 个字符播放一次，不设全局冷却并轻微变调 |

@@ -48,6 +48,7 @@ Pointer target 下方的 **Pointer offset** 提供 X/Y 像素偏移。先用 Sam
 - Flow Graph 打开时会根据步骤资源中的 Transition 重新同步连线；若界面连线因刷新丢失，再次拖到同一目标会恢复显示，而不会重复创建 Transition。
 - 选中步骤后，在右侧 **Outgoing Transitions** 选择连线，把 Trigger 改成 Click 或 Event。
 - Event Transition 填写 `event_key`，例如 `action_roll`、`action_play`、`initial_deal_finished`。
+- 需要在摸牌、切换回合等状态提交前暂停时，入口步骤勾选 `Block event source`，结束步骤勾选 `Release event source`。两者之间可以继续串联对话，底层事件源只会在释放后继续。
 - 点击 **Edit conditions**，在 Godot Inspector 的 `conditions` 数组中添加 `TutorialCondition`。
 - 目标 ID 留空表示结束教程。
 
