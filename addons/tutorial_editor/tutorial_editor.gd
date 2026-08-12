@@ -362,7 +362,7 @@ func _build_inspector() -> Control:
 	_continue_event_edit = _line_field(form, "Continue event", _on_step_text_changed)
 	_minimum_time = SpinBox.new()
 	_minimum_time.min_value = 0.0
-	_minimum_time.max_value = 5.0
+	_minimum_time.max_value = 20.0
 	_minimum_time.step = 0.05
 	_minimum_time.value_changed.connect(_on_step_value_changed)
 	_add_labeled_control(form, "Minimum time", _minimum_time)

@@ -18,6 +18,6 @@ message_key = &"TUTORIAL_INTRO_GOAL"
 emoji = ExtResource("3")
 use_custom_dialog_rect = true
 normalized_dialog_rect = Rect2(0.18, 0.65, 0.64, 0.29)
-minimum_display_time = 0.35
+minimum_display_time = 5.0
 transitions = Array[ExtResource("2")]([SubResource("to_deal")])
 editor_graph_position = Vector2(-900, 120)

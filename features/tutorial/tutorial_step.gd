@@ -52,7 +52,7 @@ enum InputLock {
 @export_category("Event Checkpoint")
 @export var blocks_event_source := false
 @export var releases_event_source := false
-@export_range(0.0, 5.0, 0.05) var minimum_display_time := 0.0
+@export_range(0.0, 20.0, 0.05) var minimum_display_time := 0.0
 @export_range(1, 16, 1) var type_sound_every_characters := 2
 @export var ai_commands: Array[Dictionary] = []
 @export_flags(

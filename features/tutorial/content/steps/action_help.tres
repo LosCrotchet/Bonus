@@ -16,9 +16,17 @@ script = ExtResource("3")
 player_index = 2
 phase = 2
 
-[sub_resource type="Resource" id="to_wait_outcome"]
+[sub_resource type="Resource" id="to_rules_play"]
 script = ExtResource("2")
-target_step_id = &"wait_first_outcome"
+target_step_id = &"covering_rules"
+trigger_mode = 1
+event_key = &"action_play"
+
+[sub_resource type="Resource" id="to_rules_pass"]
+script = ExtResource("2")
+target_step_id = &"covering_rules"
+trigger_mode = 1
+event_key = &"action_pass"
 
 [resource]
 script = ExtResource("1")
@@ -28,12 +36,11 @@ emoji = ExtResource("5")
 placement = 1
 use_custom_dialog_rect = true
 normalized_dialog_rect = Rect2(0.16, 0.06, 0.68, 0.35)
+continue_mode = 1
 blocks_gameplay = false
 dim_background = false
-highlight_path = NodePath("SafeArea/MainLayout/ActionSlot/ActionBar")
-show_action_bar_while_locked = true
 minimum_display_time = 5.0
-input_locks = 439
+input_locks = 455
 scripted_ai_actions = Array[ExtResource("3")]([SubResource("ai_pass_1"), SubResource("ai_pass_2")])
-transitions = Array[ExtResource("2")]([SubResource("to_wait_outcome")])
+transitions = Array[ExtResource("2")]([SubResource("to_rules_play"), SubResource("to_rules_pass")])
 editor_graph_position = Vector2(300, 120)

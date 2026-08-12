@@ -85,9 +85,11 @@ var _tutorial_show_locked_action_bar := false
 var _tutorial_state_signature := ""
 var _pending_tutorial_ai_commands: Dictionary = {}
 var _tutorial_first_human_roll_pending := false
-var _tutorial_normal_roll_count := 0
 var _tutorial_needs_next_player_intro := false
-var _tutorial_second_round_explained := false
+var tutorial_core_explained := false
+var tutorial_draw_explained := false
+var tutorial_bonus_lesson_complete := false
+var _tutorial_completion_requested := false
 var tutorial_bonus_explained := false
 var _network_initial_snapshot: Dictionary = {}
 var _network_player_meta: Dictionary = {}
@@ -284,7 +286,7 @@ func _ready() -> void:
 
 
 func _finish_card_texture_warmup() -> void:
-	await get_tree().create_timer(0.2).timeout
+	await get_tree().create_timer(0.2, false).timeout
 	CardTextureCatalog.finish_warm_up()
 
 
@@ -336,9 +338,11 @@ func _start_new_game(start_deal_animation: bool = true) -> void:
 		and _tutorial_scenario != null
 		and _tutorial_scenario.forced_first_human_roll > 0
 	)
-	_tutorial_normal_roll_count = 0
 	_tutorial_needs_next_player_intro = false
-	_tutorial_second_round_explained = false
+	tutorial_core_explained = false
+	tutorial_draw_explained = false
+	tutorial_bonus_lesson_complete = false
+	_tutorial_completion_requested = false
 	tutorial_bonus_explained = false
 	_dealing = true
 	_deal_animation_running = false
@@ -498,7 +502,7 @@ func _on_network_match_ended(reason_key: StringName) -> void:
 
 
 func _return_after_network_end(serial: int) -> void:
-	await get_tree().create_timer(1.8).timeout
+	await get_tree().create_timer(1.8, false).timeout
 	if serial == _game_serial:
 		return_to_menu_requested.emit()
 
@@ -669,6 +673,31 @@ func mark_tutorial_step_shown(step_id: StringName) -> void:
 		tutorial_bonus_explained = true
 
 
+func mark_tutorial_step_finished(step_id: StringName) -> void:
+	if not _tutorial_mode or step_id.is_empty():
+		return
+	match step_id:
+		&"joker_reminder":
+			tutorial_core_explained = true
+		&"next_player_intro":
+			tutorial_draw_explained = true
+		&"bonus_human", &"bonus_other":
+			tutorial_bonus_lesson_complete = true
+	_maybe_finish_tutorial_lessons.call_deferred()
+
+
+func _maybe_finish_tutorial_lessons() -> void:
+	if (
+		_tutorial_completion_requested
+		or not tutorial_core_explained
+		or not tutorial_draw_explained
+		or not tutorial_bonus_lesson_complete
+	):
+		return
+	_tutorial_completion_requested = true
+	_notify_tutorial_event(&"tutorial_lessons_finished")
+
+
 func _flush_tutorial_ai_commands(player_index: int) -> void:
 	var strategy := _strategies.get(player_index) as TutorialStrategy
 	if strategy == null:
@@ -716,12 +745,13 @@ func _notify_tutorial_event(
 func _await_tutorial_checkpoint(
 	event_key: StringName,
 	payload: Dictionary = {},
-) -> void:
+) -> bool:
 	if not _tutorial_mode or _tutorial_director == null:
-		return
+		return false
 	if not _tutorial_director.notify_checkpoint(event_key, payload):
-		return
+		return false
 	await _tutorial_director.event_source_released
+	return true
 
 
 func _is_empty_round_about_to_draw() -> bool:
@@ -738,17 +768,10 @@ func _handle_tutorial_round_boundary(serial: int) -> void:
 		or _session.phase != GameSession.Phase.AWAITING_ROLL
 	):
 		return
-	if _tutorial_normal_roll_count >= 2 and not _tutorial_second_round_explained:
-		_tutorial_second_round_explained = true
-		await _await_tutorial_checkpoint(
-			&"second_round_finished",
-			{"player_index": _session.current_player_index},
-		)
-		return
 	if _tutorial_needs_next_player_intro:
 		await get_tree().create_timer(SettingsService.get_gameplay_duration(
 			SettingsService.GameplayTiming.ACTION_PAUSE,
-		)).timeout
+		), false).timeout
 		if (
 			serial != _game_serial
 			or _session.phase != GameSession.Phase.AWAITING_ROLL
@@ -1482,7 +1505,10 @@ func _animate_roll_and_commit(player_index: int, serial: int) -> void:
 		dice_button.texture_normal = _dice_texture((step * 5 + 2) % 6 + 1)
 		dice_button.modulate = Color.WHITE
 		dice_button.rotation = -0.09 if step % 2 == 0 else 0.09
-		await get_tree().create_timer(SettingsService.get_dice_step_duration()).timeout
+		await get_tree().create_timer(
+			SettingsService.get_dice_step_duration(),
+			false,
+		).timeout
 
 	if serial != _game_serial:
 		return
@@ -1498,7 +1524,7 @@ func _animate_roll_and_commit(player_index: int, serial: int) -> void:
 	_refresh()
 	await get_tree().create_timer(SettingsService.get_gameplay_duration(
 		SettingsService.GameplayTiming.ACTION_PAUSE,
-	)).timeout
+	), false).timeout
 	if serial != _game_serial:
 		return
 	_presentation_busy = false
@@ -1533,9 +1559,24 @@ func _on_pass_pressed() -> void:
 	_show_pass_feedback(_human_player_index)
 	await get_tree().create_timer(SettingsService.get_gameplay_duration(
 		SettingsService.GameplayTiming.ACTION_PAUSE,
-	)).timeout
+	), false).timeout
 	if serial != _game_serial:
 		return
+	if not _network_mode and _is_empty_round_about_to_draw():
+		var pending_draw_count := _session.get_pass_draw_count(
+			_human_player_index,
+		)
+		var draw_tutorial_blocked := await _await_tutorial_checkpoint(
+			&"before_forced_draw",
+			{
+				"player_index": _session.roller_index,
+				"draw_count": pending_draw_count,
+			},
+		)
+		if draw_tutorial_blocked:
+			_tutorial_needs_next_player_intro = true
+		if serial != _game_serial:
+			return
 	if _network_mode:
 		LanMultiplayerService.request_pass()
 	elif not _session.pass_turn(_human_player_index):
@@ -1670,7 +1711,10 @@ func _run_human_automation(
 	player_index: int,
 	generation: int,
 ) -> void:
-	await get_tree().create_timer(SettingsService.get_ui_animation_duration()).timeout
+	await get_tree().create_timer(
+		SettingsService.get_ui_animation_duration(),
+		false,
+	).timeout
 	if (
 		serial != _game_serial
 		or generation != _automation_generation
@@ -1746,7 +1790,10 @@ func _run_ai_until_human(serial: int) -> void:
 		var strategy := _strategies[player_index] as PlayerStrategy
 		var context := _session.create_strategy_context(player_index)
 		var decision := strategy.choose_action(context)
-		await get_tree().create_timer(SettingsService.get_ai_think_delay()).timeout
+		await get_tree().create_timer(
+			SettingsService.get_ai_think_delay(),
+			false,
+		).timeout
 		if serial != _game_serial or player_index != _session.current_player_index:
 			return
 		if (
@@ -1781,18 +1828,20 @@ func _run_ai_until_human(serial: int) -> void:
 				_show_pass_feedback(player_index)
 				await get_tree().create_timer(SettingsService.get_gameplay_duration(
 					SettingsService.GameplayTiming.ACTION_PAUSE,
-				)).timeout
+				), false).timeout
 				if serial != _game_serial:
 					return
 				if _is_empty_round_about_to_draw():
 					var pending_draw_count := _session.get_pass_draw_count(player_index)
-					await _await_tutorial_checkpoint(
+					var draw_tutorial_blocked := await _await_tutorial_checkpoint(
 						&"before_forced_draw",
 						{
 							"player_index": _session.roller_index,
 							"draw_count": pending_draw_count,
 						},
 					)
+					if draw_tutorial_blocked:
+						_tutorial_needs_next_player_intro = true
 					if serial != _game_serial:
 						return
 				var pass_hand_counts := _snapshot_hand_counts()
@@ -1961,7 +2010,7 @@ func _wait_for_play_presentation(serial: int) -> bool:
 		return false
 	await get_tree().create_timer(SettingsService.get_gameplay_duration(
 		SettingsService.GameplayTiming.ACTION_PAUSE,
-	)).timeout
+	), false).timeout
 	return serial == _game_serial
 
 
@@ -2134,6 +2183,8 @@ func _animate_pass_label(label: Label) -> void:
 
 
 func _on_settings_pressed() -> void:
+	if settings_overlay.visible:
+		return
 	if _settings_tween != null:
 		_settings_tween.kill()
 	settings_panel.begin_edit()
@@ -2143,7 +2194,10 @@ func _on_settings_pressed() -> void:
 	settings_overlay.modulate.a = 0.0
 	settings_panel.scale = Vector2(0.96, 0.96)
 	settings_panel.pivot_offset = settings_panel.size * 0.5
-	_settings_tween = create_tween().set_parallel(true)
+	_set_overlay_pause(true)
+	_settings_tween = create_tween().set_pause_mode(
+		Tween.TWEEN_PAUSE_PROCESS,
+	).set_parallel(true)
 	_settings_tween.tween_property(settings_overlay, "modulate:a", 1.0, SettingsService.get_ui_animation_duration())
 	_settings_tween.tween_property(settings_panel, "scale", Vector2.ONE, SettingsService.get_ui_animation_duration()).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
@@ -2154,11 +2208,14 @@ func _open_hand_types() -> void:
 	if _hand_types_tween != null:
 		_hand_types_tween.kill()
 	AudioService.play(&"ui_fade_in")
+	_set_overlay_pause(true)
 	hand_types_overlay.visible = true
 	hand_types_overlay.modulate.a = 0.0
 	hand_types_dialog.scale = Vector2(0.97, 0.97)
 	hand_types_dialog.pivot_offset = hand_types_dialog.size * 0.5
-	_hand_types_tween = create_tween().set_parallel(true)
+	_hand_types_tween = create_tween().set_pause_mode(
+		Tween.TWEEN_PAUSE_PROCESS,
+	).set_parallel(true)
 	var duration := SettingsService.get_ui_animation_duration()
 	_hand_types_tween.tween_property(
 		hand_types_overlay,
@@ -2180,7 +2237,9 @@ func _close_hand_types() -> void:
 	if _hand_types_tween != null:
 		_hand_types_tween.kill()
 	AudioService.play(&"ui_fade_out")
-	_hand_types_tween = create_tween().set_parallel(true)
+	_hand_types_tween = create_tween().set_pause_mode(
+		Tween.TWEEN_PAUSE_PROCESS,
+	).set_parallel(true)
 	var duration := SettingsService.get_ui_animation_duration() * 0.78
 	_hand_types_tween.tween_property(hand_types_overlay, "modulate:a", 0.0, duration)
 	_hand_types_tween.tween_property(
@@ -2194,6 +2253,7 @@ func _close_hand_types() -> void:
 			hand_types_overlay.visible = false
 			hand_types_overlay.modulate.a = 1.0
 			hand_types_dialog.scale = Vector2.ONE
+			_set_overlay_pause(false)
 	)
 
 
@@ -2204,7 +2264,9 @@ func _close_settings() -> void:
 		_settings_tween.kill()
 	AudioService.play(&"ui_fade_out")
 	settings_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_settings_tween = create_tween().set_parallel(true)
+	_settings_tween = create_tween().set_pause_mode(
+		Tween.TWEEN_PAUSE_PROCESS,
+	).set_parallel(true)
 	_settings_tween.tween_property(
 		settings_overlay,
 		"modulate:a",
@@ -2222,11 +2284,33 @@ func _close_settings() -> void:
 			settings_overlay.visible = false
 			settings_overlay.modulate.a = 1.0
 			settings_panel.scale = Vector2.ONE
+			_set_overlay_pause(false)
 	)
+
+
+func _set_overlay_pause(paused: bool) -> void:
+	if _network_mode:
+		return
+	get_tree().paused = paused or settings_overlay.visible or hand_types_overlay.visible
+
+
+func _exit_tree() -> void:
+	if not _network_mode and get_tree() != null:
+		get_tree().paused = false
 
 
 func _on_settings_applied() -> void:
 	_refresh()
+	# The match is paused while settings are open, so underlying gameplay UI
+	# tweens intentionally do not run. Snap settings-driven visibility to its
+	# final state while the modal remains open.
+	if get_tree().paused and settings_overlay.visible:
+		if _instruction_tween != null and _instruction_tween.is_valid():
+			_instruction_tween.kill()
+		_instruction_tween = null
+		instruction_hint.modulate.a = (
+			1.0 if SettingsService.show_status_text else 0.0
+		)
 
 
 func _on_settings_changed(_snapshot: Dictionary) -> void:
@@ -2251,6 +2335,8 @@ func _on_return_to_menu_requested() -> void:
 	):
 		SaveGameService.save_session(_session, _use_custom_seed)
 	settings_overlay.visible = false
+	hand_types_overlay.visible = false
+	_set_overlay_pause(false)
 	result_overlay.visible = false
 	return_to_menu_requested.emit()
 
@@ -2272,16 +2358,6 @@ func _on_public_action_resolved(public_action: Dictionary) -> void:
 		_human_auto_strategy.observe_action(public_action.duplicate(true))
 	_notify_tutorial_event(&"action_resolved", public_action)
 	var action_type := StringName(str(public_action.get("type", "")))
-	if _tutorial_mode and action_type == &"roll":
-		_tutorial_normal_roll_count += 1
-	elif (
-		_tutorial_mode
-		and action_type == &"pass"
-		and int(public_action.get("player_index", -1)) == _human_player_index
-		and _tutorial_normal_roll_count == 1
-		and _session.last_play_pattern == null
-	):
-		_tutorial_needs_next_player_intro = true
 	if not action_type.is_empty():
 		_notify_tutorial_event(StringName("action_%s" % action_type), public_action)
 

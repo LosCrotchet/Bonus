@@ -8,9 +8,9 @@
 [ext_resource type="Script" uid="uid://dgss6q7ydmndf" path="res://features/tutorial/tutorial_ai_command.gd" id="5_8rcl7"]
 [ext_resource type="Script" uid="uid://6ma7dkfcx3mm" path="res://features/tutorial/tutorial_condition.gd" id="7_s1t3c"]
 
-[sub_resource type="Resource" id="to_complete"]
+[sub_resource type="Resource" id="to_monitor"]
 script = ExtResource("2")
-target_step_id = &"tutorial_complete"
+target_step_id = &"post_tutorial_monitor"
 
 [resource]
 script = ExtResource("1")
@@ -25,7 +25,7 @@ pointer_size = 62.0
 pointer_offset = Vector2(24, 46)
 blocks_gameplay = false
 highlight_path = NodePath("SafeArea/MainLayout/Header/HeaderRow/HandTypesButton")
-minimum_display_time = 0.35
+minimum_display_time = 4.0
 input_locks = 439
-transitions = Array[ExtResource("2")]([SubResource("to_complete")])
+transitions = Array[ExtResource("2")]([SubResource("to_monitor")])
 editor_graph_position = Vector2(1520, 120)

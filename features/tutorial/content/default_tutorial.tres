@@ -11,21 +11,17 @@
 [ext_resource type="Resource" uid="uid://bdp51wq4k8x7" path="res://features/tutorial/content/steps/bonus_human.tres" id="9"]
 [ext_resource type="Resource" uid="uid://1h8lvqqdkg6d" path="res://features/tutorial/content/steps/forced_draw.tres" id="10"]
 [ext_resource type="Resource" uid="uid://cqvk4a4cnraci" path="res://features/tutorial/content/steps/next_player_intro.tres" id="11"]
-[ext_resource type="Resource" uid="uid://c7tmpykmvrb6v" path="res://features/tutorial/content/steps/wait_second_round.tres" id="12"]
 [ext_resource type="Resource" uid="uid://dks4qp1t068c8" path="res://features/tutorial/content/steps/bonus_other.tres" id="13"]
 [ext_resource type="Resource" uid="uid://li2ey5s3ku6x" path="res://features/tutorial/content/steps/covering_rules.tres" id="14"]
 [ext_resource type="Resource" uid="uid://ctt3d5m7uuqmw" path="res://features/tutorial/content/steps/joker_reminder.tres" id="15"]
 [ext_resource type="Resource" uid="uid://cwve6mwhqw2hg" path="res://features/tutorial/content/steps/tutorial_complete.tres" id="16"]
-[ext_resource type="Resource" uid="uid://dsbcp7tl122j0" path="res://features/tutorial/content/steps/wait_first_outcome.tres" id="17"]
 [ext_resource type="Resource" uid="uid://cf8n4meirk8xh" path="res://features/tutorial/content/steps/wait_next_player_checkpoint.tres" id="18"]
-[ext_resource type="Resource" uid="uid://88babaff83om" path="res://features/tutorial/content/steps/wait_second_round_no_bonus.tres" id="19"]
 [ext_resource type="Resource" uid="uid://c8d0xidewmg5n" path="res://features/tutorial/content/steps/post_tutorial_monitor.tres" id="20"]
-[ext_resource type="Resource" uid="uid://bm10uc85bk16v" path="res://features/tutorial/content/steps/bonus_human_late.tres" id="21"]
-[ext_resource type="Resource" uid="uid://ese7cguamwst" path="res://features/tutorial/content/steps/bonus_other_late.tres" id="22"]
+[ext_resource type="Resource" uid="uid://crd770n2ylwrc" path="res://features/tutorial/content/steps/welcome.tres" id="23"]
 
 [resource]
 script = ExtResource("1")
 seed_text = "tutorial"
 forced_first_human_roll = 5
-steps = Array[ExtResource("2")]([ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8"), ExtResource("17"), ExtResource("9"), ExtResource("10"), ExtResource("18"), ExtResource("11"), ExtResource("12"), ExtResource("19"), ExtResource("13"), ExtResource("14"), ExtResource("15"), ExtResource("16"), ExtResource("20"), ExtResource("21"), ExtResource("22")])
-entry_step_id = &"intro_goal"
+steps = Array[ExtResource("2")]([ExtResource("23"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8"), ExtResource("14"), ExtResource("15"), ExtResource("20"), ExtResource("9"), ExtResource("13"), ExtResource("10"), ExtResource("18"), ExtResource("11"), ExtResource("16")])
+entry_step_id = &"welcome"

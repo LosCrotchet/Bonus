@@ -912,7 +912,8 @@ vertical_alignment = 1
 [node name="HandTypesOverlay" type="Control" parent="." unique_id=428305032]
 unique_name_in_owner = true
 visible = false
-z_index = 65
+process_mode = 3
+z_index = 105
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -956,7 +957,8 @@ layout_mode = 2
 [node name="SettingsOverlay" type="Control" parent="." unique_id=288406109]
 unique_name_in_owner = true
 visible = false
-z_index = 60
+process_mode = 3
+z_index = 100
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

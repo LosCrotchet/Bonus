@@ -11,39 +11,9 @@ func _run_test() -> void:
 	) as TutorialScenario
 	assert(scenario != null)
 	assert(scenario.validate_graph().is_empty())
+	assert(scenario.entry_step_id == &"welcome")
 	assert(scenario.forced_first_human_roll == 5)
-	var action_help := scenario.get_step(&"action_help")
-	assert(action_help != null)
-	assert(action_help.get_message(self).contains("\n"))
-	assert(action_help.minimum_display_time == 5.0)
-	assert(action_help.show_action_bar_while_locked)
-	var rolled_five := scenario.get_step(&"rolled_five")
-	assert(rolled_five != null)
-	assert(not rolled_five.dim_background)
-	assert((rolled_five.input_locks & TutorialStep.InputLock.HAND) != 0)
-	for bonus_step_id in [
-		&"bonus_human",
-		&"bonus_other",
-		&"bonus_human_late",
-		&"bonus_other_late",
-	]:
-		var bonus_step := scenario.get_step(bonus_step_id)
-		assert(bonus_step.minimum_display_time == 4.0)
-		assert(bonus_step.normalized_dialog_rect.position.y >= 0.6)
-	for step_id in [
-		&"intro_goal",
-		&"deal_and_ranks",
-		&"first_roll_intro",
-		&"rolled_five",
-		&"action_help",
-		&"bonus_human",
-		&"forced_draw",
-		&"next_player_intro",
-		&"covering_rules",
-		&"joker_reminder",
-		&"tutorial_complete",
-	]:
-		assert(scenario.get_step(step_id) != null, "Missing tutorial step: %s" % step_id)
+	_assert_storyboard_resources(scenario)
 
 	var game := (load("res://features/game/game_scene.tscn") as PackedScene).instantiate() as Control
 	game.call("configure_tutorial", true, scenario)
@@ -51,17 +21,18 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var director := game.get("_tutorial_director") as TutorialDirector
-	assert((director.get("_current_step") as TutorialStep).step_id == &"intro_goal")
+	assert(_step_id(director) == &"welcome")
+	_advance_dialog(director)
+	assert(_step_id(director) == &"intro_goal")
 	_advance_dialog(director)
 	await get_tree().process_frame
-	assert((director.get("_current_step") as TutorialStep).step_id == &"deal_and_ranks")
+	assert(_step_id(director) == &"deal_and_ranks")
 	assert(not bool(game.get("_tutorial_gameplay_locked")))
 	game.call("_finish_initial_deal")
 	await get_tree().process_frame
-	assert((director.get("_current_step") as TutorialStep).step_id == &"first_roll_intro")
+	assert(_step_id(director) == &"first_roll_intro")
 	_advance_dialog(director)
-	await get_tree().process_frame
-	assert((director.get("_current_step") as TutorialStep).step_id == &"wait_first_roll")
+	assert(_step_id(director) == &"wait_first_roll")
 
 	game.call("_animate_roll_and_commit", 0, int(game.get("_game_serial")))
 	assert(await _wait_until(
@@ -72,63 +43,120 @@ func _run_test() -> void:
 			),
 		5.0,
 	))
-	assert((director.get("_current_step") as TutorialStep).step_id == &"rolled_five")
+	assert(_step_id(director) == &"rolled_five")
 	assert(not (game.get_node("%ActionBar") as Control).visible)
 	assert(not bool(game.get_node("%HandView").get("_interaction_enabled")))
 	_advance_dialog(director)
-	assert((director.get("_current_step") as TutorialStep).step_id == &"action_help")
-	await get_tree().process_frame
-	assert((game.get_node("%ActionBar") as Control).visible)
-	assert((game.get_node("%PlayButton") as Button).disabled)
-	assert((game.get_node("%PassButton") as Button).disabled)
+	assert(_step_id(director) == &"action_help")
+	assert(await _wait_until(
+		func() -> bool:
+			return (game.get_node("%ActionBar") as Control).visible,
+		1.0,
+	))
+	assert(not (game.get_node("%PassButton") as Button).disabled)
+	assert(bool(game.get_node("%HandView").get("_interaction_enabled")))
+
+	# Step five is action-driven: clicking the dialog cannot advance it.
 	_advance_dialog(director)
-	assert((director.get("_current_step") as TutorialStep).step_id == &"wait_first_outcome")
+	assert(_step_id(director) == &"action_help")
+	director.notify_event(&"action_play", {"player_index": 0})
+	assert(_step_id(director) == &"covering_rules")
+	assert((int(game.get("_tutorial_input_locks")) & TutorialStep.InputLock.AI) != 0)
+	assert((int(game.get("_tutorial_input_locks")) & TutorialStep.InputLock.HAND) == 0)
+	_advance_dialog(director)
+	assert(_step_id(director) == &"joker_reminder")
+	_advance_dialog(director)
+	assert(_step_id(director) == &"post_tutorial_monitor")
+	assert(bool(game.get("tutorial_core_explained")))
+	assert(not bool(game.get("_tutorial_completion_requested")))
+
+	# The first empty-round draw lesson remains available even when the player
+	# did not pass during their first action.
 	assert(director.notify_checkpoint(&"before_forced_draw", {
 		"player_index": 0,
 		"draw_count": 3,
 	}))
-	assert((director.get("_current_step") as TutorialStep).step_id == &"forced_draw")
+	assert(_step_id(director) == &"forced_draw")
 	_advance_dialog(director)
-	await get_tree().process_frame
-	assert((director.get("_current_step") as TutorialStep).step_id == &"wait_next_player_checkpoint")
+	assert(_step_id(director) == &"wait_next_player_checkpoint")
 	assert(director.notify_checkpoint(&"before_next_player_roll", {"player_index": 1}))
-	assert((director.get("_current_step") as TutorialStep).step_id == &"next_player_intro")
+	assert(_step_id(director) == &"next_player_intro")
 	_advance_dialog(director)
-	await get_tree().process_frame
-	assert((director.get("_current_step") as TutorialStep).step_id == &"wait_second_round")
+	assert(_step_id(director) == &"post_tutorial_monitor")
+	assert(bool(game.get("tutorial_draw_explained")))
+	assert(not director.notify_checkpoint(&"before_forced_draw", {
+		"player_index": 1,
+		"draw_count": 3,
+	}))
+	assert(not director.notify_checkpoint(&"before_forced_draw", {
+		"player_index": 0,
+		"draw_count": 3,
+	}))
+	assert(_step_id(director) == &"post_tutorial_monitor")
+
 	director.notify_event(&"bonus_started", {"player_index": 1})
-	assert((director.get("_current_step") as TutorialStep).step_id == &"bonus_other")
-	director.notify_event(&"second_round_finished", {"player_index": 1})
-	assert((director.get("_current_step") as TutorialStep).step_id == &"bonus_other")
+	assert(_step_id(director) == &"bonus_other")
 	_advance_dialog(director)
-	assert(
-		(director.get("_current_step") as TutorialStep).step_id
-		== &"wait_second_round_no_bonus"
-	)
-	assert(director.notify_checkpoint(&"second_round_finished", {"player_index": 1}))
-	assert((director.get("_current_step") as TutorialStep).step_id == &"covering_rules")
-	_advance_dialog(director)
-	assert((director.get("_current_step") as TutorialStep).step_id == &"joker_reminder")
-	_advance_dialog(director)
-	assert((director.get("_current_step") as TutorialStep).step_id == &"tutorial_complete")
-	_advance_dialog(director)
+	assert(_step_id(director) == &"post_tutorial_monitor")
 	await get_tree().process_frame
-	assert((director.get("_current_step") as TutorialStep).step_id == &"post_tutorial_monitor")
-	assert(not bool(game.get("_tutorial_gameplay_locked")))
-	assert(int(game.get("_tutorial_input_locks")) == 0)
-	game.set("tutorial_bonus_explained", false)
-	director.notify_event(&"bonus_started", {"player_index": 1})
-	assert((director.get("_current_step") as TutorialStep).step_id == &"bonus_other_late")
-	assert(bool(game.get("tutorial_bonus_explained")))
+	assert(_step_id(director) == &"tutorial_complete")
 	_advance_dialog(director)
-	assert((director.get("_current_step") as TutorialStep).step_id == &"post_tutorial_monitor")
+	assert(_step_id(director) == &"post_tutorial_monitor")
+	assert(bool(game.get("tutorial_bonus_lesson_complete")))
 	director.notify_event(&"bonus_started", {"player_index": 0})
-	assert((director.get("_current_step") as TutorialStep).step_id == &"post_tutorial_monitor")
+	assert(_step_id(director) == &"post_tutorial_monitor")
+	assert(not bool(game.get("_tutorial_gameplay_locked")))
 
 	print("BONUS_TEST_TUTORIAL_STORYBOARD_OK")
 	game.queue_free()
 	await AudioService.shutdown()
 	get_tree().quit()
+
+
+func _assert_storyboard_resources(scenario: TutorialScenario) -> void:
+	for step_id in [
+		&"welcome",
+		&"intro_goal",
+		&"deal_and_ranks",
+		&"first_roll_intro",
+		&"rolled_five",
+		&"action_help",
+		&"covering_rules",
+		&"joker_reminder",
+		&"bonus_human",
+		&"bonus_other",
+		&"forced_draw",
+		&"next_player_intro",
+		&"tutorial_complete",
+	]:
+		assert(scenario.get_step(step_id) != null, "Missing tutorial step: %s" % step_id)
+	var deal := scenario.get_step(&"deal_and_ranks")
+	assert(deal.pointer_offset == Vector2(-100.0, -120.0))
+	var first_roll := scenario.get_step(&"first_roll_intro")
+	assert(first_roll.pointer_offset == Vector2(150.0, 0.0))
+	assert(first_roll.normalized_dialog_rect.size.x >= 0.479)
+	var rolled_five := scenario.get_step(&"rolled_five")
+	assert(rolled_five.normalized_dialog_rect.size.x >= 0.459)
+	assert(not rolled_five.dim_background)
+	assert((rolled_five.input_locks & TutorialStep.InputLock.HAND) != 0)
+	var action_help := scenario.get_step(&"action_help")
+	assert(action_help.continue_mode == TutorialStep.ContinueMode.EVENT)
+	assert(not action_help.blocks_gameplay)
+	var action_events: Array[StringName] = []
+	for transition in action_help.transitions:
+		if transition != null:
+			action_events.append(transition.event_key)
+	assert(&"action_play" in action_events)
+	assert(&"action_pass" in action_events)
+	for bonus_step_id in [&"bonus_human", &"bonus_other"]:
+		var bonus_step := scenario.get_step(bonus_step_id)
+		assert(bonus_step.minimum_display_time == 4.0)
+		assert(bonus_step.normalized_dialog_rect.position.y >= 0.6)
+
+
+func _step_id(director: TutorialDirector) -> StringName:
+	var step := director.get("_current_step") as TutorialStep
+	return step.step_id if step != null else StringName()
 
 
 func _advance_dialog(director: TutorialDirector) -> void:

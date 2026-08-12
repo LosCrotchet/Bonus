@@ -54,11 +54,17 @@ func _run_test() -> void:
 	var message_label := director.get_node("%Message") as Label
 	assert(message_label.text == current_step.get_message(director))
 	assert((director.get_node("%Emoji") as TextureRect).texture != null)
+	assert(director.z_index > 48)
+	assert((game.get_node("%SettingsOverlay") as Control).z_index > director.z_index)
+	assert((game.get_node("%HandTypesOverlay") as Control).z_index > director.z_index)
 	var continue_indicator := director.get_node("%ContinueIndicator") as TextureRect
 	if message_label.visible_characters != -1:
 		assert(not continue_indicator.visible)
 		assert(not bool(director.get("_continue_ready")))
 		director.call("_input", _left_click(Vector2(640.0, 360.0)))
+	if not bool(director.get("_continue_ready")):
+		director.set("_minimum_display_complete", true)
+		director.call("_try_enable_continue")
 	assert((director.get("_current_step") as TutorialStep).step_id == current_step.step_id)
 	assert(message_label.visible_characters == -1)
 	assert(continue_indicator.visible)
@@ -80,6 +86,26 @@ func _run_test() -> void:
 	assert(not (game.get_node("%SettingsButton") as Button).disabled)
 	assert(not (game.get_node("%HandTypesButton") as Button).disabled)
 
+	# Modal overlays pause the underlying local match and tutorial, while their
+	# own close controls and animation continue to process.
+	var paused_step_id := current_step.step_id
+	game.call("_on_settings_pressed")
+	assert(get_tree().paused)
+	assert((game.get_node("%SettingsOverlay") as Control).visible)
+	await get_tree().create_timer(0.15, true).timeout
+	assert((director.get("_current_step") as TutorialStep).step_id == paused_step_id)
+	(game.get_node("%SettingsPanel") as Control).call("cancel_edit")
+	await get_tree().create_timer(0.8, true).timeout
+	assert(not (game.get_node("%SettingsOverlay") as Control).visible)
+	assert(not get_tree().paused)
+	game.call("_open_hand_types")
+	assert(get_tree().paused)
+	assert((game.get_node("%HandTypesOverlay") as Control).visible)
+	game.call("_close_hand_types")
+	await get_tree().create_timer(0.8, true).timeout
+	assert(not (game.get_node("%HandTypesOverlay") as Control).visible)
+	assert(not get_tree().paused)
+
 	var blocked_skip := _double_click(
 		game.get_node("%PlayedPanel").get_global_rect().get_center(),
 	)
@@ -97,6 +123,10 @@ func _run_test() -> void:
 	assert((director.get("_current_step") as TutorialStep).step_id == current_step.step_id)
 
 	director.call("_input", _left_click(Vector2(640.0, 360.0)))
+	await get_tree().process_frame
+	current_step = director.get("_current_step") as TutorialStep
+	assert(current_step.step_id == &"intro_goal")
+	_advance_dialog(director)
 	await get_tree().process_frame
 	current_step = director.get("_current_step") as TutorialStep
 	assert(current_step.step_id == &"deal_and_ranks")
@@ -224,6 +254,8 @@ func _run_test() -> void:
 	assert(director.get("_current_step") == graph_a)
 	assert((director.get_node("%Message") as Label).visible_characters == -1)
 	assert((director.get_node("%Message") as Label).get_line_count() > 1)
+	director.set("_minimum_display_complete", true)
+	director.call("_try_enable_continue")
 	director.call("_input", _left_click(Vector2(640.0, 360.0)))
 	assert(director.get("_current_step") == graph_b)
 	director.notify_event(&"branch_event", {"choice": "no"})
@@ -259,3 +291,12 @@ func _double_click(position: Vector2) -> InputEventMouseButton:
 	var event := _left_click(position)
 	event.double_click = true
 	return event
+
+
+func _advance_dialog(director: TutorialDirector) -> void:
+	var event := _left_click(Vector2(640.0, 360.0))
+	director.call("_input", event)
+	if not bool(director.get("_continue_ready")):
+		director.set("_minimum_display_complete", true)
+		director.call("_try_enable_continue")
+	director.call("_input", event)
