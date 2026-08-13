@@ -409,56 +409,137 @@ func to_snapshot() -> Dictionary:
 
 
 func restore_from_snapshot(snapshot: Dictionary) -> bool:
-	var player_values := snapshot.get("players", []) as Array
+	var player_values_value: Variant = snapshot.get("players", null)
+	var rules_value: Variant = snapshot.get("rules", null)
+	if player_values_value is not Array or rules_value is not Dictionary:
+		return false
+	var player_values := player_values_value as Array
 	if player_values.size() < 2 or player_values.size() > 4:
 		return false
-	var loaded_rules := _rules_from_snapshot(snapshot.get("rules", {}) as Dictionary)
+	var loaded_rules := _rules_from_snapshot(rules_value as Dictionary)
 	var loaded_players: Array[PlayerState] = []
+	var player_ids := {}
 	for player_value in player_values:
 		if player_value is not Dictionary:
 			return false
 		var player_snapshot := player_value as Dictionary
+		var player_id := int(player_snapshot.get("player_id", -1))
+		var hand_value: Variant = player_snapshot.get("hand", null)
+		if hand_value is not Array:
+			return false
+		var hand_snapshots := hand_value as Array
+		if player_id < 0 or player_id >= player_values.size() or player_ids.has(player_id):
+			return false
+		if not _are_card_snapshots_structurally_valid(hand_snapshots):
+			return false
+		player_ids[player_id] = true
 		var player := PlayerState.new(
-			int(player_snapshot.get("player_id", loaded_players.size())),
+			player_id,
 			str(player_snapshot.get("display_name", "")),
 		)
-		player.hand.assign(_cards_from_snapshots(player_snapshot.get("hand", []) as Array))
+		player.hand.assign(_cards_from_snapshots(hand_snapshots))
 		loaded_players.append(player)
 
-	var loaded_draw_pile := _cards_from_snapshots(snapshot.get("draw_pile", []) as Array)
-	var loaded_discard_pile := _cards_from_snapshots(snapshot.get("discard_pile", []) as Array)
-	var loaded_table_cards := _cards_from_snapshots(
-		snapshot.get("last_played_cards", []) as Array,
-	)
+	var draw_value: Variant = snapshot.get("draw_pile", null)
+	var discard_value: Variant = snapshot.get("discard_pile", null)
+	var table_value: Variant = snapshot.get("last_played_cards", null)
+	if draw_value is not Array or discard_value is not Array or table_value is not Array:
+		return false
+	var draw_snapshots := draw_value as Array
+	var discard_snapshots := discard_value as Array
+	var table_snapshots := table_value as Array
+	if (
+		not _are_card_snapshots_structurally_valid(draw_snapshots)
+		or not _are_card_snapshots_structurally_valid(discard_snapshots)
+		or not _are_card_snapshots_structurally_valid(table_snapshots)
+	):
+		return false
+	var loaded_draw_pile := _cards_from_snapshots(draw_snapshots)
+	var loaded_discard_pile := _cards_from_snapshots(discard_snapshots)
+	var loaded_table_cards := _cards_from_snapshots(table_snapshots)
 	var expected_count := 108 if loaded_rules.include_jokers else 104
+	var canonical_cards := {}
+	for card in DeckFactory.create_two_deck(loaded_rules.include_jokers):
+		canonical_cards[card.card_id] = card
 	var card_ids := {}
 	var total_count := 0
 	for card_list in [loaded_draw_pile, loaded_discard_pile, loaded_table_cards]:
 		for card in card_list:
-			if card_ids.has(card.card_id):
+			if not _is_canonical_card(card, canonical_cards) or card_ids.has(card.card_id):
 				return false
 			card_ids[card.card_id] = true
 			total_count += 1
 	for player in loaded_players:
 		for card in player.hand:
-			if card_ids.has(card.card_id):
+			if not _is_canonical_card(card, canonical_cards) or card_ids.has(card.card_id):
 				return false
 			card_ids[card.card_id] = true
 			total_count += 1
 	if total_count != expected_count:
 		return false
 
+	var pattern_snapshot: Variant = snapshot.get("last_play_pattern", null)
+	var loaded_pattern := _pattern_from_snapshot(pattern_snapshot)
+	if pattern_snapshot != null and loaded_pattern == null:
+		return false
+	if not _is_valid_table_pattern(loaded_table_cards, loaded_pattern, loaded_rules):
+		return false
+
 	var loaded_phase := int(snapshot.get("phase", Phase.READY))
 	var loaded_current := int(snapshot.get("current_player_index", 0))
 	var loaded_roller := int(snapshot.get("roller_index", 0))
+	var loaded_last_player := int(snapshot.get("last_player_index", -1))
+	var loaded_played_by := int(snapshot.get("played_by_index", -1))
+	var loaded_dice := int(snapshot.get("dice_value", 0))
+	var loaded_winner := int(snapshot.get("winner_index", -1))
+	var loaded_passes := int(snapshot.get("passes_since_play", 0))
+	var loaded_round_passes := int(snapshot.get("round_pass_count", 0))
+	var player_count := loaded_players.size()
 	if (
 		loaded_phase < Phase.READY
 		or loaded_phase > Phase.FINISHED
 		or loaded_current < 0
 		or loaded_current >= loaded_players.size()
 		or loaded_roller < 0
-		or loaded_roller >= loaded_players.size()
+		or loaded_roller >= player_count
+		or not _is_optional_player_index(loaded_last_player, player_count)
+		or not _is_optional_player_index(loaded_played_by, player_count)
+		or not _is_optional_player_index(loaded_winner, player_count)
+		or loaded_passes < 0
+		or loaded_passes >= player_count
+		or loaded_round_passes < 0
+		or loaded_round_passes >= player_count
 	):
+		return false
+	if loaded_phase == Phase.AWAITING_ACTION or loaded_phase == Phase.FINISHED:
+		if loaded_dice < 1 or loaded_dice > 6:
+			return false
+	elif loaded_dice != 0:
+		return false
+	if (loaded_phase == Phase.FINISHED) != (loaded_winner != -1):
+		return false
+	if not loaded_table_cards.is_empty() and loaded_played_by == -1:
+		return false
+	if loaded_table_cards.is_empty() and loaded_played_by != -1:
+		return false
+	if bool(snapshot.get("is_bonus", false)) and loaded_phase != Phase.AWAITING_ACTION:
+		return false
+	var event_args_value: Variant = snapshot.get("event_args", {})
+	if event_args_value is not Dictionary:
+		return false
+	var loaded_event_args := (event_args_value as Dictionary).duplicate(true)
+	var deal_orders_value: Variant = snapshot.get("initial_deal_card_ids", [])
+	if deal_orders_value is not Array:
+		return false
+	var loaded_deal_orders: Array[PackedInt32Array] = []
+	for order_value in deal_orders_value as Array:
+		if order_value is not Array:
+			return false
+		var order := PackedInt32Array()
+		for card_id in order_value as Array:
+			order.append(int(card_id))
+		loaded_deal_orders.append(order)
+	if loaded_deal_orders.size() > player_count:
 		return false
 
 	rules = loaded_rules
@@ -466,13 +547,13 @@ func restore_from_snapshot(snapshot: Dictionary) -> bool:
 	draw_pile.assign(loaded_draw_pile)
 	discard_pile.assign(loaded_discard_pile)
 	last_played_cards.assign(loaded_table_cards)
-	last_play_pattern = _pattern_from_snapshot(snapshot.get("last_play_pattern", null))
+	last_play_pattern = loaded_pattern
 	current_player_index = loaded_current
 	roller_index = loaded_roller
-	last_player_index = int(snapshot.get("last_player_index", -1))
-	played_by_index = int(snapshot.get("played_by_index", -1))
-	dice_value = int(snapshot.get("dice_value", 0))
-	winner_index = int(snapshot.get("winner_index", -1))
+	last_player_index = loaded_last_player
+	played_by_index = loaded_played_by
+	dice_value = loaded_dice
+	winner_index = loaded_winner
 	phase = loaded_phase as Phase
 	is_bonus = bool(snapshot.get("is_bonus", false))
 	game_seed = int(str(snapshot.get("game_seed", "0")))
@@ -484,19 +565,14 @@ func restore_from_snapshot(snapshot: Dictionary) -> bool:
 	)
 	_random_source.seed = int(str(snapshot.get("rng_seed", str(game_seed))))
 	_random_source.state = int(str(snapshot.get("rng_state", str(_random_source.state))))
-	_passes_since_play = int(snapshot.get("passes_since_play", 0))
-	_round_pass_count = int(snapshot.get("round_pass_count", 0))
+	_passes_since_play = loaded_passes
+	_round_pass_count = loaded_round_passes
 	_bonus_candidate = bool(snapshot.get("bonus_candidate", false))
 	event_key = StringName(str(snapshot.get("event_key", "")))
-	event_args = (snapshot.get("event_args", {}) as Dictionary).duplicate(true)
+	event_args = loaded_event_args
 	last_error_key = &""
 	last_error_args.clear()
-	initial_deal_card_ids.clear()
-	for order_value in snapshot.get("initial_deal_card_ids", []) as Array:
-		var order := PackedInt32Array()
-		for card_id in order_value as Array:
-			order.append(int(card_id))
-		initial_deal_card_ids.append(order)
+	initial_deal_card_ids.assign(loaded_deal_orders)
 	while initial_deal_card_ids.size() < players.size():
 		initial_deal_card_ids.append(PackedInt32Array())
 	return true
@@ -635,6 +711,46 @@ func _cards_from_snapshots(snapshots: Array) -> Array[CardData]:
 	return cards
 
 
+func _are_card_snapshots_structurally_valid(snapshots: Array) -> bool:
+	for value in snapshots:
+		if value is not Dictionary:
+			return false
+	return true
+
+
+func _is_canonical_card(card: CardData, canonical_cards: Dictionary) -> bool:
+	var expected := canonical_cards.get(card.card_id) as CardData
+	return (
+		expected != null
+		and card.rank == expected.rank
+		and card.suit == expected.suit
+		and card.joker_kind == expected.joker_kind
+		and card.deck_index == expected.deck_index
+	)
+
+
+func _is_valid_table_pattern(
+	table_cards: Array[CardData],
+	pattern: HandPattern,
+	loaded_rules: GameRules,
+) -> bool:
+	if table_cards.is_empty():
+		return pattern == null
+	if pattern == null or pattern.card_count != table_cards.size():
+		return false
+	for candidate in HandEvaluator.evaluate_all(table_cards, loaded_rules):
+		if (
+			candidate.get_key() == pattern.get_key()
+			and candidate.contains_joker == pattern.contains_joker
+		):
+			return true
+	return false
+
+
+func _is_optional_player_index(value: int, player_count: int) -> bool:
+	return value == -1 or (value >= 0 and value < player_count)
+
+
 func _rules_to_snapshot(value: GameRules) -> Dictionary:
 	return {
 		"include_jokers": value.include_jokers,
@@ -673,10 +789,22 @@ func _pattern_from_snapshot(value: Variant) -> HandPattern:
 	if value is not Dictionary:
 		return null
 	var pattern := value as Dictionary
+	var type_value := int(pattern.get("type", -1))
+	var card_count := int(pattern.get("card_count", 0))
+	var main_rank := int(pattern.get("main_rank", 0))
+	if (
+		type_value < HandPattern.Type.SINGLE
+		or type_value > HandPattern.Type.TRIPLE_WITH_TRIPLE
+		or card_count < 1
+		or card_count > 6
+		or main_rank < CardData.Rank.THREE
+		or main_rank > CardData.JokerKind.BIG + CardData.Rank.TWO
+	):
+		return null
 	return HandPattern.new(
-		int(pattern.get("type", HandPattern.Type.SINGLE)) as HandPattern.Type,
-		int(pattern.get("card_count", 1)),
-		int(pattern.get("main_rank", 0)),
+		type_value as HandPattern.Type,
+		card_count,
+		main_rank,
 		bool(pattern.get("contains_joker", false)),
 		bool(pattern.get("uses_wildcard", false)),
 	)

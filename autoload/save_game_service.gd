@@ -11,7 +11,11 @@ func has_unfinished_game() -> bool:
 	if payload.is_empty():
 		return false
 	var session_snapshot := payload.get("session", {}) as Dictionary
-	return int(session_snapshot.get("phase", GameSession.Phase.FINISHED)) != GameSession.Phase.FINISHED
+	var session := GameSession.new()
+	if not session.restore_from_snapshot(session_snapshot):
+		clear_save()
+		return false
+	return session.phase != GameSession.Phase.FINISHED
 
 
 func save_session(session: GameSession, custom_seed: bool = false) -> bool:

@@ -2,7 +2,14 @@ extends Node
 
 
 func _ready() -> void:
+	_start_watchdog()
 	_run_test.call_deferred()
+
+
+func _start_watchdog() -> void:
+	await get_tree().create_timer(20.0).timeout
+	push_error("BONUS_TEST_APP_TIMEOUT")
+	get_tree().quit(1)
 
 
 func _run_test() -> void:
@@ -14,7 +21,8 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	assert((app.get_node("Version") as Label).text == "v0.5.20")
+	var project_version := str(ProjectSettings.get_setting("application/config/version", ""))
+	assert((app.get_node("Version") as Label).text == "v%s" % project_version)
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
 	assert(menu != null)

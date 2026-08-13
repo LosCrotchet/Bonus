@@ -159,34 +159,34 @@ func _cards_for(ranks: Array) -> Array[CardData]:
 func _get_groups() -> Array[Dictionary]:
 	return [
 		{"point": 1, "entries": [
-			_entry(&"HAND_SINGLE", &"HAND_DESC_SINGLE", [7]),
+			_entry(&"HAND_SINGLE", &"HAND_DESC_SINGLE", [3]),
 		]},
 		{"point": 2, "entries": [
 			_entry(&"HAND_PAIR", &"HAND_DESC_PAIR", [7, 7]),
 		]},
 		{"point": 3, "entries": [
 			_entry(&"HAND_TRIPLE", &"HAND_DESC_TRIPLE", [7, 7, 7]),
-			_entry(&"HAND_STRAIGHT_3", &"HAND_DESC_STRAIGHT", [5, 6, 7]),
+			_entry(&"HAND_STRAIGHT_3", &"HAND_DESC_STRAIGHT", [10, 11, 12]),
 		]},
 		{"point": 4, "entries": [
 			_entry(&"HAND_FOUR_KIND", &"HAND_DESC_FOUR_KIND", [7, 7, 7, 7]),
-			_entry(&"HAND_STRAIGHT_4", &"HAND_DESC_STRAIGHT", [5, 6, 7, 8]),
-			_entry(&"HAND_TRIPLE_WITH_ONE", &"HAND_DESC_TRIPLE_WITH_ONE", [7, 7, 7, 9]),
-			_entry(&"HAND_PAIR_STRAIGHT_2", &"HAND_DESC_PAIR_STRAIGHT", [6, 6, 7, 7]),
+			_entry(&"HAND_STRAIGHT_4", &"HAND_DESC_STRAIGHT", [9, 10, 11, 12]),
+			_entry(&"HAND_TRIPLE_WITH_ONE", &"HAND_DESC_TRIPLE_WITH_ONE", [7, 7, 7, 13]),
+			_entry(&"HAND_PAIR_STRAIGHT_2", &"HAND_DESC_PAIR_STRAIGHT", [3, 3, 4, 4]),
 		]},
 		{"point": 5, "entries": [
 			_entry(&"HAND_FIVE_KIND", &"HAND_DESC_FIVE_KIND", [7, 7, 7, 7, 7]),
 			_entry(&"HAND_STRAIGHT_5", &"HAND_DESC_STRAIGHT", [4, 5, 6, 7, 8]),
-			_entry(&"HAND_TRIPLE_WITH_PAIR", &"HAND_DESC_TRIPLE_WITH_PAIR", [7, 7, 7, 9, 9]),
-			_entry(&"HAND_FOUR_WITH_ONE", &"HAND_DESC_FOUR_WITH_ONE", [7, 7, 7, 7, 9]),
+			_entry(&"HAND_TRIPLE_WITH_PAIR", &"HAND_DESC_TRIPLE_WITH_PAIR", [11, 11, 11, 3, 3]),
+			_entry(&"HAND_FOUR_WITH_ONE", &"HAND_DESC_FOUR_WITH_ONE", [5, 5, 5, 5, 12]),
 		]},
 		{"point": 6, "entries": [
 			_entry(&"HAND_SIX_KIND", &"HAND_DESC_SIX_KIND", [7, 7, 7, 7, 7, 7]),
 			_entry(&"HAND_STRAIGHT_6", &"HAND_DESC_STRAIGHT", [3, 4, 5, 6, 7, 8]),
-			_entry(&"HAND_FIVE_WITH_ONE", &"HAND_DESC_FIVE_WITH_ONE", [7, 7, 7, 7, 7, 9]),
-			_entry(&"HAND_FOUR_WITH_TWO", &"HAND_DESC_FOUR_WITH_TWO", [7, 7, 7, 7, 9, 10]),
-			_entry(&"HAND_TRIPLE_WITH_TRIPLE", &"HAND_DESC_TRIPLE_WITH_TRIPLE", [7, 7, 7, 9, 9, 9]),
-			_entry(&"HAND_PAIR_STRAIGHT_3", &"HAND_DESC_PAIR_STRAIGHT", [6, 6, 7, 7, 8, 8]),
+			_entry(&"HAND_FIVE_WITH_ONE", &"HAND_DESC_FIVE_WITH_ONE", [1, 1, 1, 1, 1, 11]),
+			_entry(&"HAND_FOUR_WITH_TWO", &"HAND_DESC_FOUR_WITH_TWO", [8, 8, 8, 8, 3, 12]),
+			_entry(&"HAND_TRIPLE_WITH_TRIPLE", &"HAND_DESC_TRIPLE_WITH_TRIPLE", [4, 4, 4, 11, 11, 11]),
+			_entry(&"HAND_PAIR_STRAIGHT_3", &"HAND_DESC_PAIR_STRAIGHT", [11, 11, 12, 12, 13, 13]),
 		]},
 	]
 

@@ -2,12 +2,14 @@ extends Node
 
 const LAN_ROOM_STATE = preload("res://multiplayer/lobby/lan_room_state.gd")
 const PUBLIC_GAME_SNAPSHOT = preload("res://multiplayer/protocol/public_game_snapshot.gd")
+const LAN_MULTIPLAYER_SERVICE = preload("res://autoload/lan_multiplayer_service.gd")
 
 
 func _ready() -> void:
 	_test_lobby_lifecycle()
 	_test_reconnection()
 	_test_snapshot_privacy()
+	await _test_reconnect_cancels_ai_takeover()
 	print("BONUS_TEST_LAN_ROOM_OK")
 	get_tree().quit()
 
@@ -104,6 +106,35 @@ func _test_snapshot_privacy() -> void:
 				assert((player["hand"] as Array).size() == 17)
 			else:
 				assert(not player.has("hand"))
+
+
+func _test_reconnect_cancels_ai_takeover() -> void:
+	var room = LAN_ROOM_STATE.new()
+	assert(room.create_room(1, "Host", _config(2), "host-token"))
+	var joined: Dictionary = room.join_peer(20, "Alice", "", "", "alice-instance")
+	assert(bool(joined.get("ok", false)))
+	room.game_started = true
+	var seat_index := int(joined.get("seat_index", -1))
+	room.mark_disconnected(20)
+
+	var session := GameSession.new()
+	assert(session.start_game(room.get_seat_keys(), 24680, GameRules.new(), "test2468"))
+	session.current_player_index = seat_index
+	session.roller_index = seat_index
+	var service = LAN_MULTIPLAYER_SERVICE.new()
+	add_child(service)
+	service.set("_room", room)
+	service.set("_server_session", session)
+	service.set("_server_action_pending", true)
+	service.call("_run_server_ai", 0, seat_index, false)
+
+	var member := room.get_member_by_seat(seat_index)
+	member["connected"] = true
+	member["ai_takeover"] = false
+	await get_tree().create_timer(0.8).timeout
+	assert(session.phase == GameSession.Phase.AWAITING_ROLL)
+	assert(not bool(service.get("_server_action_pending")))
+	service.queue_free()
 
 
 func _config(player_count: int) -> Dictionary:

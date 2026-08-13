@@ -10,9 +10,10 @@ static func find_play(
 ) -> Array[int]:
 	if card_count < 1 or card_count > 6 or hand.size() < card_count:
 		return []
+	var groups := _group_equivalent_cards(hand)
 	var chosen: Array[CardData] = []
 	var result: Array[int] = []
-	_find_combination(hand, card_count, target, game_rules, 0, chosen, result)
+	_find_group_combination(groups, card_count, target, game_rules, 0, chosen, result)
 	return result
 
 
@@ -27,12 +28,12 @@ static func find_bonus_play(
 	return []
 
 
-static func _find_combination(
-	hand: Array[CardData],
+static func _find_group_combination(
+	groups: Array[Array],
 	remaining: int,
 	target: HandPattern,
 	game_rules: GameRules,
-	start_index: int,
+	group_index: int,
 	chosen: Array[CardData],
 	result: Array[int],
 ) -> bool:
@@ -48,18 +49,47 @@ static func _find_combination(
 			result.append(card.card_id)
 		return true
 
-	var last_start := hand.size() - remaining
-	for index in range(start_index, last_start + 1):
-		chosen.append(hand[index])
-		if _find_combination(
-			hand,
-			remaining - 1,
+	if group_index >= groups.size():
+		return false
+	var group := groups[group_index]
+	var maximum_take := mini(remaining, group.size())
+	for take_count in range(maximum_take, -1, -1):
+		if remaining - take_count > _remaining_capacity(groups, group_index + 1):
+			continue
+		for card_index in range(take_count):
+			chosen.append(group[card_index] as CardData)
+		if _find_group_combination(
+			groups,
+			remaining - take_count,
 			target,
 			game_rules,
-			index + 1,
+			group_index + 1,
 			chosen,
 			result,
 		):
 			return true
-		chosen.pop_back()
+		for _card_index in range(take_count):
+			chosen.pop_back()
 	return false
+
+
+static func _group_equivalent_cards(hand: Array[CardData]) -> Array[Array]:
+	var cards_by_rank := {}
+	for card in hand:
+		var key := card.get_natural_rank()
+		if not cards_by_rank.has(key):
+			cards_by_rank[key] = []
+		(cards_by_rank[key] as Array).append(card)
+	var keys: Array = cards_by_rank.keys()
+	keys.sort()
+	var groups: Array[Array] = []
+	for key in keys:
+		groups.append(cards_by_rank[key] as Array)
+	return groups
+
+
+static func _remaining_capacity(groups: Array[Array], start_index: int) -> int:
+	var capacity := 0
+	for index in range(start_index, groups.size()):
+		capacity += groups[index].size()
+	return capacity

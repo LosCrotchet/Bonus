@@ -326,6 +326,13 @@ func _server_join_request(
 		_transport.peer.disconnect_peer(previous_peer_id)
 	_broadcast_lobby()
 	if _room.game_started and _server_session != null:
+		# A reconnect can race with an AI takeover already waiting on its think timer.
+		# Invalidate that task before the restored client receives the current state.
+		if (
+			bool(result.get("reconnected", false))
+			and int(result.get("seat_index", -1)) == _server_session.current_player_index
+		):
+			_start_turn_clock()
 		_broadcast_game_snapshot_to(sender, int(result.get("seat_index", -1)), true)
 
 
@@ -466,14 +473,28 @@ func _schedule_server_ai(timed_out: bool) -> void:
 	_run_server_ai.call_deferred(serial, _server_session.current_player_index, timed_out)
 
 
-func _run_server_ai(serial: int, seat_index: int, _timed_out: bool) -> void:
+func _run_server_ai(serial: int, seat_index: int, timed_out: bool) -> void:
 	await get_tree().create_timer(AI_THINK_DELAY).timeout
+	# A stale task must not clear the pending flag owned by a newer turn.
+	if serial != _turn_serial:
+		return
 	if (
 		_server_session == null
-		or serial != _turn_serial
 		or seat_index != _server_session.current_player_index
 		or _server_session.phase == GameSession.Phase.FINISHED
 	):
+		_server_action_pending = false
+		return
+	var member: Dictionary = _room.get_member_by_seat(seat_index) if _room != null else {}
+	var takeover_is_still_valid := (
+		not member.is_empty()
+		and (
+			bool(member.get("is_ai", false))
+			or not bool(member.get("connected", true))
+			or (timed_out and _timed_out_seat == seat_index)
+		)
+	)
+	if not takeover_is_still_valid:
 		_server_action_pending = false
 		return
 	var strategy := _server_strategies.get(seat_index) as PlayerStrategy

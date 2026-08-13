@@ -909,16 +909,16 @@ theme_override_font_sizes/font_size = 19
 text = "30"
 vertical_alignment = 1
 
-[node name="ModalLayer" type="CanvasLayer" parent="."]
+[node name="ModalLayer" type="CanvasLayer" parent="." unique_id=1464493035]
 process_mode = 3
 layer = 100
 
 [node name="HandTypesOverlay" type="Control" parent="ModalLayer" unique_id=428305032]
 unique_name_in_owner = true
-visible = false
 process_mode = 3
+visible = false
 z_index = 105
-layout_mode = 1
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -960,14 +960,13 @@ mouse_filter = 2
 unique_name_in_owner = true
 process_mode = 3
 layout_mode = 2
-mouse_filter = 0
 
 [node name="SettingsOverlay" type="Control" parent="ModalLayer" unique_id=288406109]
 unique_name_in_owner = true
-visible = false
 process_mode = 3
+visible = false
 z_index = 100
-layout_mode = 1
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -1010,7 +1009,6 @@ unique_name_in_owner = true
 process_mode = 3
 custom_minimum_size = Vector2(500, 620)
 layout_mode = 2
-mouse_filter = 0
 
 [node name="InterpretationPopup" type="PopupPanel" parent="." unique_id=1354821618]
 unique_name_in_owner = true

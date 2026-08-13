@@ -76,7 +76,7 @@ RULE_FIXED_DRAW,未出牌时摸 3 张,Draw 3 After All Pass
 RULE_VARIABLE_DRAW_HINT,其中 x 是骰子点数；如果不启用则默认摸 3 张,x is the die value; when disabled the default draw is 3 cards
 RULE_SHORT_JOKERS,大小王,Jokers
 RULE_SHORT_WILDCARD,万能牌,Wildcards
-RULE_SHORT_FINISH_LIMIT,绝杀限制,Final-play Limit
+RULE_SHORT_FINISH_LIMIT,绝杀限制,Final-play Restriction
 RULE_SHORT_SEQUENCE_TWO,顺子带2,Straights +2
 RULE_SHORT_VARIABLE_DRAW,摸牌张数可变,Variable Draw
 UI_RECOMMEND,提示,Hint
@@ -134,7 +134,7 @@ ERROR_NOT_PLAYER_TURN,还没有轮到该玩家,It is not this player's turn
 EVENT_GAME_STARTED,牌局开始，南家先手,Game started. South goes first.
 EVENT_ROLLED,{player} 掷出了 {value} 点,{player} rolled {value}
 EVENT_PLAYED,{player} 打出{hand_type},{player} played {hand_type}
-EVENT_JOKER_PENALTY,{player} 最后一手含万能牌，摸了 {count} 张,{player}'s final play used a joker and draws {count}
+EVENT_JOKER_PENALTY,{player} 最后一手含万能牌，摸了 {count} 张,{player}'s final play used a wildcard and they draw {count}
 EVENT_PASSED,{player} 选择不出,{player} passed
 EVENT_ALL_PASSED,本回合无人出牌，{player} 摸了 {count} 张,No one played. {player} draws {count}
 EVENT_NEXT_ROLLER,{player} 获得下一次掷骰,{player} rolls next
@@ -203,7 +203,7 @@ LAN_LEAVE_ROOM,离开房间,Leave Room
 LAN_MEMBERS,房间成员,Room Members
 LAN_MEMBERS_COUNT,房间成员 | {current} / {capacity},Room Members | {current} / {capacity}
 LAN_SECONDS_SHORT,{seconds}秒,{seconds}s
-LAN_ROOM_SUMMARY,{count} 人 · 每回合 {timeout} 秒 · 种子 {seed},{count} players · {timeout}s turns · Seed {seed}
+LAN_ROOM_SUMMARY,{count} 人 · 每回合 {timeout} 秒 · 种子 {seed},{count}P · {timeout}s turns · Seed {seed}
 LAN_MEMBER_READY,已准备,Ready
 LAN_MEMBER_NOT_READY,未准备,Not Ready
 LAN_STATUS_CONNECTING,正在连接房主……,Connecting to host...
@@ -252,6 +252,6 @@ TUTORIAL_BONUS_OTHER,"哇，有人触发了一次BONUS！这是在某人回合�
 TUTORIAL_FORCED_DRAW,"哦......看来大家都不是很想要出牌。那么你只能摸三张牌了。摸完牌后，会逆时针轮到下一位玩家。","Oh... it looks like nobody wanted to play. You must draw three cards. After drawing, play continues counterclockwise with the next player."
 TUTORIAL_FORCED_DRAW_OTHER,"哦......看来大家都不是很想要出牌。这个时候最开始投骰子的玩家会摸三张牌。摸完牌后，会逆时针轮到下一位玩家。","Oh... it looks like nobody wanted to play. In this case, the player who rolled the die at the start of the round draws three cards. Afterward, play continues counterclockwise with the next player."
 TUTORIAL_NEXT_PLAYER,"轮到其它玩家也一样，先投骰子，再根据骰子的结果出牌，或者不出。","Other players follow the same sequence: roll first, then play according to the result or pass."
-TUTORIAL_COVERING_RULES,"出牌的时候，需要在牌型相同的情况下（三/四/五/六条除外）用点数更大的牌盖过其他人的牌，最后谁的牌最大，就由谁继续下一个回合——继续投骰子，出牌......如此往复，直到有人把牌打完。","When covering a play, use a higher-ranked hand of the same type, except for triples, four-, five-, and six-of-a-kind. Whoever finishes with the highest play leads the next round, rolls, and plays again. This continues until someone empties their hand."
-TUTORIAL_JOKER_REMINDER,"以及，再提醒你一下：大小王可以当万能牌哦！但是如果在最后一次出牌的时候使用了万能牌，就会再摸两张牌......\n如果你对牌型有疑问，可以点击右上角的「牌型」查看详情。在「设置」里也可以调整一些游戏的内容。","One more reminder: jokers can act as wildcards! But if you use a wildcard on your last turn, you'll draw two more cards...\nIf you are unsure about a hand type, click Hand Types in the top-right corner for details. You can also adjust parts of the game under Settings."
+TUTORIAL_COVERING_RULES,"出牌的时候，需要在牌型相同的情况下（三/四/五/六条除外）用点数更大的牌盖过其他人的牌，最后谁的牌最大，就由谁继续下一个回合——继续投骰子，出牌......如此往复，直到有人把牌打完。","To cover a play, use a higher-ranked hand of the same type. Three-, four-, five-, and six-of-a-kind are exceptions: they can beat other hand types with the same card count. Whoever played the highest hand leads the next round, rolls, and plays again. This continues until someone empties their hand."
+TUTORIAL_JOKER_REMINDER,"以及，再提醒你一下：大小王可以当万能牌哦！但是如果在最后一次出牌的时候使用了万能牌，就会再摸两张牌......\n如果你对牌型有疑问，可以点击右上角的「牌型」查看详情。在「设置」里也可以调整一些游戏的内容。","One more reminder: jokers can act as wildcards! But if your final play uses a wildcard, you'll draw two more cards...\nIf you are unsure about a hand type, click Hand Types in the top-right corner for details. You can also adjust parts of the game under Settings."
 TUTORIAL_COMPLETE,"接下来就靠你自己打了，祝你好运！","The rest is up to you. Good luck!"

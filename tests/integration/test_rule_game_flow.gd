@@ -13,8 +13,35 @@ func _init() -> void:
 	_test_optional_joker_finish_penalty()
 	_test_natural_joker_finish()
 	_test_winner_resolution()
+	_test_snapshot_validation()
 	print("BONUS_TEST_RULE_GAME_FLOW_OK")
 	quit()
+
+
+func _test_snapshot_validation() -> void:
+	var session := GameSession.new()
+	var names: Array[String] = ["SEAT_SOUTH", "SEAT_NORTH", "SEAT_WEST"]
+	assert(session.start_game(names, 24680, GameRules.new(), "test2468"))
+	var valid_snapshot := session.to_snapshot()
+	assert(GameSession.new().restore_from_snapshot(valid_snapshot))
+
+	var invalid_card_snapshot := valid_snapshot.duplicate(true)
+	var invalid_players := invalid_card_snapshot["players"] as Array
+	var invalid_hand := (invalid_players[0] as Dictionary)["hand"] as Array
+	(invalid_hand[0] as Dictionary)["rank"] = 99
+	assert(not GameSession.new().restore_from_snapshot(invalid_card_snapshot))
+
+	var invalid_index_snapshot := valid_snapshot.duplicate(true)
+	invalid_index_snapshot["winner_index"] = names.size()
+	assert(not GameSession.new().restore_from_snapshot(invalid_index_snapshot))
+
+	var invalid_dice_snapshot := valid_snapshot.duplicate(true)
+	invalid_dice_snapshot["dice_value"] = 7
+	assert(not GameSession.new().restore_from_snapshot(invalid_dice_snapshot))
+
+	var invalid_shape_snapshot := valid_snapshot.duplicate(true)
+	invalid_shape_snapshot["players"] = "not-an-array"
+	assert(not GameSession.new().restore_from_snapshot(invalid_shape_snapshot))
 
 
 func _test_following_and_turn_resolution() -> void:

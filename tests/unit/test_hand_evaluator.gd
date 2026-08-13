@@ -11,6 +11,7 @@ func _init() -> void:
 	_test_natural_jokers()
 	_test_optional_rules()
 	_test_distinct_wildcard_interpretations()
+	_test_large_hand_legal_move_search()
 	print("BONUS_TEST_HAND_EVALUATOR_OK")
 	quit()
 
@@ -160,6 +161,27 @@ func _test_distinct_wildcard_interpretations() -> void:
 	assert(_find_type(interpretations, HandPattern.Type.PAIR_STRAIGHT).main_rank == 5)
 	assert(_find_type(interpretations, HandPattern.Type.TRIPLE_WITH_TRIPLE).main_rank == 4)
 	assert(_find_type(interpretations, HandPattern.Type.FOUR_WITH_TWO).main_rank == 4)
+
+
+func _test_large_hand_legal_move_search() -> void:
+	var hand: Array[CardData] = []
+	var deck := DeckFactory.create_two_deck(true)
+	for index in range(30):
+		hand.append(deck[index])
+	var unbeatable_target := HandPattern.new(
+		HandPattern.Type.SIX_KIND,
+		6,
+		CardData.JokerKind.BIG + CardData.Rank.TWO,
+		false,
+	)
+	var started_at := Time.get_ticks_msec()
+	assert(LegalMoveFinder.find_play(hand, 6, unbeatable_target).is_empty())
+	assert(Time.get_ticks_msec() - started_at < 1500)
+
+	var wildcard_hand := _cards([3, 3, 4, 4])
+	wildcard_hand.append(_joker())
+	wildcard_hand.append(_joker(CardData.JokerKind.BIG))
+	assert(LegalMoveFinder.find_play(wildcard_hand, 6).size() == 6)
 
 
 func _find_type(patterns: Array[HandPattern], type: HandPattern.Type) -> HandPattern:
