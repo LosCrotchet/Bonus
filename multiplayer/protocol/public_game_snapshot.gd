@@ -28,6 +28,9 @@ static func build(
 		}
 		if player_index == recipient_seat_index:
 			player_value["hand"] = cards_to_dictionaries(player.hand)
+		elif session.phase == GameSession.Phase.FINISHED and bool(member.get("is_ai", false)):
+			# AI hands become public only after the authoritative match has ended.
+			player_value["revealed_hand"] = cards_to_dictionaries(player.hand)
 		players.append(player_value)
 
 	return {
@@ -121,6 +124,12 @@ static func contains_private_information(
 			continue
 		var player := player_value as Dictionary
 		if int(player.get("player_index", -1)) != recipient_seat_index and player.has("hand"):
+			return true
+		if (
+			player.has("revealed_hand")
+			and int(snapshot.get("phase", GameSession.Phase.READY))
+			!= GameSession.Phase.FINISHED
+		):
 			return true
 	return false
 

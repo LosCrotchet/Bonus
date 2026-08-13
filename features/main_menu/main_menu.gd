@@ -17,6 +17,7 @@ signal quit_requested
 @onready var single_player_panel: PanelContainer = %SinglePlayerPanel
 @onready var settings_side_panel: AppSettingsPanel = %SettingsSidePanel
 @onready var lan_panel: Control = %LanPanel
+@onready var statistics_panel: StatisticsPanel = %StatisticsPanel
 @onready var player_count_buttons: Array[Button] = [
 	%PlayerCount2,
 	%PlayerCount3,
@@ -51,12 +52,14 @@ func _ready() -> void:
 	%SinglePlayerButton.pressed.connect(_open_single_player)
 	%MultiplayerButton.pressed.connect(_open_multiplayer)
 	%SettingsButton.pressed.connect(_open_settings)
+	%StatisticsButton.pressed.connect(_open_statistics)
 	%StartGameButton.pressed.connect(_start_single_player)
 	%ContinueGameButton.pressed.connect(_continue_saved_game)
 	%StartNewGameButton.pressed.connect(_discard_saved_game)
 	%SinglePlayerBackButton.pressed.connect(_close_secondary)
 	settings_side_panel.canceled.connect(_close_secondary)
 	lan_panel.close_requested.connect(_close_secondary)
+	statistics_panel.close_requested.connect(_close_secondary)
 	lan_panel.game_requested.connect(
 		func(snapshot: Dictionary) -> void: lan_game_requested.emit(snapshot)
 	)
@@ -74,6 +77,7 @@ func _ready() -> void:
 	single_player_panel.visible = false
 	settings_side_panel.visible = false
 	lan_panel.visible = false
+	statistics_panel.visible = false
 	_hide_exit_confirmation()
 	_setup_button_motion()
 	await get_tree().process_frame
@@ -82,6 +86,7 @@ func _ready() -> void:
 		single_player_panel: single_player_panel.position,
 		settings_side_panel: settings_side_panel.position,
 		lan_panel: lan_panel.position,
+		statistics_panel: statistics_panel.position,
 	}
 
 
@@ -219,6 +224,14 @@ func _open_multiplayer() -> void:
 	_show_secondary(lan_panel)
 
 
+func _open_statistics() -> void:
+	if _active_secondary == statistics_panel and statistics_panel.visible:
+		_close_secondary()
+		return
+	statistics_panel.refresh()
+	_show_secondary(statistics_panel)
+
+
 func _show_secondary(panel: Control) -> void:
 	if _transitioning:
 		return
@@ -328,7 +341,8 @@ func _refresh_unlocked_menu_options() -> void:
 	var unlocked := PlayerProgressService.tutorial_opened
 	%SinglePlayerButton.visible = unlocked
 	%MultiplayerButton.visible = unlocked
-	%SettingsButton.visible = unlocked
+	%StatisticsButton.visible = true
+	%SettingsButton.visible = true
 	%ExitGameButton.visible = unlocked
 
 

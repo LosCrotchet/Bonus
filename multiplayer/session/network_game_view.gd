@@ -24,6 +24,10 @@ static func apply_snapshot(session: GameSession, snapshot: Dictionary) -> bool:
 			player.hand.assign(PUBLIC_GAME_SNAPSHOT.cards_from_dictionaries(
 				value.get("hand", []) as Array,
 			))
+		elif value.has("revealed_hand"):
+			player.hand.assign(PUBLIC_GAME_SNAPSHOT.cards_from_dictionaries(
+				value.get("revealed_hand", []) as Array,
+			))
 		else:
 			for hidden_index in range(int(value.get("hand_count", 0))):
 				player.hand.append(CardData.new(

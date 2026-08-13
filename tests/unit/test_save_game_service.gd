@@ -21,13 +21,24 @@ func _run_test() -> void:
 	assert(random_session.start_game(names))
 	assert(SeedCodec.is_valid(random_session.game_seed_text))
 
-	assert(SaveGameService.save_session(first, true))
+	var saved_match_statistics := {
+		"play_actions": 2,
+		"cards_played": 7,
+		"dice_rolls": 3,
+		"bonus_triggers": 1,
+	}
+	assert(SaveGameService.save_session(first, true, saved_match_statistics))
 	assert(SaveGameService.save_session(first, true))
 	assert(not FileAccess.file_exists("user://bonus_save.tmp"))
 	assert(not FileAccess.file_exists("user://bonus_save.backup"))
 	assert(SaveGameService.has_unfinished_game())
 	var payload := SaveGameService.load_game()
 	assert(bool(payload["custom_seed"]))
+	# The second save intentionally replaces the optional snapshot.
+	assert((payload["match_statistics"] as Dictionary).is_empty())
+	assert(SaveGameService.save_session(first, true, saved_match_statistics))
+	payload = SaveGameService.load_game()
+	assert(payload["match_statistics"] == saved_match_statistics)
 	var restored := GameSession.new()
 	assert(restored.restore_from_snapshot(payload["session"] as Dictionary))
 	assert(_session_card_signature(restored) == _session_card_signature(first))

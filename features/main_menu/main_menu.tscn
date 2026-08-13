@@ -10,6 +10,8 @@
 [ext_resource type="FontFile" path="res://assets/fonts/SourceHanSansSC-Subset.otf" id="10_font"]
 [ext_resource type="Theme" uid="uid://cbc4n3ejioec4" path="res://assets/themes/cartoon_ui/controls.tres" id="11_controls"]
 [ext_resource type="Texture2D" uid="uid://n0xbfx6osq21" path="res://assets/icons/tutorial.png" id="12_tutorial"]
+[ext_resource type="PackedScene" path="res://features/main_menu/statistics_panel.tscn" id="13_statistics"]
+[ext_resource type="Texture2D" uid="uid://b4h3mfmcminm2" path="res://assets/icons/list_menu_32.png" id="14_statistics_icon"]
 
 [sub_resource type="FontVariation" id="Font_default"]
 base_font = ExtResource("10_font")
@@ -192,6 +194,20 @@ theme_override_styles/pressed = SubResource("Style_menu_hover")
 theme_override_styles/hover = SubResource("Style_menu_hover")
 text = "UI_SETTINGS"
 icon = ExtResource("6_settings")
+alignment = 0
+expand_icon = true
+
+[node name="StatisticsButton" type="Button" parent="MenuPanel/Layout/MenuButtons"]
+unique_name_in_owner = true
+texture_filter = 4
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 21
+theme_override_styles/normal = SubResource("Style_menu_button")
+theme_override_styles/pressed = SubResource("Style_menu_hover")
+theme_override_styles/hover = SubResource("Style_menu_hover")
+text = "UI_STATISTICS"
+icon = ExtResource("14_statistics_icon")
 alignment = 0
 expand_icon = true
 
@@ -502,3 +518,14 @@ anchor_bottom = 1.0
 offset_left = 330.0
 offset_right = 1030.0
 grow_vertical = 2
+
+[node name="StatisticsPanel" parent="." instance=ExtResource("13_statistics")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = 330.0
+offset_right = 830.0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("Style_secondary")

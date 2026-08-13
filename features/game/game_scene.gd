@@ -70,6 +70,15 @@ const BONUS_DICE_FRAME_INTERVAL := 0.14
 @onready var interpretation_options: VBoxContainer = %InterpretationOptions
 @onready var result_overlay: Control = %ResultOverlay
 @onready var winner_label: Label = %WinnerLabel
+@onready var result_streak_value: Label = %ResultStreakValue
+@onready var result_best_streak_value: Label = %ResultBestStreakValue
+@onready var result_record_badge: Label = %ResultRecordBadge
+@onready var result_plays_value: Label = %ResultPlaysValue
+@onready var result_dice_value: Label = %ResultDiceValue
+@onready var result_total_dice_value: Label = %ResultTotalDiceValue
+@onready var result_average_value: Label = %ResultAverageValue
+@onready var result_bonus_value: Label = %ResultBonusValue
+@onready var result_seed_value: Label = %ResultSeedValue
 @onready var restart_button: Button = %RestartButton
 @onready var result_menu_button: Button = %ResultMenuButton
 
@@ -158,6 +167,10 @@ var _indicator_update_suspended := false
 var _instruction_tween: Tween
 var _instruction_should_show := false
 var _disconnected_material := ShaderMaterial.new()
+var _match_statistics := {}
+var _match_statistics_finalized := false
+var _result_sequence_generation := 0
+var _counted_bonus_state := false
 
 
 func configure(
@@ -313,6 +326,9 @@ func _process(delta: float) -> void:
 
 func _start_new_game(start_deal_animation: bool = true) -> void:
 	_game_serial += 1
+	_result_sequence_generation += 1
+	_reset_match_statistics()
+	AudioService.restore_music(0.35)
 	_ai_task_running = false
 	_rolling = false
 	_last_bonus_state = false
@@ -375,6 +391,9 @@ func _start_new_game(start_deal_animation: bool = true) -> void:
 
 func _start_network_game(snapshot: Dictionary) -> void:
 	_game_serial += 1
+	_result_sequence_generation += 1
+	_reset_match_statistics()
+	AudioService.restore_music(0.35)
 	_ai_task_running = false
 	_rolling = false
 	_last_bonus_state = false
@@ -512,6 +531,8 @@ func _restore_saved_game() -> bool:
 	if session_snapshot.is_empty():
 		return false
 	_game_serial += 1
+	_result_sequence_generation += 1
+	_reset_match_statistics(_resume_payload.get("match_statistics", {}) as Dictionary)
 	_ai_task_running = false
 	_rolling = false
 	_last_bonus_state = false
@@ -543,6 +564,9 @@ func _restore_saved_game() -> bool:
 	if not _session.restore_from_snapshot(session_snapshot):
 		_resume_payload.clear()
 		return false
+	# The persisted match statistics already include an active BONUS transition,
+	# while the visual state still needs to enter normally after loading.
+	_counted_bonus_state = _session.is_bonus
 	_player_count = _session.players.size()
 	_game_rules = _session.rules.clone()
 	_configured_seed = _session.game_seed
@@ -1003,7 +1027,7 @@ func _on_session_state_changed() -> void:
 	elif _session.phase == GameSession.Phase.FINISHED:
 		SaveGameService.clear_save()
 	else:
-		SaveGameService.save_session(_session, _use_custom_seed)
+		SaveGameService.save_session(_session, _use_custom_seed, _match_statistics)
 	_play_round_start_if_needed()
 	_refresh()
 
@@ -1345,6 +1369,8 @@ func _refresh_bonus_effect() -> void:
 			_session.is_bonus and player_index == bonus_owner,
 		)
 	if _session.is_bonus and not _last_bonus_state:
+		if bonus_owner == _human_player_index and not _counted_bonus_state:
+			_match_statistics["bonus_triggers"] = int(_match_statistics["bonus_triggers"]) + 1
 		AudioService.play_bonus_step(_bonus_sound_step)
 		_bonus_sound_step = (_bonus_sound_step + 1) % maxi(1, AudioService.get_bonus_step_count())
 		_notify_tutorial_event(&"bonus_started", {
@@ -1355,6 +1381,8 @@ func _refresh_bonus_effect() -> void:
 	if _session.is_bonus != _last_bonus_state:
 		_animate_table_bonus(_session.is_bonus)
 	_last_bonus_state = _session.is_bonus
+	_counted_bonus_state = _session.is_bonus
+	_match_statistics["bonus_active"] = _counted_bonus_state
 
 
 func _animate_table_bonus(entering: bool) -> void:
@@ -2329,6 +2357,8 @@ func _on_language_changed(_locale: String) -> void:
 
 
 func _on_return_to_menu_requested() -> void:
+	_result_sequence_generation += 1
+	AudioService.restore_music(0.25)
 	if _network_mode:
 		LanMultiplayerService.close_connection()
 	elif (
@@ -2336,7 +2366,7 @@ func _on_return_to_menu_requested() -> void:
 		and _session != null
 		and _session.phase != GameSession.Phase.FINISHED
 	):
-		SaveGameService.save_session(_session, _use_custom_seed)
+		SaveGameService.save_session(_session, _use_custom_seed, _match_statistics)
 	settings_overlay.visible = false
 	hand_types_overlay.visible = false
 	_set_overlay_pause(false)
@@ -2348,10 +2378,28 @@ func _on_game_finished(player_index: int) -> void:
 	if not _network_mode and not _tutorial_mode:
 		SaveGameService.clear_save()
 	_notify_tutorial_event(&"game_finished", {"player_index": player_index})
-	AudioService.play(&"game_win" if player_index == _human_player_index else &"game_lose")
-	winner_label.text = _translated(&"STATUS_WINNER", {"player": _player_name(player_index)})
-	result_overlay.visible = true
-	restart_button.visible = not _network_mode or LanMultiplayerService.is_host
+	# In LAN games the authoritative final snapshot invokes this callback after
+	# the local action event, so finalize only after the action counters update.
+	if _network_mode:
+		_finalize_network_game_over.call_deferred(player_index, _game_serial)
+		return
+	_begin_game_over(player_index)
+
+
+func _finalize_network_game_over(player_index: int, serial: int) -> void:
+	await get_tree().process_frame
+	if serial == _game_serial:
+		_begin_game_over(player_index)
+
+
+func _begin_game_over(player_index: int) -> void:
+	_finalize_match_statistics(player_index)
+	_result_sequence_generation += 1
+	_run_game_over_sequence.call_deferred(
+		player_index,
+		_game_serial,
+		_result_sequence_generation,
+	)
 
 
 func _on_public_action_resolved(public_action: Dictionary) -> void:
@@ -2361,8 +2409,144 @@ func _on_public_action_resolved(public_action: Dictionary) -> void:
 		_human_auto_strategy.observe_action(public_action.duplicate(true))
 	_notify_tutorial_event(&"action_resolved", public_action)
 	var action_type := StringName(str(public_action.get("type", "")))
+	if int(public_action.get("player_index", -1)) == _human_player_index:
+		match action_type:
+			&"roll":
+				_match_statistics["dice_rolls"] = int(_match_statistics["dice_rolls"]) + 1
+			&"play":
+				_match_statistics["play_actions"] = int(_match_statistics["play_actions"]) + 1
+				_match_statistics["cards_played"] = (
+					int(_match_statistics["cards_played"])
+					+ (public_action.get("cards", []) as Array).size()
+				)
 	if not action_type.is_empty():
 		_notify_tutorial_event(StringName("action_%s" % action_type), public_action)
+
+
+func _reset_match_statistics(snapshot: Dictionary = {}) -> void:
+	_match_statistics = {
+		"play_actions": maxi(0, int(snapshot.get("play_actions", 0))),
+		"cards_played": maxi(0, int(snapshot.get("cards_played", 0))),
+		"dice_rolls": maxi(0, int(snapshot.get("dice_rolls", 0))),
+		"bonus_triggers": maxi(0, int(snapshot.get("bonus_triggers", 0))),
+	}
+	_match_statistics_finalized = false
+	_counted_bonus_state = bool(snapshot.get("bonus_active", false))
+	_match_statistics["bonus_active"] = _counted_bonus_state
+
+
+func _finalize_match_statistics(winner_index: int) -> void:
+	if _match_statistics_finalized:
+		return
+	_match_statistics_finalized = true
+	if _tutorial_mode:
+		_match_statistics["career"] = StatisticsService.get_snapshot()
+		_match_statistics["new_streak_record"] = false
+		return
+	var career := StatisticsService.finish_match(
+		_match_statistics,
+		winner_index == _human_player_index,
+	)
+	_match_statistics["career"] = career
+	_match_statistics["new_streak_record"] = bool(career.get("new_streak_record", false))
+
+
+func _run_game_over_sequence(
+	winner_index: int,
+	serial: int,
+	generation: int,
+) -> void:
+	_set_action_bar_visible(false)
+	_stop_dice_prompt()
+	hand_view.set_interaction_enabled(false)
+	AudioService.duck_music(-16.0, 0.6)
+	_reveal_ai_hands()
+	await get_tree().create_timer(2.0, false).timeout
+	if (
+		serial != _game_serial
+		or generation != _result_sequence_generation
+		or _session == null
+		or _session.phase != GameSession.Phase.FINISHED
+	):
+		return
+	_populate_result_statistics()
+	winner_label.text = _translated(&"STATUS_WINNER", {"player": _player_name(winner_index)})
+	restart_button.visible = not _network_mode or LanMultiplayerService.is_host
+	result_overlay.visible = true
+	result_overlay.modulate.a = 0.0
+	var tween := create_tween()
+	tween.tween_property(result_overlay, "modulate:a", 1.0, 0.24)
+	AudioService.play(&"game_win" if winner_index == _human_player_index else &"game_lose")
+	if result_record_badge.visible:
+		result_record_badge.pivot_offset = result_record_badge.size * 0.5
+		result_record_badge.scale = Vector2(0.72, 0.72)
+		create_tween().tween_property(
+			result_record_badge,
+			"scale",
+			Vector2.ONE,
+			0.38,
+		).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func _reveal_ai_hands() -> void:
+	var revealed_any := false
+	for seat_key in _seat_views:
+		var player_index := _get_visual_player_index(seat_key)
+		if player_index < 0 or not _is_ai_player(player_index):
+			continue
+		var cards := _session.players[player_index].hand
+		# Hidden network placeholders are never rendered as real cards.
+		if not cards.is_empty() and cards[0].card_id < 0:
+			continue
+		var container := (_seat_views[seat_key] as Dictionary)["cards"] as HBoxContainer
+		_fill_revealed_cards(container, cards)
+		_seat_card_counts[seat_key] = cards.size()
+		revealed_any = true
+	if revealed_any:
+		AudioService.play(&"card_reveal")
+
+
+func _is_ai_player(player_index: int) -> bool:
+	if not _network_mode:
+		return player_index != _human_player_index
+	var meta := _network_player_meta.get(player_index, {}) as Dictionary
+	return bool(meta.get("is_ai", false)) or bool(meta.get("ai_takeover", false))
+
+
+func _fill_revealed_cards(container: HBoxContainer, cards: Array[CardData]) -> void:
+	_clear_container(container)
+	container.add_theme_constant_override("separation", -25 if cards.size() > 12 else -18 if cards.size() > 7 else -12)
+	for index in range(cards.size()):
+		var card_view := TextureRect.new()
+		card_view.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		card_view.texture = CardTextureCatalog.get_texture(cards[index])
+		card_view.custom_minimum_size = Vector2(32.0, 48.0)
+		card_view.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		card_view.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		card_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_view.modulate.a = 0.0
+		card_view.position.y = -8.0
+		container.add_child(card_view)
+		var reveal := create_tween().set_parallel(true)
+		reveal.tween_property(card_view, "modulate:a", 1.0, 0.22).set_delay(index * 0.035)
+		reveal.tween_property(card_view, "position:y", 0.0, 0.28).set_delay(index * 0.035).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+func _populate_result_statistics() -> void:
+	var career := _match_statistics.get("career", StatisticsService.get_snapshot()) as Dictionary
+	var play_actions := int(_match_statistics.get("play_actions", 0))
+	var cards_played := int(_match_statistics.get("cards_played", 0))
+	result_streak_value.text = str(career.get("current_win_streak", 0))
+	result_best_streak_value.text = str(career.get("best_win_streak", 0))
+	result_record_badge.visible = bool(_match_statistics.get("new_streak_record", false))
+	result_plays_value.text = str(play_actions)
+	result_dice_value.text = str(_match_statistics.get("dice_rolls", 0))
+	result_total_dice_value.text = str(career.get("total_dice_rolls", 0))
+	result_average_value.text = "%.2f" % (
+		float(cards_played) / float(play_actions) if play_actions > 0 else 0.0
+	)
+	result_bonus_value.text = str(_match_statistics.get("bonus_triggers", 0))
+	result_seed_value.text = _session.game_seed_text
 
 
 func _set_action_bar_visible(should_show: bool) -> void:
@@ -2560,6 +2744,7 @@ func _stop_dice_prompt() -> void:
 
 func _fill_card_backs(container: HBoxContainer, card_count: int) -> void:
 	_clear_container(container)
+	container.add_theme_constant_override("separation", -27)
 	for _index in range(mini(card_count, 7)):
 		var card_back := TextureRect.new()
 		card_back.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS

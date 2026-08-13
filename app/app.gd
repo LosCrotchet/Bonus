@@ -10,6 +10,7 @@ var _transitioning := false
 
 
 func _ready() -> void:
+	%Version.text = "v%s" % str(ProjectSettings.get_setting("application/config/version", "0.0.0"))
 	_show_main_menu(false)
 
 

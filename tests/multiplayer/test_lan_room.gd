@@ -106,6 +106,24 @@ func _test_snapshot_privacy() -> void:
 				assert((player["hand"] as Array).size() == 17)
 			else:
 				assert(not player.has("hand"))
+	# Only AI hands may be revealed, and only after the authoritative session
+	# has reached FINISHED. Human opponents remain private at game over.
+	session.phase = GameSession.Phase.FINISHED
+	var final_snapshot: Dictionary = PUBLIC_GAME_SNAPSHOT.build(
+		session,
+		0,
+		room_snapshot,
+		2,
+		0,
+	)
+	assert(not PUBLIC_GAME_SNAPSHOT.contains_private_information(final_snapshot, 0))
+	for player_value in final_snapshot["players"] as Array:
+		var player := player_value as Dictionary
+		var player_index := int(player["player_index"])
+		if player_index == 0:
+			continue
+		var member := room.get_member_by_seat(player_index)
+		assert(player.has("revealed_hand") == bool(member.get("is_ai", false)))
 
 
 func _test_reconnect_cancels_ai_takeover() -> void:

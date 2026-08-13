@@ -1078,7 +1078,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="ResultPanel" type="PanelContainer" parent="ResultOverlay/Center" unique_id=1676189726]
-custom_minimum_size = Vector2(360, 210)
+custom_minimum_size = Vector2(650, 430)
 layout_mode = 2
 theme_override_styles/panel = SubResource("Style_result")
 
@@ -1102,6 +1102,124 @@ theme_override_fonts/font = SubResource("Font_bold")
 theme_override_font_sizes/font_size = 30
 text = "STATUS_WINNER"
 horizontal_alignment = 1
+
+[node name="StreakRow" type="HBoxContainer" parent="ResultOverlay/Center/ResultPanel/ResultLayout"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="CurrentStreak" type="VBoxContainer" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StreakRow"]
+custom_minimum_size = Vector2(190, 76)
+layout_mode = 2
+alignment = 1
+[node name="Label" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StreakRow/CurrentStreak"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.82, 0.79, 1)
+text = "UI_STATS_CURRENT_STREAK"
+horizontal_alignment = 1
+[node name="ResultStreakValue" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StreakRow/CurrentStreak"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "0"
+horizontal_alignment = 1
+
+[node name="BestStreak" type="VBoxContainer" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StreakRow"]
+custom_minimum_size = Vector2(230, 76)
+layout_mode = 2
+alignment = 1
+[node name="LabelRow" type="HBoxContainer" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StreakRow/BestStreak"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+[node name="Label" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StreakRow/BestStreak/LabelRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.82, 0.79, 1)
+text = "UI_STATS_BEST_STREAK"
+[node name="ResultRecordBadge" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StreakRow/BestStreak/LabelRow"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 1, 0.62, 1)
+theme_override_font_sizes/font_size = 12
+text = "UI_STATS_NEW_RECORD"
+[node name="ResultBestStreakValue" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StreakRow/BestStreak"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "0"
+horizontal_alignment = 1
+
+[node name="StatsGrid" type="GridContainer" parent="ResultOverlay/Center/ResultPanel/ResultLayout"]
+layout_mode = 2
+theme_override_constants/h_separation = 22
+theme_override_constants/v_separation = 7
+columns = 5
+
+[node name="PlaysLabel" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StatsGrid"]
+layout_mode = 2
+text = "UI_RESULT_PLAYS"
+horizontal_alignment = 1
+[node name="DiceLabel" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StatsGrid"]
+layout_mode = 2
+text = "UI_RESULT_DICE"
+horizontal_alignment = 1
+[node name="TotalDiceLabel" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StatsGrid"]
+layout_mode = 2
+text = "UI_STATS_TOTAL_DICE"
+horizontal_alignment = 1
+[node name="AverageLabel" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StatsGrid"]
+layout_mode = 2
+text = "UI_RESULT_AVERAGE"
+horizontal_alignment = 1
+[node name="BonusLabel" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StatsGrid"]
+layout_mode = 2
+text = "UI_RESULT_BONUS"
+horizontal_alignment = 1
+[node name="ResultPlaysValue" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "0"
+horizontal_alignment = 1
+[node name="ResultDiceValue" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "0"
+horizontal_alignment = 1
+[node name="ResultTotalDiceValue" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "0"
+horizontal_alignment = 1
+[node name="ResultAverageValue" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "0.00"
+horizontal_alignment = 1
+[node name="ResultBonusValue" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "0"
+horizontal_alignment = 1
+
+[node name="SeedRow" type="HBoxContainer" parent="ResultOverlay/Center/ResultPanel/ResultLayout"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+[node name="Label" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/SeedRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.82, 0.79, 1)
+text = "UI_SEED"
+[node name="ResultSeedValue" type="Label" parent="ResultOverlay/Center/ResultPanel/ResultLayout/SeedRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.77, 0.28, 1)
+text = "--------"
 
 [node name="ResultButtons" type="HBoxContainer" parent="ResultOverlay/Center/ResultPanel/ResultLayout" unique_id=235415190]
 layout_mode = 2

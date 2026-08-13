@@ -252,3 +252,21 @@ TUTORIAL_NEXT_PLAYER,"轮到其它玩家也一样，先投骰子，再根据骰�
 TUTORIAL_COVERING_RULES,"出牌的时候，需要在牌型相同的情况下（三/四/五/六条除外）用点数更大的牌盖过其他人的牌，最后谁的牌最大，就由谁继续下一个回合——继续投骰子，出牌......如此往复，直到有人把牌打完。","To cover a play, use a higher-ranked hand of the same type. Three-, four-, five-, and six-of-a-kind are exceptions: they can beat other hand types with the same card count. Whoever played the highest hand leads the next round, rolls, and plays again. This continues until someone empties their hand."
 TUTORIAL_JOKER_REMINDER,"以及，再提醒你一下：大小王可以当万能牌哦！但是如果在最后一次出牌的时候使用了万能牌，就会再摸两张牌......\n如果你对牌型有疑问，可以点击右上角的「牌型」查看详情。在「设置」里也可以调整一些游戏的内容。","One more reminder: jokers can act as wildcards! But if your final play uses a wildcard, you'll draw two more cards...\nIf you are unsure about a hand type, click Hand Types in the top-right corner for details. You can also adjust parts of the game under Settings."
 TUTORIAL_COMPLETE,"接下来就靠你自己打了，祝你好运！","The rest is up to you. Good luck!"
+UI_STATISTICS,统计数据,Statistics
+UI_STATS_MATCHES,对局概览,Match Overview
+UI_STATS_GAMES,对局数,Games
+UI_STATS_WINS,胜利数,Wins
+UI_STATS_WIN_RATE,胜率,Win Rate
+UI_STATS_STREAKS,连胜,Win Streaks
+UI_STATS_CURRENT_STREAK,当前连胜,Current Streak
+UI_STATS_BEST_STREAK,连胜纪录,Best Streak
+UI_STATS_NEW_RECORD,新纪录！,NEW RECORD!
+UI_STATS_ACTIONS,操作统计,Action Statistics
+UI_STATS_PLAY_ACTIONS,出牌次数,Plays
+UI_STATS_TOTAL_DICE,总掷骰次数,Total Rolls
+UI_STATS_TOTAL_BONUS,总 BONUS 次数,Total BONUS
+UI_STATS_AVERAGE_CARDS,平均出牌张数,Avg. Cards / Play
+UI_RESULT_PLAYS,本局出牌,Plays
+UI_RESULT_DICE,本局掷骰,Rolls
+UI_RESULT_AVERAGE,平均张数,Avg. Cards
+UI_RESULT_BONUS,本局 BONUS,BONUS

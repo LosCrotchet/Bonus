@@ -6,17 +6,23 @@ const PLAYER_POOL_SIZE := 20
 const MUSIC_FADE_DURATION := 0.45
 const HOVER_CUE_VOLUME := 0.6
 const STANDARD_CUE_VOLUME := 0.75
+const MUSIC_DUCK_DB := -12.0
 
 var _cue_streams: Dictionary = {}
 var _cue_volume_db: Dictionary = {}
 var _cue_cooldowns_ms: Dictionary = {}
 var _bonus_streams: Array[AudioStream] = []
+var _bonus_player: AudioStreamPlayer
+var _bonus_duck_generation := 0
 var _players: Array[AudioStreamPlayer] = []
 var _music_streams: Dictionary = {}
 var _music_players: Array[AudioStreamPlayer] = []
 var _music_active_index := 0
 var _music_track: StringName = &""
 var _music_tween: Tween
+var _music_duck_tween: Tween
+var _music_duck_db := 0.0
+var _music_duck_generation := 0
 var _pool_cursor := 0
 var _last_played_at_ms: Dictionary = {}
 
@@ -24,6 +30,7 @@ var _last_played_at_ms: Dictionary = {}
 func _ready() -> void:
 	_build_stream_catalog()
 	_build_player_pool()
+	_build_bonus_player()
 	_build_music_catalog()
 	_build_music_players()
 	get_tree().node_added.connect(_on_node_added)
@@ -37,6 +44,7 @@ func _exit_tree() -> void:
 	_music_players.clear()
 	_cue_streams.clear()
 	_bonus_streams.clear()
+	_bonus_player = null
 	_music_streams.clear()
 
 
@@ -64,10 +72,16 @@ func play_delayed(cue: StringName, delay: float, volume_offset_db: float = 0.0) 
 func play_bonus_step(step: int) -> void:
 	if _bonus_streams.is_empty():
 		return
-	_play_stream(
-		_bonus_streams[posmod(step, _bonus_streams.size())],
-		linear_to_db(STANDARD_CUE_VOLUME),
-	)
+	var stream := _bonus_streams[posmod(step, _bonus_streams.size())]
+	duck_music(MUSIC_DUCK_DB, 0.16)
+	_bonus_duck_generation = _music_duck_generation
+	if _bonus_player == null or DisplayServer.get_name() == "headless":
+		restore_music(0.05)
+		return
+	_bonus_player.stop()
+	_bonus_player.stream = stream
+	_bonus_player.volume_db = linear_to_db(STANDARD_CUE_VOLUME)
+	_bonus_player.play()
 
 
 func has_cue(cue: StringName) -> bool:
@@ -82,6 +96,13 @@ func stop_all() -> void:
 	for player in _players:
 		player.stop()
 		player.stream = null
+	if _bonus_player != null:
+		_bonus_player.stop()
+		_bonus_player.stream = null
+	if is_inside_tree():
+		restore_music(0.05)
+	else:
+		_music_duck_db = 0.0
 
 
 func shutdown() -> void:
@@ -108,7 +129,7 @@ func play_music(track: StringName, fade_duration: float = MUSIC_FADE_DURATION) -
 	var next_player := _music_players[next_index]
 	next_player.stop()
 	next_player.stream = stream
-	next_player.volume_db = -80.0 if had_current_track else 0.0
+	next_player.volume_db = -80.0 if had_current_track else _music_duck_db
 	next_player.play()
 	_music_active_index = next_index
 	_music_track = track
@@ -118,7 +139,7 @@ func play_music(track: StringName, fade_duration: float = MUSIC_FADE_DURATION) -
 		return
 	var duration := maxf(0.05, fade_duration)
 	_music_tween = create_tween().set_parallel(true)
-	_music_tween.tween_property(next_player, "volume_db", 0.0, duration)
+	_music_tween.tween_property(next_player, "volume_db", _music_duck_db, duration)
 	_music_tween.tween_property(current_player, "volume_db", -80.0, duration)
 	_music_tween.chain().tween_callback(_finish_music_crossfade.bind(current_player))
 
@@ -127,11 +148,43 @@ func stop_music() -> void:
 	if _music_tween != null:
 		_music_tween.kill()
 		_music_tween = null
+	if _music_duck_tween != null:
+		_music_duck_tween.kill()
+		_music_duck_tween = null
+	_music_duck_db = 0.0
 	for player in _music_players:
 		player.stop()
 		player.stream = null
 		player.volume_db = 0.0
 	_music_track = &""
+
+
+func duck_music(target_db: float = MUSIC_DUCK_DB, duration: float = 0.2) -> void:
+	_music_duck_generation += 1
+	_music_duck_db = minf(0.0, target_db)
+	_apply_music_duck(duration)
+
+
+func restore_music(duration: float = 0.3) -> void:
+	if is_zero_approx(_music_duck_db):
+		return
+	_music_duck_generation += 1
+	_music_duck_db = 0.0
+	_apply_music_duck(duration)
+
+
+func _apply_music_duck(duration: float) -> void:
+	if _music_duck_tween != null:
+		_music_duck_tween.kill()
+	_music_duck_tween = create_tween().set_parallel(true)
+	for player in _music_players:
+		if player.playing:
+			_music_duck_tween.tween_property(
+				player,
+				"volume_db",
+				_music_duck_db,
+				maxf(0.05, duration),
+			)
 
 
 func has_music(track: StringName) -> bool:
@@ -250,6 +303,18 @@ func _build_player_pool() -> void:
 		_players.append(player)
 
 
+func _build_bonus_player() -> void:
+	_bonus_player = AudioStreamPlayer.new()
+	_bonus_player.bus = &"SFX"
+	_bonus_player.finished.connect(
+		func() -> void:
+			_bonus_player.stream = null
+			if _bonus_duck_generation == _music_duck_generation:
+				restore_music()
+	)
+	add_child(_bonus_player)
+
+
 func _build_music_players() -> void:
 	for _index in range(2):
 		var player := AudioStreamPlayer.new()
@@ -262,18 +327,19 @@ func _play_stream(
 	stream: AudioStream,
 	volume_db: float,
 	pitch_scale: float = 1.0,
-) -> void:
+) -> AudioStreamPlayer:
 	if (
 		stream == null
 		or _players.is_empty()
 		or DisplayServer.get_name() == "headless"
 	):
-		return
+		return null
 	var player := _find_available_player()
 	player.stream = stream
 	player.volume_db = volume_db
 	player.pitch_scale = maxf(0.01, pitch_scale)
 	player.play()
+	return player
 
 
 func _find_available_player() -> AudioStreamPlayer:

@@ -1,0 +1,141 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://features/main_menu/statistics_panel.gd" id="1_script"]
+[ext_resource type="Theme" path="res://assets/themes/cartoon_ui/controls.tres" id="2_theme"]
+
+[node name="StatisticsPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(500, 0)
+theme = ExtResource("2_theme")
+script = ExtResource("1_script")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.79, 0.27, 1)
+theme_override_font_sizes/font_size = 28
+text = "UI_STATISTICS"
+
+[node name="Rule" type="HSeparator" parent="Layout"]
+layout_mode = 2
+
+[node name="SummaryTitle" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.82, 0.79, 1)
+theme_override_font_sizes/font_size = 14
+text = "UI_STATS_MATCHES"
+
+[node name="SummaryGrid" type="GridContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 10
+columns = 3
+
+[node name="GamesLabel" type="Label" parent="Layout/SummaryGrid"]
+layout_mode = 2
+text = "UI_STATS_GAMES"
+[node name="WinsLabel" type="Label" parent="Layout/SummaryGrid"]
+layout_mode = 2
+text = "UI_STATS_WINS"
+[node name="WinRateLabel" type="Label" parent="Layout/SummaryGrid"]
+layout_mode = 2
+text = "UI_STATS_WIN_RATE"
+[node name="GamesValue" type="Label" parent="Layout/SummaryGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "0"
+[node name="WinsValue" type="Label" parent="Layout/SummaryGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "0"
+[node name="WinRateValue" type="Label" parent="Layout/SummaryGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "0.0%"
+
+[node name="StreakTitle" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.82, 0.79, 1)
+theme_override_font_sizes/font_size = 14
+text = "UI_STATS_STREAKS"
+
+[node name="StreakGrid" type="GridContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 10
+columns = 2
+[node name="StreakLabel" type="Label" parent="Layout/StreakGrid"]
+layout_mode = 2
+text = "UI_STATS_CURRENT_STREAK"
+[node name="BestStreakLabel" type="Label" parent="Layout/StreakGrid"]
+layout_mode = 2
+text = "UI_STATS_BEST_STREAK"
+[node name="StreakValue" type="Label" parent="Layout/StreakGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "0"
+[node name="BestStreakValue" type="Label" parent="Layout/StreakGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "0"
+
+[node name="ActionsTitle" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.82, 0.79, 1)
+theme_override_font_sizes/font_size = 14
+text = "UI_STATS_ACTIONS"
+
+[node name="ActionsGrid" type="GridContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 10
+columns = 4
+[node name="PlaysLabel" type="Label" parent="Layout/ActionsGrid"]
+layout_mode = 2
+text = "UI_STATS_PLAY_ACTIONS"
+[node name="DiceLabel" type="Label" parent="Layout/ActionsGrid"]
+layout_mode = 2
+text = "UI_STATS_TOTAL_DICE"
+[node name="BonusLabel" type="Label" parent="Layout/ActionsGrid"]
+layout_mode = 2
+text = "UI_STATS_TOTAL_BONUS"
+[node name="AverageLabel" type="Label" parent="Layout/ActionsGrid"]
+layout_mode = 2
+text = "UI_STATS_AVERAGE_CARDS"
+[node name="PlaysValue" type="Label" parent="Layout/ActionsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "0"
+[node name="DiceValue" type="Label" parent="Layout/ActionsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "0"
+[node name="BonusValue" type="Label" parent="Layout/ActionsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "0"
+[node name="AverageValue" type="Label" parent="Layout/ActionsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "0.00"
+
+[node name="Spacer" type="Control" parent="Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BackButton" type="Button" parent="Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "UI_BACK"

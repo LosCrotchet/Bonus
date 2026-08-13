@@ -18,7 +18,11 @@ func has_unfinished_game() -> bool:
 	return session.phase != GameSession.Phase.FINISHED
 
 
-func save_session(session: GameSession, custom_seed: bool = false) -> bool:
+func save_session(
+	session: GameSession,
+	custom_seed: bool = false,
+	match_statistics: Dictionary = {},
+) -> bool:
 	if session == null or session.phase == GameSession.Phase.FINISHED:
 		clear_save()
 		return false
@@ -26,6 +30,7 @@ func save_session(session: GameSession, custom_seed: bool = false) -> bool:
 		"version": SAVE_VERSION,
 		"saved_at": Time.get_unix_time_from_system(),
 		"custom_seed": custom_seed,
+		"match_statistics": match_statistics.duplicate(true),
 		"session": session.to_snapshot(),
 	}
 	var file := FileAccess.open(TEMP_SAVE_PATH, FileAccess.WRITE)
