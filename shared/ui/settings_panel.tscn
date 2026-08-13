@@ -72,37 +72,47 @@ text = "UI_GAME_SETTINGS"
 [node name="Divider" type="HSeparator" parent="Layout"]
 layout_mode = 2
 
-[node name="DisplaySection" type="Label" parent="Layout"]
+[node name="SettingsScroll" type="ScrollContainer" parent="Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="SettingsContent" type="VBoxContainer" parent="Layout/SettingsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="DisplaySection" type="Label" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.75, 0.27, 1)
 theme_override_font_sizes/font_size = 15
 text = "UI_SECTION_DISPLAY"
 
-[node name="DisplaySeparator" type="HSeparator" parent="Layout"]
+[node name="DisplaySeparator" type="HSeparator" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
 
-[node name="ResolutionRow" type="HBoxContainer" parent="Layout"]
+[node name="ResolutionRow" type="HBoxContainer" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
-[node name="Label" type="Label" parent="Layout/ResolutionRow"]
+[node name="Label" type="Label" parent="Layout/SettingsScroll/SettingsContent/ResolutionRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_RESOLUTION"
-[node name="ResolutionOption" type="OptionButton" parent="Layout/ResolutionRow"]
+[node name="ResolutionOption" type="OptionButton" parent="Layout/SettingsScroll/SettingsContent/ResolutionRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(220, 38)
 layout_mode = 2
 
-[node name="WindowModeRow" type="HBoxContainer" parent="Layout"]
+[node name="WindowModeRow" type="HBoxContainer" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
-[node name="Label" type="Label" parent="Layout/WindowModeRow"]
+[node name="Label" type="Label" parent="Layout/SettingsScroll/SettingsContent/WindowModeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_WINDOW_MODE"
-[node name="WindowModeButtons" type="HBoxContainer" parent="Layout/WindowModeRow"]
+[node name="WindowModeButtons" type="HBoxContainer" parent="Layout/SettingsScroll/SettingsContent/WindowModeRow"]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="WindowedButton" type="Button" parent="Layout/WindowModeRow/WindowModeButtons"]
+[node name="WindowedButton" type="Button" parent="Layout/SettingsScroll/SettingsContent/WindowModeRow/WindowModeButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(106, 36)
 layout_mode = 2
@@ -112,7 +122,7 @@ button_group = SubResource("ButtonGroup_window")
 theme_type_variation = &"SquareButton"
 text = "UI_WINDOWED"
 
-[node name="FullscreenButton" type="Button" parent="Layout/WindowModeRow/WindowModeButtons"]
+[node name="FullscreenButton" type="Button" parent="Layout/SettingsScroll/SettingsContent/WindowModeRow/WindowModeButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(106, 36)
 layout_mode = 2
@@ -121,102 +131,102 @@ button_group = SubResource("ButtonGroup_window")
 theme_type_variation = &"SquareButton"
 text = "UI_FULLSCREEN"
 
-[node name="LanguageRow" type="HBoxContainer" parent="Layout"]
+[node name="LanguageRow" type="HBoxContainer" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
-[node name="Label" type="Label" parent="Layout/LanguageRow"]
+[node name="Label" type="Label" parent="Layout/SettingsScroll/SettingsContent/LanguageRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_LANGUAGE"
-[node name="LanguageOption" type="OptionButton" parent="Layout/LanguageRow"]
+[node name="LanguageOption" type="OptionButton" parent="Layout/SettingsScroll/SettingsContent/LanguageRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(220, 38)
 layout_mode = 2
 
-[node name="SoundSection" type="Label" parent="Layout"]
+[node name="SoundSection" type="Label" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.75, 0.27, 1)
 theme_override_font_sizes/font_size = 15
 text = "UI_SECTION_SOUND"
 
-[node name="SoundSeparator" type="HSeparator" parent="Layout"]
+[node name="SoundSeparator" type="HSeparator" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
 
-[node name="MasterVolumeRow" type="HBoxContainer" parent="Layout"]
+[node name="MasterVolumeRow" type="HBoxContainer" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
-[node name="Label" type="Label" parent="Layout/MasterVolumeRow"]
+[node name="Label" type="Label" parent="Layout/SettingsScroll/SettingsContent/MasterVolumeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_MASTER_VOLUME"
-[node name="MasterVolumeSlider" type="HSlider" parent="Layout/MasterVolumeRow"]
+[node name="MasterVolumeSlider" type="HSlider" parent="Layout/SettingsScroll/SettingsContent/MasterVolumeRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(158, 30)
 layout_mode = 2
 max_value = 1.0
 step = 0.01
-[node name="MasterVolumeValue" type="Label" parent="Layout/MasterVolumeRow"]
+[node name="MasterVolumeValue" type="Label" parent="Layout/SettingsScroll/SettingsContent/MasterVolumeRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(52, 0)
 layout_mode = 2
 horizontal_alignment = 2
 
-[node name="SfxVolumeRow" type="HBoxContainer" parent="Layout"]
+[node name="SfxVolumeRow" type="HBoxContainer" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
-[node name="Label" type="Label" parent="Layout/SfxVolumeRow"]
+[node name="Label" type="Label" parent="Layout/SettingsScroll/SettingsContent/SfxVolumeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_SFX_VOLUME"
-[node name="SfxVolumeSlider" type="HSlider" parent="Layout/SfxVolumeRow"]
+[node name="SfxVolumeSlider" type="HSlider" parent="Layout/SettingsScroll/SettingsContent/SfxVolumeRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(158, 30)
 layout_mode = 2
 max_value = 1.0
 step = 0.01
-[node name="SfxVolumeValue" type="Label" parent="Layout/SfxVolumeRow"]
+[node name="SfxVolumeValue" type="Label" parent="Layout/SettingsScroll/SettingsContent/SfxVolumeRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(52, 0)
 layout_mode = 2
 horizontal_alignment = 2
 
-[node name="MusicVolumeRow" type="HBoxContainer" parent="Layout"]
+[node name="MusicVolumeRow" type="HBoxContainer" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
-[node name="Label" type="Label" parent="Layout/MusicVolumeRow"]
+[node name="Label" type="Label" parent="Layout/SettingsScroll/SettingsContent/MusicVolumeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_MUSIC_VOLUME"
-[node name="MusicVolumeSlider" type="HSlider" parent="Layout/MusicVolumeRow"]
+[node name="MusicVolumeSlider" type="HSlider" parent="Layout/SettingsScroll/SettingsContent/MusicVolumeRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(158, 30)
 layout_mode = 2
 max_value = 1.0
 step = 0.01
-[node name="MusicVolumeValue" type="Label" parent="Layout/MusicVolumeRow"]
+[node name="MusicVolumeValue" type="Label" parent="Layout/SettingsScroll/SettingsContent/MusicVolumeRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(52, 0)
 layout_mode = 2
 horizontal_alignment = 2
 
-[node name="GameSection" type="Label" parent="Layout"]
+[node name="GameSection" type="Label" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.75, 0.27, 1)
 theme_override_font_sizes/font_size = 15
 text = "UI_SECTION_GAME"
 
-[node name="GameSeparator" type="HSeparator" parent="Layout"]
+[node name="GameSeparator" type="HSeparator" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
 
-[node name="GameSpeedRow" type="HBoxContainer" parent="Layout"]
+[node name="GameSpeedRow" type="HBoxContainer" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Layout/GameSpeedRow"]
+[node name="Label" type="Label" parent="Layout/SettingsScroll/SettingsContent/GameSpeedRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_GAME_SPEED"
 
-[node name="GameSpeedButtons" type="HBoxContainer" parent="Layout/GameSpeedRow"]
+[node name="GameSpeedButtons" type="HBoxContainer" parent="Layout/SettingsScroll/SettingsContent/GameSpeedRow"]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="SpeedSlowButton" type="Button" parent="Layout/GameSpeedRow/GameSpeedButtons"]
+[node name="SpeedSlowButton" type="Button" parent="Layout/SettingsScroll/SettingsContent/GameSpeedRow/GameSpeedButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(68, 36)
 layout_mode = 2
@@ -226,7 +236,7 @@ button_group = SubResource("ButtonGroup_speed")
 theme_type_variation = &"SquareButton"
 text = "UI_SPEED_SLOW"
 
-[node name="SpeedMediumButton" type="Button" parent="Layout/GameSpeedRow/GameSpeedButtons"]
+[node name="SpeedMediumButton" type="Button" parent="Layout/SettingsScroll/SettingsContent/GameSpeedRow/GameSpeedButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(68, 36)
 layout_mode = 2
@@ -235,7 +245,7 @@ button_group = SubResource("ButtonGroup_speed")
 theme_type_variation = &"SquareButton"
 text = "UI_SPEED_MEDIUM"
 
-[node name="SpeedFastButton" type="Button" parent="Layout/GameSpeedRow/GameSpeedButtons"]
+[node name="SpeedFastButton" type="Button" parent="Layout/SettingsScroll/SettingsContent/GameSpeedRow/GameSpeedButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(68, 36)
 layout_mode = 2
@@ -244,23 +254,23 @@ button_group = SubResource("ButtonGroup_speed")
 theme_type_variation = &"SquareButton"
 text = "UI_SPEED_FAST"
 
-[node name="StatusTextRow" type="HBoxContainer" parent="Layout"]
+[node name="StatusTextRow" type="HBoxContainer" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
-[node name="Label" type="Label" parent="Layout/StatusTextRow"]
+[node name="Label" type="Label" parent="Layout/SettingsScroll/SettingsContent/StatusTextRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_SHOW_STATUS_TEXT"
-[node name="StatusTextToggle" type="CheckBox" parent="Layout/StatusTextRow"]
+[node name="StatusTextToggle" type="CheckBox" parent="Layout/SettingsScroll/SettingsContent/StatusTextRow"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="DoubleClickRow" type="HBoxContainer" parent="Layout"]
+[node name="DoubleClickRow" type="HBoxContainer" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
-[node name="Label" type="Label" parent="Layout/DoubleClickRow"]
+[node name="Label" type="Label" parent="Layout/SettingsScroll/SettingsContent/DoubleClickRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_DOUBLE_CLICK_ACTIONS"
-[node name="DoubleClickInfo" type="Button" parent="Layout/DoubleClickRow"]
+[node name="DoubleClickInfo" type="Button" parent="Layout/SettingsScroll/SettingsContent/DoubleClickRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(30, 24)
 layout_mode = 2
@@ -276,52 +286,52 @@ theme_override_styles/disabled = SubResource("Style_info_button")
 theme_override_styles/focus = SubResource("Style_info_focus")
 text = "?"
 metadata/control_motion_disabled = true
-[node name="DoubleClickToggle" type="CheckBox" parent="Layout/DoubleClickRow"]
+[node name="DoubleClickToggle" type="CheckBox" parent="Layout/SettingsScroll/SettingsContent/DoubleClickRow"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="SimplifiedCardsRow" type="HBoxContainer" parent="Layout"]
+[node name="SimplifiedCardsRow" type="HBoxContainer" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
-[node name="Label" type="Label" parent="Layout/SimplifiedCardsRow"]
+[node name="Label" type="Label" parent="Layout/SettingsScroll/SettingsContent/SimplifiedCardsRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_USE_SIMPLIFIED_CARDS"
-[node name="SimplifiedCardsToggle" type="CheckBox" parent="Layout/SimplifiedCardsRow"]
+[node name="SimplifiedCardsToggle" type="CheckBox" parent="Layout/SettingsScroll/SettingsContent/SimplifiedCardsRow"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="Spacer" type="Control" parent="Layout"]
+[node name="Spacer" type="Control" parent="Layout/SettingsScroll/SettingsContent"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="NavigationActions" type="VBoxContainer" parent="Layout"]
+[node name="NavigationActions" type="VBoxContainer" parent="Layout/SettingsScroll/SettingsContent"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="ExitMenuButton" type="Button" parent="Layout/NavigationActions"]
+[node name="ExitMenuButton" type="Button" parent="Layout/SettingsScroll/SettingsContent/NavigationActions"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_type_variation = &"RedButton"
 text = "UI_EXIT_TO_MENU"
 
-[node name="ExitMenuConfirmation" type="HBoxContainer" parent="Layout/NavigationActions"]
+[node name="ExitMenuConfirmation" type="HBoxContainer" parent="Layout/SettingsScroll/SettingsContent/NavigationActions"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 8
-[node name="Prompt" type="Label" parent="Layout/NavigationActions/ExitMenuConfirmation"]
+[node name="Prompt" type="Label" parent="Layout/SettingsScroll/SettingsContent/NavigationActions/ExitMenuConfirmation"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_CONFIRM_EXIT_MENU"
-[node name="ExitMenuYes" type="Button" parent="Layout/NavigationActions/ExitMenuConfirmation"]
+[node name="ExitMenuYes" type="Button" parent="Layout/SettingsScroll/SettingsContent/NavigationActions/ExitMenuConfirmation"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(74, 40)
 layout_mode = 2
 theme_type_variation = &"RedButton"
 text = "UI_YES"
-[node name="ExitMenuNo" type="Button" parent="Layout/NavigationActions/ExitMenuConfirmation"]
+[node name="ExitMenuNo" type="Button" parent="Layout/SettingsScroll/SettingsContent/NavigationActions/ExitMenuConfirmation"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(74, 40)
 layout_mode = 2

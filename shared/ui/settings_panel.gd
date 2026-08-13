@@ -53,7 +53,6 @@ func _ready() -> void:
 	SettingsService.audio_changed.connect(_on_audio_changed)
 	SettingsService.language_changed.connect(_on_language_changed)
 	navigation_actions.visible = show_navigation_actions
-	$Layout.move_child(navigation_actions, $Layout.get_child_count() - 1)
 	_populate_options()
 	begin_edit()
 	ControlMotion.bind_buttons(self)

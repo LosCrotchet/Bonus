@@ -909,7 +909,11 @@ theme_override_font_sizes/font_size = 19
 text = "30"
 vertical_alignment = 1
 
-[node name="HandTypesOverlay" type="Control" parent="." unique_id=428305032]
+[node name="ModalLayer" type="CanvasLayer" parent="."]
+process_mode = 3
+layer = 100
+
+[node name="HandTypesOverlay" type="Control" parent="ModalLayer" unique_id=428305032]
 unique_name_in_owner = true
 visible = false
 process_mode = 3
@@ -920,8 +924,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="Dim" type="ColorRect" parent="HandTypesOverlay" unique_id=2116747764]
+[node name="Dim" type="ColorRect" parent="ModalLayer/HandTypesOverlay" unique_id=2116747764]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -931,7 +936,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.015, 0.02, 0.02, 0.82)
 
-[node name="HandTypesDismissButton" type="Button" parent="HandTypesOverlay" unique_id=1663446881]
+[node name="HandTypesDismissButton" type="Button" parent="ModalLayer/HandTypesOverlay" unique_id=1663446881]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -942,19 +947,22 @@ grow_vertical = 2
 focus_mode = 0
 flat = true
 
-[node name="Center" type="CenterContainer" parent="HandTypesOverlay" unique_id=1289608308]
+[node name="Center" type="CenterContainer" parent="ModalLayer/HandTypesOverlay" unique_id=1289608308]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="HandTypesDialog" parent="HandTypesOverlay/Center" unique_id=698608329 instance=ExtResource("11_hand_types")]
+[node name="HandTypesDialog" parent="ModalLayer/HandTypesOverlay/Center" unique_id=698608329 instance=ExtResource("11_hand_types")]
 unique_name_in_owner = true
+process_mode = 3
 layout_mode = 2
+mouse_filter = 0
 
-[node name="SettingsOverlay" type="Control" parent="." unique_id=288406109]
+[node name="SettingsOverlay" type="Control" parent="ModalLayer" unique_id=288406109]
 unique_name_in_owner = true
 visible = false
 process_mode = 3
@@ -965,8 +973,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="Dim" type="ColorRect" parent="SettingsOverlay" unique_id=423004564]
+[node name="Dim" type="ColorRect" parent="ModalLayer/SettingsOverlay" unique_id=423004564]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -976,7 +985,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.12, 0.13, 0.13, 0.78)
 
-[node name="SettingsDismissButton" type="Button" parent="SettingsOverlay" unique_id=1006409146]
+[node name="SettingsDismissButton" type="Button" parent="ModalLayer/SettingsOverlay" unique_id=1006409146]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -987,18 +996,21 @@ grow_vertical = 2
 focus_mode = 0
 flat = true
 
-[node name="Center" type="CenterContainer" parent="SettingsOverlay" unique_id=204566512]
+[node name="Center" type="CenterContainer" parent="ModalLayer/SettingsOverlay" unique_id=204566512]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="SettingsPanel" parent="SettingsOverlay/Center" unique_id=281279714 instance=ExtResource("5_settings")]
+[node name="SettingsPanel" parent="ModalLayer/SettingsOverlay/Center" unique_id=281279714 instance=ExtResource("5_settings")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(500, 680)
+process_mode = 3
+custom_minimum_size = Vector2(500, 620)
 layout_mode = 2
+mouse_filter = 0
 
 [node name="InterpretationPopup" type="PopupPanel" parent="." unique_id=1354821618]
 unique_name_in_owner = true

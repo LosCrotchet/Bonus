@@ -2190,7 +2190,6 @@ func _on_settings_pressed() -> void:
 	settings_panel.begin_edit()
 	AudioService.play(&"ui_fade_in")
 	settings_overlay.visible = true
-	settings_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	settings_overlay.modulate.a = 0.0
 	settings_panel.scale = Vector2(0.96, 0.96)
 	settings_panel.pivot_offset = settings_panel.size * 0.5
@@ -2263,7 +2262,6 @@ func _close_settings() -> void:
 	if _settings_tween != null:
 		_settings_tween.kill()
 	AudioService.play(&"ui_fade_out")
-	settings_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_settings_tween = create_tween().set_pause_mode(
 		Tween.TWEEN_PAUSE_PROCESS,
 	).set_parallel(true)

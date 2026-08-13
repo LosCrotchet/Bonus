@@ -94,14 +94,33 @@ func _run_test() -> void:
 	assert((game.get_node("%SettingsOverlay") as Control).visible)
 	await get_tree().create_timer(0.15, true).timeout
 	assert((director.get("_current_step") as TutorialStep).step_id == paused_step_id)
-	(game.get_node("%SettingsPanel") as Control).call("cancel_edit")
+	var cancel_button := game.get_node("%SettingsPanel").get_node(
+		"%CancelButton",
+	) as Control
+	await _click_control(
+		cancel_button,
+	)
+	await get_tree().create_timer(0.8, true).timeout
+	assert(not (game.get_node("%SettingsOverlay") as Control).visible)
+	assert(not get_tree().paused)
+	game.call("_on_settings_pressed")
+	assert(get_tree().paused)
+	await _click_at(Vector2(12.0, 12.0))
 	await get_tree().create_timer(0.8, true).timeout
 	assert(not (game.get_node("%SettingsOverlay") as Control).visible)
 	assert(not get_tree().paused)
 	game.call("_open_hand_types")
 	assert(get_tree().paused)
 	assert((game.get_node("%HandTypesOverlay") as Control).visible)
-	game.call("_close_hand_types")
+	await _click_control(
+		game.get_node("%HandTypesDialog").get_node("%CloseButton") as Control,
+	)
+	await get_tree().create_timer(0.8, true).timeout
+	assert(not (game.get_node("%HandTypesOverlay") as Control).visible)
+	assert(not get_tree().paused)
+	game.call("_open_hand_types")
+	assert(get_tree().paused)
+	await _click_at(Vector2(12.0, 12.0))
 	await get_tree().create_timer(0.8, true).timeout
 	assert(not (game.get_node("%HandTypesOverlay") as Control).visible)
 	assert(not get_tree().paused)
@@ -291,6 +310,24 @@ func _double_click(position: Vector2) -> InputEventMouseButton:
 	var event := _left_click(position)
 	event.double_click = true
 	return event
+
+
+func _click_control(control: Control) -> void:
+	await _click_at(control.get_global_rect().get_center())
+
+
+func _click_at(position: Vector2) -> void:
+	var motion := InputEventMouseMotion.new()
+	motion.position = position
+	get_viewport().push_input(motion, true)
+	await get_tree().process_frame
+	var press := _left_click(position)
+	get_viewport().push_input(press, true)
+	await get_tree().process_frame
+	var release := _left_click(position)
+	release.pressed = false
+	get_viewport().push_input(release, true)
+	await get_tree().process_frame
 
 
 func _advance_dialog(director: TutorialDirector) -> void:
