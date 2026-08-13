@@ -4,3 +4,4 @@
 *.TMP
 *.log
 ~*.dll
+build/

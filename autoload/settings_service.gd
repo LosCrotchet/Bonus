@@ -30,8 +30,17 @@ enum GameplayTiming {
 }
 
 const SETTINGS_PATH := "user://bonus_settings.cfg"
+const SETTINGS_VERSION := 1
 const DEFAULT_GAME_SPEED := GameSpeed.SLOW
-const DEFAULT_SFX_VOLUME := 0.7
+const DEFAULT_RESOLUTION := Vector2i(1280, 720)
+const DEFAULT_WINDOW_MODE := WindowMode.WINDOWED
+const DEFAULT_LOCALE := "zh_CN"
+const DEFAULT_MASTER_VOLUME := 0.7
+const DEFAULT_SFX_VOLUME := 1.0
+const DEFAULT_MUSIC_VOLUME := 0.5
+const DEFAULT_SHOW_STATUS_TEXT := true
+const DEFAULT_DOUBLE_CLICK_ACTIONS := false
+const DEFAULT_USE_SIMPLIFIED_CARDS := false
 const SPEED_MULTIPLIERS: Array[float] = [1.7, 1.15, 0.75]
 const UI_ANIMATION_DURATION := 0.22
 const BASE_TIMINGS := {
@@ -55,16 +64,16 @@ const RESOLUTIONS: Array[Vector2i] = [
 const LOCALES: Array[String] = ["zh_CN", "en"]
 
 var game_speed := DEFAULT_GAME_SPEED
-var resolution := Vector2i(1280, 720)
-var window_mode := WindowMode.WINDOWED
-var locale := "zh_CN"
-var show_status_text := true
-var double_click_actions := false
-var use_simplified_cards := false
+var resolution := DEFAULT_RESOLUTION
+var window_mode := DEFAULT_WINDOW_MODE
+var locale := DEFAULT_LOCALE
+var show_status_text := DEFAULT_SHOW_STATUS_TEXT
+var double_click_actions := DEFAULT_DOUBLE_CLICK_ACTIONS
+var use_simplified_cards := DEFAULT_USE_SIMPLIFIED_CARDS
 var player_id := ""
-var master_volume := 0.8
+var master_volume := DEFAULT_MASTER_VOLUME
 var sfx_volume := DEFAULT_SFX_VOLUME
-var music_volume := 0.65
+var music_volume := DEFAULT_MUSIC_VOLUME
 
 var _audio_save_timer: Timer
 
@@ -274,17 +283,29 @@ func _load_settings() -> void:
 	var config := ConfigFile.new()
 	if config.load(SETTINGS_PATH) != OK:
 		return
+	if int(config.get_value("meta", "version", 0)) != SETTINGS_VERSION:
+		player_id = str(config.get_value("network", "player_id", "")).strip_edges().left(24)
+		_save_settings()
+		return
 	game_speed = clampi(
 		config.get_value("gameplay", "speed", DEFAULT_GAME_SPEED),
 		GameSpeed.SLOW,
 		GameSpeed.FAST,
 	) as GameSpeed
-	show_status_text = bool(config.get_value("gameplay", "show_status_text", true))
-	double_click_actions = bool(config.get_value("gameplay", "double_click_actions", false))
+	show_status_text = bool(config.get_value(
+		"gameplay",
+		"show_status_text",
+		DEFAULT_SHOW_STATUS_TEXT,
+	))
+	double_click_actions = bool(config.get_value(
+		"gameplay",
+		"double_click_actions",
+		DEFAULT_DOUBLE_CLICK_ACTIONS,
+	))
 	use_simplified_cards = bool(config.get_value(
 		"gameplay",
 		"use_simplified_cards",
-		false,
+		DEFAULT_USE_SIMPLIFIED_CARDS,
 	))
 	player_id = str(config.get_value("network", "player_id", "")).strip_edges().left(24)
 	master_volume = clampf(config.get_value("audio", "master_volume", master_volume), 0.0, 1.0)
@@ -305,6 +326,7 @@ func _load_settings() -> void:
 
 func _save_settings() -> void:
 	var config := ConfigFile.new()
+	config.set_value("meta", "version", SETTINGS_VERSION)
 	config.set_value("gameplay", "speed", game_speed)
 	config.set_value("gameplay", "show_status_text", show_status_text)
 	config.set_value("gameplay", "double_click_actions", double_click_actions)

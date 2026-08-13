@@ -70,6 +70,7 @@ func _ready() -> void:
 	SettingsService.language_changed.connect(_on_language_changed)
 	_setup_player_count_buttons()
 	_reset_single_player_options()
+	_refresh_unlocked_menu_options()
 	single_player_panel.visible = false
 	settings_side_panel.visible = false
 	lan_panel.visible = false
@@ -318,8 +319,17 @@ func _start_single_player() -> void:
 func _start_tutorial() -> void:
 	if _transitioning:
 		return
+	PlayerProgressService.mark_tutorial_opened()
 	AudioService.play(&"ui_confirm")
 	tutorial_requested.emit()
+
+
+func _refresh_unlocked_menu_options() -> void:
+	var unlocked := PlayerProgressService.tutorial_opened
+	%SinglePlayerButton.visible = unlocked
+	%MultiplayerButton.visible = unlocked
+	%SettingsButton.visible = unlocked
+	%ExitGameButton.visible = unlocked
 
 
 func _continue_saved_game() -> void:

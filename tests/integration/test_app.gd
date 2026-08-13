@@ -14,6 +14,8 @@ func _start_watchdog() -> void:
 
 func _run_test() -> void:
 	SaveGameService.clear_save()
+	var original_tutorial_opened := PlayerProgressService.tutorial_opened
+	PlayerProgressService.tutorial_opened = false
 	var packed_scene := load("res://app/app.tscn") as PackedScene
 	assert(packed_scene != null)
 	var app := packed_scene.instantiate() as Control
@@ -26,6 +28,17 @@ func _run_test() -> void:
 	var content := app.get_node("%Content") as Control
 	var menu := content.get_child(0) as MainMenu
 	assert(menu != null)
+	assert((menu.get_node("%TutorialButton") as Button).visible)
+	assert(not (menu.get_node("%SinglePlayerButton") as Button).visible)
+	assert(not (menu.get_node("%MultiplayerButton") as Button).visible)
+	assert(not (menu.get_node("%SettingsButton") as Button).visible)
+	assert(not (menu.get_node("%ExitGameButton") as Button).visible)
+	PlayerProgressService.tutorial_opened = true
+	menu.call("_refresh_unlocked_menu_options")
+	assert((menu.get_node("%SinglePlayerButton") as Button).visible)
+	assert((menu.get_node("%MultiplayerButton") as Button).visible)
+	assert((menu.get_node("%SettingsButton") as Button).visible)
+	assert((menu.get_node("%ExitGameButton") as Button).visible)
 	var single_player_panel := menu.get_node("%SinglePlayerPanel") as PanelContainer
 	var cartoon_theme := load("res://assets/themes/cartoon_ui/controls.tres") as Theme
 	assert(single_player_panel.theme == cartoon_theme)
@@ -254,6 +267,7 @@ func _run_test() -> void:
 		% [expected_action_bar_position, action_bar.position],
 	)
 	SaveGameService.clear_save()
+	PlayerProgressService.tutorial_opened = original_tutorial_opened
 	print("BONUS_TEST_APP_OK")
 	app.queue_free()
 	await AudioService.shutdown()
