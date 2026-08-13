@@ -1,6 +1,6 @@
 [gd_resource type="Theme" format=3 uid="uid://cbc4n3ejioec4"]
 
-[ext_resource type="FontFile" uid="uid://bobda3iv4j3mt" path="res://assets/fonts/SourceHanSans-VF.otf.ttc" id="1_font"]
+[ext_resource type="FontFile" path="res://assets/fonts/SourceHanSansSC-Subset.otf" id="1_font"]
 [ext_resource type="Texture2D" uid="uid://cl8rpjr4fcqgl" path="res://assets/themes/cartoon_ui/black/button wider idle.png" id="2_black_idle"]
 [ext_resource type="Texture2D" uid="uid://stoqco5xopq1" path="res://assets/themes/cartoon_ui/black/button wider hover.png" id="3_black_hover"]
 [ext_resource type="Texture2D" uid="uid://iyf2bk5fa5to" path="res://assets/themes/cartoon_ui/black/button wider clicked.png" id="4_black_pressed"]

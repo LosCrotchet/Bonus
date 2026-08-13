@@ -25,15 +25,6 @@ func _ready() -> void:
 			menu.get_global_rect().end.x,
 		],
 	)
-	var disabled_button := panel.get_node(
-		"MenuPanel/Layout/SteamLobbyButton",
-	) as Button
-	var disabled_rest_position := disabled_button.position
-	disabled_button.mouse_entered.emit()
-	disabled_button.mouse_exited.emit()
-	await get_tree().create_timer(0.15).timeout
-	assert(disabled_button.position.is_equal_approx(disabled_rest_position))
-	assert(disabled_button.scale.is_equal_approx(Vector2.ONE))
 	assert(not detail_panel.visible)
 	(panel.get_node("%CreateRoomButton") as Button).pressed.emit()
 	await get_tree().create_timer(0.3).timeout

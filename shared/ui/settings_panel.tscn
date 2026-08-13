@@ -1,7 +1,7 @@
 [gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://shared/ui/settings_panel.gd" id="1_settings"]
-[ext_resource type="FontFile" path="res://assets/fonts/SourceHanSans-VF.otf.ttc" id="2_font"]
+[ext_resource type="FontFile" path="res://assets/fonts/SourceHanSansSC-Subset.otf" id="2_font"]
 
 [sub_resource type="StyleBoxFlat" id="Style_panel"]
 bg_color = Color(0.105, 0.13, 0.13, 0.98)

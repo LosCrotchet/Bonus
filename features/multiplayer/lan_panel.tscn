@@ -95,23 +95,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
 text = "LAN_JOIN_ROOM"
-[node name="SteamSection" type="Label" parent="MenuPanel/Layout"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.72, 0.7, 1)
-theme_override_font_sizes/font_size = 19
-text = "STEAM_MULTIPLAYER"
-[node name="SteamRule" type="HSeparator" parent="MenuPanel/Layout"]
-layout_mode = 2
-[node name="SteamLobbyButton" type="Button" parent="MenuPanel/Layout"]
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-disabled = true
-text = "STEAM_LOBBY_COMING"
-[node name="SteamOnlineButton" type="Button" parent="MenuPanel/Layout"]
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-disabled = true
-text = "STEAM_ONLINE_COMING"
 [node name="MenuSpacer" type="Control" parent="MenuPanel/Layout"]
 layout_mode = 2
 size_flags_vertical = 3

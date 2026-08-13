@@ -7,7 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://cytp8wxofr3ew" path="res://assets/icons/multiplayer_2.png" id="5_multi"]
 [ext_resource type="Texture2D" uid="uid://f0n8ynnrfqs8" path="res://assets/icons/settings.png" id="6_settings"]
 [ext_resource type="Texture2D" uid="uid://d22npo0xli4xf" path="res://assets/icons/button_power.png" id="7_power"]
-[ext_resource type="FontFile" uid="uid://bobda3iv4j3mt" path="res://assets/fonts/SourceHanSans-VF.otf.ttc" id="10_font"]
+[ext_resource type="FontFile" path="res://assets/fonts/SourceHanSansSC-Subset.otf" id="10_font"]
 [ext_resource type="Theme" uid="uid://cbc4n3ejioec4" path="res://assets/themes/cartoon_ui/controls.tres" id="11_controls"]
 [ext_resource type="Texture2D" uid="uid://n0xbfx6osq21" path="res://assets/icons/tutorial.png" id="12_tutorial"]
 

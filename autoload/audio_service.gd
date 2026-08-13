@@ -147,46 +147,46 @@ func _finish_music_crossfade(previous_player: AudioStreamPlayer) -> void:
 
 func _build_stream_catalog() -> void:
 	var tutorial_pop := _randomizer(
-		["pop_1.wav", "pop_2.wav", "pop_3.wav", "pop_4.wav"],
+		["pop_1.ogg", "pop_2.ogg", "pop_3.ogg", "pop_4.ogg"],
 		0.7,
 		0.3,
 	)
 	var card_handling := _randomizer(
-		["card_draw_1.wav", "card_draw_2.wav", "card_draw_3.wav"],
+		["card_draw_1.ogg", "card_draw_2.ogg", "card_draw_3.ogg"],
 		0.8,
 		0.35,
 	)
-	var card_selection := _randomizer(["card_select.wav"], 0.7, 0.2)
+	var card_selection := _randomizer(["card_select.ogg"], 0.7, 0.2)
 	_cue_streams = {
-		&"ui_hover": _randomizer(["new_hover.wav"], 0.45, 0.18),
+		&"ui_hover": _randomizer(["new_hover.ogg"], 0.45, 0.18),
 		&"tutorial_confirm": tutorial_pop,
-		&"tutorial_type": _randomizer(["dot.wav"], 0.65, 0.35),
-		&"ui_confirm": _randomizer(["ui_confirm.wav"], 0.18),
-		&"ui_cancel": _randomizer(["ui_cancel.wav"], 0.18),
-		&"ui_invalid": _randomizer(["ui_invalid.wav"], 0.12),
-		&"ui_fade_in": _randomizer(["ui_fade_in.wav"], 0.12),
-		&"ui_fade_out": _randomizer(["ui_fade_out.wav"], 0.12),
-		&"settings_applied": _randomizer(["settings_applied.wav"], 0.12),
+		&"tutorial_type": _randomizer(["dot.ogg"], 0.65, 0.35),
+		&"ui_confirm": _randomizer(["ui_confirm.ogg"], 0.18),
+		&"ui_cancel": _randomizer(["ui_cancel.ogg"], 0.18),
+		&"ui_invalid": _randomizer(["ui_invalid.ogg"], 0.12),
+		&"ui_fade_in": _randomizer(["ui_fade_in.ogg"], 0.12),
+		&"ui_fade_out": _randomizer(["ui_fade_out.ogg"], 0.12),
+		&"settings_applied": _randomizer(["settings_applied.ogg"], 0.12),
 		&"card_deal": card_handling,
 		&"card_draw": card_handling,
 		&"card_select": card_selection,
 		&"card_deselect": card_selection,
-		&"card_hover": _randomizer(["card_hover.wav"], 0.65, 0.2),
-		&"card_play": _randomizer(["card_play.wav"], 0.55, 0.2),
-		&"card_reveal": _randomizer(["card_fan.wav", "card_fan_2.wav"], 0.45),
+		&"card_hover": _randomizer(["card_hover.ogg"], 0.65, 0.2),
+		&"card_play": _randomizer(["card_play.ogg"], 0.55, 0.2),
+		&"card_reveal": _randomizer(["card_fan.ogg", "card_fan_2.ogg"], 0.45),
 		&"dice_shake": _randomizer(
-			["dice_shake_1.wav", "dice_shake_2.wav", "dice_shake_3.wav"],
+			["dice_shake_1.ogg", "dice_shake_2.ogg", "dice_shake_3.ogg"],
 			0.25,
 		),
 		&"dice_land": _randomizer(
-			["dice_roll_1.wav", "dice_roll_2.wav", "dice_roll_3.wav", "dice_roll_4.wav"],
+			["dice_roll_1.ogg", "dice_roll_2.ogg", "dice_roll_3.ogg", "dice_roll_4.ogg"],
 			0.3,
 		),
-		&"turn_change": _randomizer(["turn_change.wav"], 0.18),
-		&"pass": _randomizer(["pass.wav"], 0.2),
-		&"round_start": _randomizer(["round_start.wav"], 0.12),
-		&"game_win": _randomizer(["game_win.wav"]),
-		&"game_lose": _randomizer(["game_lose.wav"]),
+		&"turn_change": _randomizer(["turn_change.ogg"], 0.18),
+		&"pass": _randomizer(["pass.ogg"], 0.2),
+		&"round_start": _randomizer(["round_start.ogg"], 0.12),
+		&"game_win": _randomizer(["game_win.ogg"]),
+		&"game_lose": _randomizer(["game_lose.ogg"]),
 	}
 	_cue_volume_db.clear()
 	for cue in _cue_streams:
@@ -206,7 +206,7 @@ func _build_stream_catalog() -> void:
 		&"turn_change": 80,
 		&"pass": 80,
 	}
-	_bonus_streams.append(_randomizer(["trumpet_cheerful.wav"], 0.1))
+	_bonus_streams.append(_randomizer(["trumpet_cheerful.ogg"], 0.1))
 
 
 func _build_music_catalog() -> void:

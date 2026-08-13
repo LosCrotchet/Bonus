@@ -46,12 +46,12 @@ func _run_test() -> void:
 	var card_draw := catalog[&"card_draw"] as AudioStreamRandomizer
 	assert(hover.streams_count == 1)
 	assert(hover.random_pitch_semitones > 0.0)
-	assert(hover.get_stream(0).resource_path.ends_with("new_hover.wav"))
+	assert(hover.get_stream(0).resource_path.ends_with("new_hover.ogg"))
 	assert(tutorial_confirm != hover)
 	assert(tutorial_confirm.streams_count == 4)
 	assert(tutorial_type.streams_count == 1)
 	assert(tutorial_type.random_pitch_semitones > 0.0)
-	assert(tutorial_type.get_stream(0).resource_path.ends_with("dot.wav"))
+	assert(tutorial_type.get_stream(0).resource_path.ends_with("dot.ogg"))
 	var cooldowns := AudioService.get("_cue_cooldowns_ms") as Dictionary
 	assert(not cooldowns.has(&"tutorial_type"))
 	var cue_volumes := AudioService.get("_cue_volume_db") as Dictionary
@@ -71,20 +71,20 @@ func _run_test() -> void:
 	assert(card_select == card_deselect)
 	assert(card_select.random_pitch_semitones > 0.0)
 	var card_hover := catalog[&"card_hover"] as AudioStreamRandomizer
-	assert(card_hover.get_stream(0).resource_path.ends_with("card_hover.wav"))
+	assert(card_hover.get_stream(0).resource_path.ends_with("card_hover.ogg"))
 	assert(card_hover.random_pitch_semitones > 0.0)
 	var card_play := catalog[&"card_play"] as AudioStreamRandomizer
-	assert(card_play.get_stream(0).resource_path.ends_with("card_play.wav"))
+	assert(card_play.get_stream(0).resource_path.ends_with("card_play.ogg"))
 	assert(card_play.random_pitch_semitones > 0.0)
 	var dice_land := catalog[&"dice_land"] as AudioStreamRandomizer
 	assert(dice_land.streams_count == 4)
-	assert(dice_land.get_stream(0).resource_path.ends_with("dice_roll_1.wav"))
+	assert(dice_land.get_stream(0).resource_path.ends_with("dice_roll_1.ogg"))
 	var bonus_steps: Array[AudioStream] = AudioService.get("_bonus_streams")
 	assert(
 		(bonus_steps[0] as AudioStreamRandomizer)
 		.get_stream(0)
 		.resource_path
-		.ends_with("trumpet_cheerful.wav")
+		.ends_with("trumpet_cheerful.ogg")
 	)
 
 	AudioService.play(&"ui_hover")

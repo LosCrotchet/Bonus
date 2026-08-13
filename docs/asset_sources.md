@@ -7,6 +7,7 @@
 - 教程 emoji：项目外部参考目录 `emoji`，项目内只保留教程实际选用的角色和手势。
 - 音效：项目外部参考目录 `SFX_collection`。
 - 背景音乐：项目所有者提供的主菜单与游戏界面曲目。
+- 字体：Adobe Source Han Sans SC VF；项目内文件为按中英文翻译源裁剪的可变字体子集，保留字重轴并允许 Godot 使用系统字体回退显示玩家自定义字符。
 
 声音触发位置见 `docs/sound_cue_catalog.md`。
 

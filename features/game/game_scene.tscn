@@ -10,7 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://cfp8iupc6q5ix" path="res://assets/icons/restart_left.png" id="9_restart_icon"]
 [ext_resource type="Texture2D" uid="uid://b63m3i6ycb48e" path="res://assets/icons/button_home.png" id="10_home_icon"]
 [ext_resource type="PackedScene" path="res://features/game/ui/hand_types_dialog.tscn" id="11_hand_types"]
-[ext_resource type="FontFile" uid="uid://bobda3iv4j3mt" path="res://assets/fonts/SourceHanSans-VF.otf.ttc" id="12_font"]
+[ext_resource type="FontFile" path="res://assets/fonts/SourceHanSansSC-Subset.otf" id="12_font"]
 [ext_resource type="Texture2D" uid="uid://b4h3mfmcminm2" path="res://assets/icons/list_menu_32.png" id="13_list_icon"]
 [ext_resource type="Texture2D" uid="uid://bdttkw2mgnlec" path="res://assets/icons/clock_icon.png" id="14_clock_icon"]
 [ext_resource type="Texture2D" uid="uid://pion13bnj443" path="res://assets/icons/auto_dice.png" id="15_auto_dice"]

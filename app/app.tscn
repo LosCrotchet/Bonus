@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://app/app.gd" id="1_app"]
-[ext_resource type="FontFile" path="res://assets/fonts/SourceHanSans-VF.otf.ttc" id="2_font"]
+[ext_resource type="FontFile" path="res://assets/fonts/SourceHanSansSC-Subset.otf" id="2_font"]
 
 [sub_resource type="FontVariation" id="Font_default"]
 base_font = ExtResource("2_font")

@@ -13,10 +13,10 @@
 
 | 事件 | 素材与播放规则 |
 | --- | --- |
-| `ui_hover` | `new_hover.wav`，轻微随机变调 |
+| `ui_hover` | `new_hover.ogg`，轻微随机变调 |
 | `ui_confirm` / `ui_cancel` / `ui_invalid` | 对应同名素材；弹出式界面不叠加 confirm |
 | `tutorial_confirm` | 教程对话确认；复用 `pop_1`～`pop_4` 随机池并轻微变调 |
-| `tutorial_type` | 教程逐字显示；`dot.wav`，每个步骤可设置每 N 个字符播放一次，不设全局冷却并轻微变调 |
+| `tutorial_type` | 教程逐字显示；`dot.ogg`，每个步骤可设置每 N 个字符播放一次，不设全局冷却并轻微变调 |
 | `ui_fade_in` / `ui_fade_out` | 主菜单二级菜单、游戏设置、牌型窗口、万能牌选择窗口及场景转场 |
 | `card_deal` / `card_draw` | 共用 `card_draw_1`～`card_draw_3`，按用途调整音量并轻微变调 |
 | `card_select` / `card_deselect` | 共用 `card_select`，使用不同音量并随机变调 |
@@ -25,7 +25,7 @@
 | `card_reveal` | `card_fan`、`card_fan_2` 随机播放并轻微变调 |
 | `dice_shake` | `dice_shake_1`～`dice_shake_3` |
 | `dice_land` | `dice_roll_1`～`dice_roll_4` |
-| `bonus_trigger` | 使用 `trumpet_cheerful.wav`，每次触发 BONUS 时播放 |
+| `bonus_trigger` | 使用 `trumpet_cheerful.ogg`，每次触发 BONUS 时播放 |
 | `pass` / `turn_change` / `round_start` | 对应同名素材 |
 | `settings_applied` / `game_win` / `game_lose` | 对应同名素材 |
 | `bonus_loop` | 暂不播放，等待后续素材 |
