@@ -55,6 +55,19 @@ trigger_mode = 1
 event_key = &"before_forced_draw"
 conditions = Array[ExtResource("3")]([SubResource("condition_draw_not_explained"), SubResource("condition_draw_human")])
 
+[sub_resource type="Resource" id="condition_draw_other"]
+script = ExtResource("3")
+property_path = "player_index"
+operator = 1
+compare_value = "0"
+
+[sub_resource type="Resource" id="to_draw_other"]
+script = ExtResource("2")
+target_step_id = &"forced_draw_other"
+trigger_mode = 1
+event_key = &"before_forced_draw"
+conditions = Array[ExtResource("3")]([SubResource("condition_draw_not_explained"), SubResource("condition_draw_other")])
+
 [sub_resource type="Resource" id="to_complete"]
 script = ExtResource("2")
 target_step_id = &"tutorial_complete"
@@ -67,5 +80,5 @@ step_id = &"post_tutorial_monitor"
 continue_mode = 1
 blocks_gameplay = false
 dim_background = false
-transitions = Array[ExtResource("2")]([SubResource("to_human"), SubResource("to_other"), SubResource("to_draw"), SubResource("to_complete")])
+transitions = Array[ExtResource("2")]([SubResource("to_human"), SubResource("to_other"), SubResource("to_draw"), SubResource("to_draw_other"), SubResource("to_complete")])
 editor_graph_position = Vector2(2000, 120)

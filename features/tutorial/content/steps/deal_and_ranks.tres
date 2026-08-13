@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="1"]
 [ext_resource type="Script" uid="uid://d2eaooap6slc5" path="res://features/tutorial/tutorial_control_directive.gd" id="1_3jiw3"]
 [ext_resource type="Script" uid="uid://dtoxh4pjc2v8j" path="res://features/tutorial/tutorial_transition.gd" id="2"]
-[ext_resource type="Texture2D" uid="uid://02ohent4f5hg" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="3"]
+[ext_resource type="Texture2D" uid="uid://c02av1l2yia2e" path="res://assets/tutorial/emoji/emoji_u1f62f.png" id="2_3jiw3"]
 [ext_resource type="Texture2D" uid="uid://du3o445cid11l" path="res://assets/tutorial/emoji/point_down.png" id="4"]
 [ext_resource type="Script" uid="uid://dgss6q7ydmndf" path="res://features/tutorial/tutorial_ai_command.gd" id="5_p37fg"]
 [ext_resource type="Script" uid="uid://6ma7dkfcx3mm" path="res://features/tutorial/tutorial_condition.gd" id="7_7aapi"]
@@ -18,7 +18,7 @@ event_key = &"initial_deal_finished"
 script = ExtResource("1")
 step_id = &"deal_and_ranks"
 message_key = &"TUTORIAL_DEAL_AND_RANKS"
-emoji = ExtResource("3")
+emoji = ExtResource("2_3jiw3")
 placement = 1
 use_custom_dialog_rect = true
 normalized_dialog_rect = Rect2(0.17, 0.06, 0.66, 0.27)

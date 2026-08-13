@@ -40,11 +40,19 @@ func _exit_tree() -> void:
 	_music_streams.clear()
 
 
-func play(cue: StringName, volume_offset_db: float = 0.0) -> void:
+func play(
+	cue: StringName,
+	volume_offset_db: float = 0.0,
+	pitch_scale: float = 1.0,
+) -> void:
 	var stream := _cue_streams.get(cue) as AudioStream
 	if stream == null or not _can_play(cue):
 		return
-	_play_stream(stream, float(_cue_volume_db.get(cue, 0.0)) + volume_offset_db)
+	_play_stream(
+		stream,
+		float(_cue_volume_db.get(cue, 0.0)) + volume_offset_db,
+		pitch_scale,
+	)
 
 
 func play_delayed(cue: StringName, delay: float, volume_offset_db: float = 0.0) -> void:
@@ -250,7 +258,11 @@ func _build_music_players() -> void:
 		_music_players.append(player)
 
 
-func _play_stream(stream: AudioStream, volume_db: float) -> void:
+func _play_stream(
+	stream: AudioStream,
+	volume_db: float,
+	pitch_scale: float = 1.0,
+) -> void:
 	if (
 		stream == null
 		or _players.is_empty()
@@ -260,6 +272,7 @@ func _play_stream(stream: AudioStream, volume_db: float) -> void:
 	var player := _find_available_player()
 	player.stream = stream
 	player.volume_db = volume_db
+	player.pitch_scale = maxf(0.01, pitch_scale)
 	player.play()
 
 
@@ -278,6 +291,7 @@ func _find_available_player() -> AudioStreamPlayer:
 func _release_player(player: AudioStreamPlayer) -> void:
 	if is_instance_valid(player) and not player.playing:
 		player.stream = null
+		player.pitch_scale = 1.0
 
 
 func _can_play(cue: StringName) -> bool:

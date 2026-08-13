@@ -3,7 +3,8 @@ extends Control
 
 signal event_source_released
 
-const TYPEWRITER_CHARACTERS_PER_SECOND := 16.0
+const TYPEWRITER_CHARACTERS_PER_SECOND := 32.0
+const TYPEWRITER_SOUND_PITCH_SCALE := 2.0
 const NO_HIGHLIGHT_CUTOUT := Vector4(-1.0, -1.0, -1.0, -1.0)
 
 @onready var blocker: ColorRect = %Blocker
@@ -242,7 +243,7 @@ func _run_typewriter(
 		revealed += 1
 		message_label.visible_characters = revealed
 		if (revealed - 1) % sound_interval == 0:
-			AudioService.play(&"tutorial_type")
+			AudioService.play(&"tutorial_type", 0.0, TYPEWRITER_SOUND_PITCH_SCALE)
 	_complete_text_reveal(expected_step, generation)
 
 

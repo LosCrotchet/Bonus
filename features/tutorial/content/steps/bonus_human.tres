@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="1"]
 [ext_resource type="Script" uid="uid://d2eaooap6slc5" path="res://features/tutorial/tutorial_control_directive.gd" id="1_5qi2i"]
 [ext_resource type="Script" uid="uid://dtoxh4pjc2v8j" path="res://features/tutorial/tutorial_transition.gd" id="2"]
-[ext_resource type="Texture2D" uid="uid://02ohent4f5hg" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="3"]
+[ext_resource type="Texture2D" uid="uid://duve4l7dyoffs" path="res://assets/tutorial/emoji/emoji_u1f60b.png" id="2_5qi2i"]
 [ext_resource type="Script" uid="uid://dgss6q7ydmndf" path="res://features/tutorial/tutorial_ai_command.gd" id="4_0ensw"]
 [ext_resource type="Script" uid="uid://6ma7dkfcx3mm" path="res://features/tutorial/tutorial_condition.gd" id="6_dgxex"]
 
@@ -15,7 +15,7 @@ target_step_id = &"post_tutorial_monitor"
 script = ExtResource("1")
 step_id = &"bonus_human"
 message_key = &"TUTORIAL_BONUS_HUMAN"
-emoji = ExtResource("3")
+emoji = ExtResource("2_5qi2i")
 placement = 1
 use_custom_dialog_rect = true
 normalized_dialog_rect = Rect2(0.16, 0.63, 0.68, 0.32)

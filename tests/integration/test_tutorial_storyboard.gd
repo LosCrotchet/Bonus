@@ -21,6 +21,10 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var director := game.get("_tutorial_director") as TutorialDirector
+	assert(is_equal_approx(
+		float(game.call("_get_initial_deal_card_duration")),
+		SettingsService.get_deal_card_duration() * 0.5,
+	))
 	assert(_step_id(director) == &"welcome")
 	_advance_dialog(director)
 	assert(_step_id(director) == &"intro_goal")
@@ -73,10 +77,10 @@ func _run_test() -> void:
 	# The first empty-round draw lesson remains available even when the player
 	# did not pass during their first action.
 	assert(director.notify_checkpoint(&"before_forced_draw", {
-		"player_index": 0,
+		"player_index": 1,
 		"draw_count": 3,
 	}))
-	assert(_step_id(director) == &"forced_draw")
+	assert(_step_id(director) == &"forced_draw_other")
 	_advance_dialog(director)
 	assert(_step_id(director) == &"wait_next_player_checkpoint")
 	assert(director.notify_checkpoint(&"before_next_player_roll", {"player_index": 1}))
@@ -84,10 +88,6 @@ func _run_test() -> void:
 	_advance_dialog(director)
 	assert(_step_id(director) == &"post_tutorial_monitor")
 	assert(bool(game.get("tutorial_draw_explained")))
-	assert(not director.notify_checkpoint(&"before_forced_draw", {
-		"player_index": 1,
-		"draw_count": 3,
-	}))
 	assert(not director.notify_checkpoint(&"before_forced_draw", {
 		"player_index": 0,
 		"draw_count": 3,
@@ -126,6 +126,7 @@ func _assert_storyboard_resources(scenario: TutorialScenario) -> void:
 		&"bonus_human",
 		&"bonus_other",
 		&"forced_draw",
+		&"forced_draw_other",
 		&"next_player_intro",
 		&"tutorial_complete",
 	]:
@@ -148,6 +149,13 @@ func _assert_storyboard_resources(scenario: TutorialScenario) -> void:
 			action_events.append(transition.event_key)
 	assert(&"action_play" in action_events)
 	assert(&"action_pass" in action_events)
+	var monitor := scenario.get_step(&"post_tutorial_monitor")
+	var forced_draw_targets: Array[StringName] = []
+	for transition in monitor.transitions:
+		if transition != null and transition.event_key == &"before_forced_draw":
+			forced_draw_targets.append(transition.target_step_id)
+	assert(&"forced_draw" in forced_draw_targets)
+	assert(&"forced_draw_other" in forced_draw_targets)
 	for bonus_step_id in [&"bonus_human", &"bonus_other"]:
 		var bonus_step := scenario.get_step(bonus_step_id)
 		assert(bonus_step.minimum_display_time == 4.0)

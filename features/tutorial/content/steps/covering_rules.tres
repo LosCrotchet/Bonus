@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://dtxpbv4c856va" path="res://features/tutorial/tutorial_step.gd" id="1"]
 [ext_resource type="Script" uid="uid://d2eaooap6slc5" path="res://features/tutorial/tutorial_control_directive.gd" id="1_3xffj"]
 [ext_resource type="Script" uid="uid://dtoxh4pjc2v8j" path="res://features/tutorial/tutorial_transition.gd" id="2"]
-[ext_resource type="Texture2D" uid="uid://02ohent4f5hg" path="res://assets/tutorial/emoji/emoji_u1f600.png" id="3"]
+[ext_resource type="Texture2D" uid="uid://br7qhu53kyoka" path="res://assets/tutorial/emoji/emoji_u1f914.png" id="2_3xffj"]
 [ext_resource type="Script" uid="uid://dgss6q7ydmndf" path="res://features/tutorial/tutorial_ai_command.gd" id="4_xdq4h"]
 [ext_resource type="Script" uid="uid://6ma7dkfcx3mm" path="res://features/tutorial/tutorial_condition.gd" id="6_dlpg6"]
 
@@ -15,11 +15,11 @@ target_step_id = &"joker_reminder"
 script = ExtResource("1")
 step_id = &"covering_rules"
 message_key = &"TUTORIAL_COVERING_RULES"
-emoji = ExtResource("3")
+emoji = ExtResource("2_3xffj")
 use_custom_dialog_rect = true
 normalized_dialog_rect = Rect2(0.16, 0.64, 0.68, 0.3)
 blocks_gameplay = false
-minimum_display_time = 7.0
+minimum_display_time = 4.0
 input_locks = 439
 transitions = Array[ExtResource("2")]([SubResource("to_joker")])
 editor_graph_position = Vector2(1280, 120)

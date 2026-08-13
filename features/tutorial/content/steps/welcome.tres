@@ -16,7 +16,6 @@ script = ExtResource("1")
 step_id = &"welcome"
 message_key = &"TUTORIAL_WELCOME"
 emoji = ExtResource("3")
-use_custom_dialog_rect = true
 normalized_dialog_rect = Rect2(0.30499998, 0.5822222, 0.67749995, 0.41777775)
 minimum_display_time = 1.0
 transitions = Array[ExtResource("2")]([SubResource("to_intro")])

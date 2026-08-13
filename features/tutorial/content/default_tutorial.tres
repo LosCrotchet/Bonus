@@ -18,10 +18,11 @@
 [ext_resource type="Resource" uid="uid://cf8n4meirk8xh" path="res://features/tutorial/content/steps/wait_next_player_checkpoint.tres" id="18"]
 [ext_resource type="Resource" uid="uid://c8d0xidewmg5n" path="res://features/tutorial/content/steps/post_tutorial_monitor.tres" id="20"]
 [ext_resource type="Resource" uid="uid://crd770n2ylwrc" path="res://features/tutorial/content/steps/welcome.tres" id="23"]
+[ext_resource type="Resource" path="res://features/tutorial/content/steps/forced_draw_other.tres" id="24"]
 
 [resource]
 script = ExtResource("1")
 seed_text = "tutorial"
 forced_first_human_roll = 5
-steps = Array[ExtResource("2")]([ExtResource("23"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8"), ExtResource("14"), ExtResource("15"), ExtResource("20"), ExtResource("9"), ExtResource("13"), ExtResource("10"), ExtResource("18"), ExtResource("11"), ExtResource("16")])
+steps = Array[ExtResource("2")]([ExtResource("23"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8"), ExtResource("14"), ExtResource("15"), ExtResource("20"), ExtResource("9"), ExtResource("13"), ExtResource("10"), ExtResource("24"), ExtResource("18"), ExtResource("11"), ExtResource("16")])
 entry_step_id = &"welcome"

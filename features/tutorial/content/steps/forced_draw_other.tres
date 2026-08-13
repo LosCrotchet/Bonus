@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="TutorialStep" format=3]
+
+[ext_resource type="Script" path="res://features/tutorial/tutorial_step.gd" id="1"]
+[ext_resource type="Script" path="res://features/tutorial/tutorial_transition.gd" id="2"]
+[ext_resource type="Texture2D" path="res://assets/tutorial/emoji/emoji_u1f633.png" id="3"]
+
+[sub_resource type="Resource" id="to_next_player"]
+script = ExtResource("2")
+target_step_id = &"wait_next_player_checkpoint"
+
+[resource]
+script = ExtResource("1")
+step_id = &"forced_draw_other"
+message_key = &"TUTORIAL_FORCED_DRAW_OTHER"
+emoji = ExtResource("3")
+use_custom_dialog_rect = true
+normalized_dialog_rect = Rect2(0.18, 0.66, 0.64, 0.27)
+blocks_gameplay = false
+highlight_path = NodePath("SafeArea/MainLayout/HandPanel")
+blocks_event_source = true
+releases_event_source = true
+minimum_display_time = 3.0
+input_locks = 439
+transitions = Array[ExtResource("2")]([SubResource("to_next_player")])
+editor_graph_position = Vector2(780, 360)

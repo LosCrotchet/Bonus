@@ -843,7 +843,7 @@ func _animate_initial_deal_card(player_index: int) -> void:
 	card.rotation = -0.08
 	add_child(card)
 	_deal_flying_cards.append(card)
-	var duration := SettingsService.get_deal_card_duration()
+	var duration := _get_initial_deal_card_duration()
 	var destination_size := (
 		Vector2(52.0, 74.0)
 		if player_index == _human_player_index
@@ -902,7 +902,7 @@ func _pulse_draw_pile() -> void:
 		_draw_pile_activity_tween.kill()
 	draw_pile_view.pivot_offset = draw_pile_view.size * 0.5
 	draw_pile_view.rotation = 0.0
-	var duration := SettingsService.get_deal_card_duration() * 0.8
+	var duration := _get_initial_deal_card_duration() * 0.8
 	_draw_pile_activity_tween = create_tween()
 	_draw_pile_activity_tween.tween_property(
 		draw_pile_view,
@@ -930,6 +930,11 @@ func _reset_draw_pile_activity() -> void:
 		_draw_pile_activity_tween = null
 	if is_instance_valid(draw_pile_view):
 		draw_pile_view.rotation = 0.0
+
+
+func _get_initial_deal_card_duration() -> float:
+	var duration := SettingsService.get_deal_card_duration()
+	return duration * 0.5 if _tutorial_mode else duration
 
 
 func _get_visible_hand_count(player_index: int) -> int:
