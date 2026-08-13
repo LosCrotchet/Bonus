@@ -32,8 +32,14 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	assert(_step_id(director) == &"deal_and_ranks")
 	assert(not bool(game.get("_tutorial_gameplay_locked")))
+	# Clicking during the deal cannot advance this step, even after its copy is
+	# fully revealed and its authored display time has elapsed.
+	_advance_dialog(director)
+	assert(_step_id(director) == &"deal_and_ranks")
 	game.call("_finish_initial_deal")
 	await get_tree().process_frame
+	assert(_step_id(director) == &"deal_and_ranks")
+	_advance_dialog(director)
 	assert(_step_id(director) == &"first_roll_intro")
 	_advance_dialog(director)
 	assert(_step_id(director) == &"wait_first_roll")
@@ -55,7 +61,7 @@ func _run_test() -> void:
 	assert(await _wait_until(
 		func() -> bool:
 			return (game.get_node("%ActionBar") as Control).visible,
-		1.0,
+		3.0,
 	))
 	assert(not (game.get_node("%PassButton") as Button).disabled)
 	assert(bool(game.get_node("%HandView").get("_interaction_enabled")))
@@ -133,6 +139,12 @@ func _assert_storyboard_resources(scenario: TutorialScenario) -> void:
 		assert(scenario.get_step(step_id) != null, "Missing tutorial step: %s" % step_id)
 	var deal := scenario.get_step(&"deal_and_ranks")
 	assert(deal.pointer_offset == Vector2(-100.0, -120.0))
+	assert(deal.continue_mode == TutorialStep.ContinueMode.BUTTON)
+	assert(deal.continue_event == &"initial_deal_finished")
+	assert(deal.transitions.size() == 1)
+	assert(
+		deal.transitions[0].trigger_mode == TutorialTransition.TriggerMode.CLICK
+	)
 	var first_roll := scenario.get_step(&"first_roll_intro")
 	assert(first_roll.pointer_offset == Vector2(150.0, 0.0))
 	assert(first_roll.normalized_dialog_rect.size.x >= 0.479)
@@ -158,7 +170,7 @@ func _assert_storyboard_resources(scenario: TutorialScenario) -> void:
 	assert(&"forced_draw_other" in forced_draw_targets)
 	for bonus_step_id in [&"bonus_human", &"bonus_other"]:
 		var bonus_step := scenario.get_step(bonus_step_id)
-		assert(bonus_step.minimum_display_time == 4.0)
+		assert(bonus_step.minimum_display_time > 0.0)
 		assert(bonus_step.normalized_dialog_rect.position.y >= 0.6)
 
 

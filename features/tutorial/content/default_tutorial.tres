@@ -18,7 +18,7 @@
 [ext_resource type="Resource" uid="uid://cf8n4meirk8xh" path="res://features/tutorial/content/steps/wait_next_player_checkpoint.tres" id="18"]
 [ext_resource type="Resource" uid="uid://c8d0xidewmg5n" path="res://features/tutorial/content/steps/post_tutorial_monitor.tres" id="20"]
 [ext_resource type="Resource" uid="uid://crd770n2ylwrc" path="res://features/tutorial/content/steps/welcome.tres" id="23"]
-[ext_resource type="Resource" path="res://features/tutorial/content/steps/forced_draw_other.tres" id="24"]
+[ext_resource type="Resource" uid="uid://dfcffcbytyrkn" path="res://features/tutorial/content/steps/forced_draw_other.tres" id="24"]
 
 [resource]
 script = ExtResource("1")

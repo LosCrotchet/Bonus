@@ -11,8 +11,6 @@
 [sub_resource type="Resource" id="to_first_roll"]
 script = ExtResource("2")
 target_step_id = &"first_roll_intro"
-trigger_mode = 1
-event_key = &"initial_deal_finished"
 
 [resource]
 script = ExtResource("1")
@@ -25,7 +23,7 @@ normalized_dialog_rect = Rect2(0.17, 0.06, 0.66, 0.27)
 pointer_emoji = ExtResource("4")
 pointer_target_path = NodePath("SafeArea/MainLayout/HandPanel")
 pointer_offset = Vector2(-100, -120)
-continue_mode = 1
+continue_event = &"initial_deal_finished"
 blocks_gameplay = false
 dim_background = false
 highlight_path = NodePath("SafeArea/MainLayout/HandPanel")

@@ -24,6 +24,7 @@ var _pointer_tween: Tween
 var _continue_indicator_tween: Tween
 var _continue_float_tween: Tween
 var _continue_ready := false
+var _continue_event_received := true
 var _text_reveal_complete := true
 var _minimum_display_complete := true
 var _presentation_generation := 0
@@ -75,6 +76,15 @@ func restart() -> void:
 
 func notify_event(event_key: StringName, payload: Dictionary = {}) -> void:
 	if not _started:
+		return
+	if (
+		_current_step != null
+		and _current_step.continue_mode == TutorialStep.ContinueMode.BUTTON
+		and not _current_step.continue_event.is_empty()
+		and _current_step.continue_event == event_key
+	):
+		_continue_event_received = true
+		_try_enable_continue()
 		return
 	if _scenario != null and _scenario.uses_graph():
 		if _current_step == null:
@@ -201,6 +211,7 @@ func _show_step(step: TutorialStep) -> void:
 	pointer_emoji_view.custom_minimum_size = Vector2.ONE * step.pointer_size
 	pointer_emoji_view.size = Vector2.ONE * step.pointer_size
 	_continue_ready = false
+	_continue_event_received = step.continue_event.is_empty()
 	_text_reveal_complete = message.is_empty()
 	_minimum_display_complete = minimum_display_time <= 0.0
 	continue_indicator.visible = false
@@ -280,6 +291,7 @@ func _try_enable_continue() -> void:
 		or _current_step.continue_mode != TutorialStep.ContinueMode.BUTTON
 		or not _text_reveal_complete
 		or not _minimum_display_complete
+		or not _continue_event_received
 		or _continue_ready
 	):
 		return
@@ -375,6 +387,7 @@ func _finish_current_step(unlock_gameplay := true) -> void:
 	)
 	_presentation_generation += 1
 	_continue_ready = false
+	_continue_event_received = true
 	_text_reveal_complete = true
 	_minimum_display_complete = true
 	_current_step = null
